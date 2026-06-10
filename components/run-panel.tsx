@@ -325,9 +325,9 @@ export function RunPanel({
           </div>
 
           {!canRun && !busy && (
-            <p className="mt-2 text-xs text-navy-800/45">
-              Type some context or attach a file (e.g. a {inputLabel.toLowerCase()})
-              to run this workflow.
+            <p className="mt-3 inline-block rounded-chip bg-amber-400/15 px-3 py-2 text-sm font-medium text-navy-800/80">
+              ☝️ Type some context or attach a file (e.g.{" "}
+              {inputLabel.toLowerCase()}) to run this workflow.
             </p>
           )}
 
