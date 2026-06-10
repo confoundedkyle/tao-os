@@ -8,6 +8,7 @@ import { checkBudgets } from "@/lib/budgets";
 import {
   computeCostUsd,
   getLanguageModel,
+  providerLabel,
   resolveRunProviders,
   type ResolvedProvider,
 } from "@/lib/providers";
@@ -92,10 +93,25 @@ export async function POST(request: NextRequest) {
 
   // Resolve provider chain; drop 'calyflow' when the platform credit is
   // spent (a BYO fallback instantly unblocks — SPEC §10).
-  let chain = env.mockAi
-    ? mockChain()
-    : await resolveRunProviders(session.workspaceId);
   const contextNotes: string[] = [];
+  let chain: ResolvedProvider[];
+  let unreadableKeys: string[] = [];
+  if (env.mockAi) {
+    chain = mockChain();
+  } else {
+    const resolved = await resolveRunProviders(session.workspaceId);
+    chain = resolved.providers;
+    unreadableKeys = resolved.unreadableKeys;
+  }
+  // A saved key that won't decrypt was skipped above. If the run still has a
+  // working provider, note it; otherwise it becomes the failure reason below.
+  const unreadableMessage =
+    unreadableKeys.length > 0
+      ? `Your saved ${formatProviderList(unreadableKeys)} API key couldn't be read — it was likely encrypted with a different key. Re-save it in Settings → AI Providers.`
+      : null;
+  if (unreadableMessage && chain.length > 0) {
+    contextNotes.push(unreadableMessage);
+  }
   const platformGate = await checkBudgets(session.workspace, "calyflow");
   if (platformGate.blocked && platformGate.reason === "platform_credit") {
     if (chain.some((p) => p.row.provider === "calyflow")) {
@@ -113,9 +129,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         error:
-          platformGate.blocked && platformGate.reason === "platform_credit"
+          unreadableMessage ??
+          (platformGate.blocked && platformGate.reason === "platform_credit"
             ? platformGate.message
-            : "No AI provider configured. Add one in Settings → AI Providers.",
+            : "No AI provider configured. Add one in Settings → AI Providers."),
       },
       { status: 402 },
     );
@@ -302,6 +319,13 @@ function mockChain(): ResolvedProvider[] {
       model: "mock-model",
     },
   ];
+}
+
+/** "OpenAI", "OpenAI and Anthropic", "OpenAI, Anthropic and Google" */
+function formatProviderList(providers: string[]): string {
+  const labels = providers.map(providerLabel);
+  if (labels.length <= 1) return labels[0] ?? "";
+  return `${labels.slice(0, -1).join(", ")} and ${labels[labels.length - 1]}`;
 }
 
 function mockResponse(workflowName: string): string[] {

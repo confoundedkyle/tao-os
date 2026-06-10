@@ -114,9 +114,15 @@ export interface ResolvedProvider {
  * Providers for a run, in priority order, with decrypted keys.
  * 'calyflow' resolves to the platform key — uniform, no special-casing.
  */
+export interface ResolvedProviders {
+  providers: ResolvedProvider[];
+  /** Provider names whose saved key couldn't be decrypted (need re-saving). */
+  unreadableKeys: string[];
+}
+
 export async function resolveRunProviders(
   workspaceId: string,
-): Promise<ResolvedProvider[]> {
+): Promise<ResolvedProviders> {
   const { data, error } = await db()
     .from("workspace_ai_providers")
     .select("*")
@@ -124,25 +130,36 @@ export async function resolveRunProviders(
     .order("priority");
   if (error) throw error;
 
-  const resolved: ResolvedProvider[] = [];
+  const providers: ResolvedProvider[] = [];
+  const unreadableKeys: string[] = [];
   for (const row of (data ?? []) as AiProvider[]) {
     if (row.provider === "calyflow") {
       if (!env.platformProviderEnabled) continue;
-      resolved.push({
+      providers.push({
         row,
         apiKey: env.platformApiKey,
         model: row.default_model || env.platformModel,
       });
     } else {
       if (!row.api_key_cipher || !row.default_model) continue;
-      resolved.push({
-        row,
-        apiKey: decrypt(row.api_key_cipher),
-        model: row.default_model,
-      });
+      // A key that can't be decrypted (e.g. APP_ENCRYPTION_KEY rotated since
+      // it was saved) must not crash the whole run — skip it and fall through
+      // to the next provider (often the Calyflow fallback). The user re-saves
+      // the key in Settings → AI Providers to restore it.
+      let apiKey: string;
+      try {
+        apiKey = decrypt(row.api_key_cipher);
+      } catch {
+        console.warn(
+          `Skipping ${row.provider} for workspace ${workspaceId}: stored API key could not be decrypted.`,
+        );
+        unreadableKeys.push(row.provider);
+        continue;
+      }
+      providers.push({ row, apiKey, model: row.default_model });
     }
   }
-  return resolved;
+  return { providers, unreadableKeys };
 }
 
 interface Pricing {
