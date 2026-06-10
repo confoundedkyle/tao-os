@@ -44,6 +44,10 @@ export const env = {
   get cronSecret() {
     return process.env.CRON_SECRET ?? "";
   },
+  /** Svix signing secret for the Clerk webhook endpoint. */
+  get clerkWebhookSigningSecret() {
+    return process.env.CLERK_WEBHOOK_SIGNING_SECRET ?? "";
+  },
   /** Dev flag: stream a canned response instead of calling a provider. */
   get mockAi() {
     return process.env.MOCK_AI === "true";

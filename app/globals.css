@@ -26,6 +26,19 @@
   --shadow-lift: 0 8px 30px rgba(19, 31, 56, 0.08);
 }
 
+button,
+[role="button"],
+a,
+select,
+label[for],
+input[type="checkbox"],
+input[type="radio"],
+input[type="file"],
+input[type="submit"],
+input[type="reset"] {
+  cursor: pointer;
+}
+
 body {
   background-color: var(--color-cream-50);
   color: var(--color-navy-800);

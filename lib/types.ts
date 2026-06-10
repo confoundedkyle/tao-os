@@ -30,7 +30,7 @@ export interface Project {
 
 export type DocScope = "workspace" | "client" | "project";
 export type DocKind = "kb" | "file";
-export type DocType = "jd" | "intake_notes" | "cv" | "note" | "output" | "other";
+export type DocType = "jd" | "intake_notes" | "cv" | "scorecard" | "note" | "output" | "other";
 
 export interface Doc {
   id: string;
@@ -105,6 +105,7 @@ export interface WorkflowRun {
   workspace_workflow_id: string;
   status: "running" | "succeeded" | "failed";
   input_doc_ids: string[] | null;
+  input_text: string | null;
   output_doc_id: string | null;
   rendered_prompt: string | null;
   context_notes: string[] | null;

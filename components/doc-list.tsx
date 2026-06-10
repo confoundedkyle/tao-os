@@ -1,11 +1,9 @@
 import Link from "next/link";
-import {
-  deleteDocumentAction,
-  setDocumentActiveAction,
-} from "@/lib/actions/documents";
+import { setDocumentActiveAction } from "@/lib/actions/documents";
 import { DOC_TYPE_LABELS } from "@/lib/readiness";
 import type { Doc } from "@/lib/types";
 import { Chip, Mono } from "./ui";
+import { DeleteDocButton } from "./delete-doc-button";
 
 export function DocList({ docs }: { docs: Doc[] }) {
   if (docs.length === 0) {
@@ -42,14 +40,7 @@ export function DocList({ docs }: { docs: Doc[] }) {
               </button>
             </form>
           )}
-          <form action={deleteDocumentAction.bind(null, doc.id)}>
-            <button
-              className="text-sm text-navy-800/40 hover:text-coral-400"
-              aria-label={`Delete ${doc.filename}`}
-            >
-              ✕
-            </button>
-          </form>
+          <DeleteDocButton docId={doc.id} filename={doc.filename} />
         </li>
       ))}
     </ul>

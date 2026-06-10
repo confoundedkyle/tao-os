@@ -3,6 +3,7 @@ import { getSession } from "@/lib/auth";
 import { checkBudgets } from "@/lib/budgets";
 import { listRecentRuns } from "@/lib/queries";
 import { env } from "@/lib/env";
+import Link from "next/link";
 import { ButtonLink, Card, Chip, Mono } from "@/components/ui";
 
 function Meter({ fraction }: { fraction: number }) {
@@ -74,7 +75,15 @@ export default async function UsagePage() {
           </Mono>
         </div>
         <p className="mb-4 text-sm text-navy-800/55">
-          All runs, all providers. Resets each calendar month.
+          All runs, all providers. Resets each calendar month.{" "}
+          <Link
+            href="/settings"
+            className="font-medium text-mint-700 hover:underline"
+          >
+            {budget.monthlyLimitUsd != null
+              ? "Change the limit in Settings →"
+              : "Set a monthly limit in Settings →"}
+          </Link>
         </p>
         {limitFraction !== null && <Meter fraction={limitFraction} />}
       </Card>
@@ -96,8 +105,18 @@ export default async function UsagePage() {
             </thead>
             <tbody>
               {runs.map((run) => (
-                <tr key={run.id} className="border-b border-navy-800/6">
-                  <td className="py-2">{run.workflow?.name ?? "—"}</td>
+                <tr
+                  key={run.id}
+                  className="relative border-b border-navy-800/6 transition-colors hover:bg-cream-100"
+                >
+                  <td className="py-2">
+                    <Link
+                      href={`/runs/${run.id}`}
+                      className="font-medium hover:text-mint-700 before:absolute before:inset-0 before:content-['']"
+                    >
+                      {run.workflow?.name ?? "—"}
+                    </Link>
+                  </td>
                   <td className="py-2">
                     <Mono className="!text-[12.5px]">{run.model ?? "—"}</Mono>
                   </td>

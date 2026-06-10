@@ -16,17 +16,42 @@ export async function importWorkflowAction(libraryWorkflowId: string) {
     .single();
   if (libraryError || !library) throw new Error("Workflow not found");
 
-  const { error } = await db().from("workspace_workflows").insert({
-    workspace_id: session.workspaceId,
-    library_workflow_id: library.id,
-    name: library.name,
-    prompt_template: library.prompt_template,
-    imported_version: library.version,
-  });
+  const { data: created, error } = await db()
+    .from("workspace_workflows")
+    .insert({
+      workspace_id: session.workspaceId,
+      library_workflow_id: library.id,
+      name: library.name,
+      prompt_template: library.prompt_template,
+      imported_version: library.version,
+    })
+    .select("id")
+    .single();
   if (error) throw error;
   revalidatePath("/workflows");
   revalidatePath("/library");
-  redirect("/workflows");
+  redirect(`/workflows?imported=${created.id}`);
+}
+
+/** Create a custom workflow from scratch — no library link. */
+export async function createWorkflowAction(formData: FormData) {
+  const session = await requireSession();
+  const name = String(formData.get("name") ?? "").trim();
+  const promptTemplate = String(formData.get("promptTemplate") ?? "");
+  if (!name) throw new Error("Name is required");
+
+  const { data, error } = await db()
+    .from("workspace_workflows")
+    .insert({
+      workspace_id: session.workspaceId,
+      name,
+      prompt_template: promptTemplate,
+    })
+    .select("id")
+    .single();
+  if (error) throw error;
+  revalidatePath("/workflows");
+  redirect(`/workflows/${data.id}`);
 }
 
 export async function updateWorkflowAction(formData: FormData) {

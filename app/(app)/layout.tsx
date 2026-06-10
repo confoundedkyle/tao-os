@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
-import { AppHeader } from "@/components/app-header";
+import { AppSidebar } from "@/components/app-sidebar";
 
 export default async function AppLayout({
   children,
@@ -9,20 +9,20 @@ export default async function AppLayout({
 }) {
   const session = await getSession();
   if (!session) redirect("/sign-in");
-  // Abandon-safe wizard: the workspace already works with safe defaults;
-  // nudge into onboarding until a type has been picked (SPEC §9).
   if (!session.workspace.workspace_type) redirect("/onboarding");
 
   return (
-    <>
-      <AppHeader session={session} />
-      <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-10">
-        {children}
-      </main>
-      <footer className="bg-navy-900 py-6 text-center text-sm text-cream-50/70">
-        Calyflow — open-source recruiting OS ·{" "}
-        <span className="font-mono">AGPL-3.0</span>
-      </footer>
-    </>
+    <div className="flex h-dvh overflow-hidden">
+      <AppSidebar session={session} />
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <main className="flex flex-1 flex-col overflow-y-auto px-10 pt-10">
+          <div className="flex-1">{children}</div>
+          <footer className="mt-16 border-t border-navy-800/8 py-4 text-center text-xs text-navy-800/35">
+            Calyflow — open-source recruiting OS ·{" "}
+            <span className="font-mono">AGPL-3.0</span>
+          </footer>
+        </main>
+      </div>
+    </div>
   );
 }

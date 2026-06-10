@@ -32,6 +32,21 @@ export async function requireAdmin(): Promise<Session> {
   return session;
 }
 
+/**
+ * Renames the backing Clerk organization so the org name shown in Clerk's
+ * widgets (OrganizationSwitcher) stays in sync with the workspace name.
+ * No-op in single-workspace mode (no Clerk org).
+ */
+export async function syncClerkOrgName(
+  clerkOrgId: string,
+  name: string,
+): Promise<void> {
+  if (env.singleWorkspace || clerkOrgId === SINGLE_WORKSPACE_ORG_ID) return;
+  const { clerkClient } = await import("@clerk/nextjs/server");
+  const client = await clerkClient();
+  await client.organizations.updateOrganization(clerkOrgId, { name });
+}
+
 async function getClerkSession(): Promise<Session | null> {
   const { auth, clerkClient } = await import("@clerk/nextjs/server");
   const { userId, orgId, orgRole } = await auth();
@@ -40,6 +55,17 @@ async function getClerkSession(): Promise<Session | null> {
   let clerkOrgId = orgId ?? null;
   let role: Session["role"] =
     orgRole === "org:admin" ? "admin" : orgId ? "member" : "admin";
+
+  // The org name the user set in Clerk (auto-created or typed when creating a
+  // new org) becomes the workspace name so onboarding prefills it. Resolved
+  // lazily — only when the workspace row is first created.
+  let resolveName: string | (() => Promise<string>) = async () => {
+    const client = await clerkClient();
+    const org = await client.organizations.getOrganization({
+      organizationId: clerkOrgId!,
+    });
+    return org.name || "Default workspace";
+  };
 
   if (!clerkOrgId) {
     // First authenticated request with no active org: reuse the user's first
@@ -52,6 +78,7 @@ async function getClerkSession(): Promise<Session | null> {
     if (first) {
       clerkOrgId = first.organization.id;
       role = first.role === "org:admin" ? "admin" : "member";
+      resolveName = first.organization.name || "Default workspace";
     } else {
       const org = await client.organizations.createOrganization({
         name: "Default workspace",
@@ -59,10 +86,11 @@ async function getClerkSession(): Promise<Session | null> {
       });
       clerkOrgId = org.id;
       role = "admin";
+      resolveName = org.name || "Default workspace";
     }
   }
 
-  const workspace = await ensureWorkspace(clerkOrgId, "Default workspace");
+  const workspace = await ensureWorkspace(clerkOrgId, resolveName);
   return { userId, workspaceId: workspace.id, role, workspace };
 }
 

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireAdmin, requireSession } from "../auth";
+import { requireAdmin, requireSession, syncClerkOrgName } from "../auth";
 import { db } from "../db";
 import { encrypt } from "../crypto";
 import { env } from "../env";
@@ -21,6 +21,8 @@ export async function updateWorkspaceNameAction(formData: FormData) {
     .update({ name })
     .eq("id", session.workspaceId);
   if (error) throw error;
+  // Keep Clerk's org name (shown in the OrganizationSwitcher) in sync.
+  await syncClerkOrgName(session.workspace.clerk_org_id, name);
   revalidatePath("/settings");
   revalidatePath("/onboarding");
 }
@@ -222,7 +224,22 @@ export async function removeProviderAction(providerId: string) {
   revalidatePath("/settings/providers");
 }
 
-/** Onboarding step 3 — "Use Calyflow default" just confirms the existing row. */
+/**
+ * Onboarding step 3 — BYO-key path. Saves the provider and only finishes
+ * onboarding when the key validates; otherwise the error is returned so the
+ * form can show it and the user can retry or skip.
+ */
+export async function saveProviderAndFinishOnboardingAction(
+  prev: SaveProviderResult | null,
+  formData: FormData,
+): Promise<SaveProviderResult> {
+  const result = await saveProviderAction(prev, formData);
+  if (!result.ok) return result;
+  await finishOnboardingAction();
+  return result;
+}
+
+/** Onboarding step 3 — "Use Calyflow default" / "Skip" just confirms the row. */
 export async function finishOnboardingAction() {
   const session = await requireSession();
   // Safe default if the user skipped the type step entirely.

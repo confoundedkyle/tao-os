@@ -3,9 +3,17 @@ import { notFound, redirect } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { getSession } from "@/lib/auth";
-import { getDocument } from "@/lib/queries";
+import { getDocument, getProject } from "@/lib/queries";
 import { DOC_TYPE_LABELS } from "@/lib/readiness";
-import { Card, Chip, Mono, PageHeader } from "@/components/ui";
+import { Card, Chip, PageHeader } from "@/components/ui";
+import { DownloadButtons } from "@/components/download-buttons";
+
+// Friendly, jargon-free provenance for non-technical users.
+const SOURCE_LABELS: Record<string, string> = {
+  workflow: "AI-generated",
+  upload: "Uploaded file",
+  pasted: "Added manually",
+};
 
 export default async function DocPage({
   params,
@@ -18,18 +26,28 @@ export default async function DocPage({
   const doc = await getDocument(session.workspaceId, docId);
   if (!doc) notFound();
 
-  const backHref =
+  const project =
     doc.scope_type === "project"
-      ? null // project URL needs the client id — fall back to browser history
+      ? await getProject(session.workspaceId, doc.scope_id)
+      : null;
+
+  const backHref =
+    project
+      ? `/clients/${project.client.id}/projects/${project.id}`
       : doc.scope_type === "client"
         ? `/clients/${doc.scope_id}`
-        : "/settings";
+        : "/knowledge";
 
   return (
     <>
       {backHref && (
-        <Link href={backHref} className="mb-2 block text-sm text-navy-800/45 hover:text-mint-700">
-          ← Back
+        <Link href={backHref} className="mb-4 inline-block text-sm text-navy-800/45 hover:text-mint-700">
+          ←{" "}
+          {project
+            ? `${project.client.name} / ${project.name}`
+            : doc.scope_type === "client"
+              ? "Back to project"
+              : "Knowledge Base"}
         </Link>
       )}
       <PageHeader
@@ -45,19 +63,22 @@ export default async function DocPage({
           </div>
         }
       />
-      <Mono className="mb-4 block">
-        {doc.source ?? "—"} ·{" "}
-        {new Date(doc.created_at).toLocaleString("en-GB", {
+      <p className="mb-4 text-sm text-navy-800/50">
+        {SOURCE_LABELS[doc.source ?? ""] ?? "Document"} ·{" "}
+        {new Date(doc.created_at).toLocaleDateString("en-GB", {
           day: "numeric",
-          month: "short",
+          month: "long",
           year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
         })}
-        {doc.extracted_text
-          ? ` · ~${Math.ceil(doc.extracted_text.length / 4).toLocaleString()} tokens`
-          : ""}
-      </Mono>
+      </p>
+      {doc.extracted_text && (
+        <div className="mb-4">
+          <DownloadButtons
+            text={doc.extracted_text}
+            filename={doc.filename ?? "document"}
+          />
+        </div>
+      )}
       <Card>
         {doc.doc_type === "output" ? (
           <div className="prose-calyflow">

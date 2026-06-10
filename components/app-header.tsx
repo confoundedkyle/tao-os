@@ -6,7 +6,7 @@ import { IconAiSpark } from "./icons";
 
 const nav = [
   { href: "/", label: "Dashboard" },
-  { href: "/clients", label: "Clients" },
+  { href: "/clients", label: "Projects" },
   { href: "/workflows", label: "Workflows" },
   { href: "/library", label: "Library" },
   { href: "/settings", label: "Settings" },

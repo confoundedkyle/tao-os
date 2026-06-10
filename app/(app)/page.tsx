@@ -33,7 +33,7 @@ export default async function DashboardPage() {
     },
     {
       done: clients.length > 0,
-      label: "Create your first client",
+      label: "Create your first project",
       href: "/clients",
     },
     {
@@ -107,9 +107,9 @@ export default async function DashboardPage() {
         <Link href="/clients">
           <Card className="h-full hover:-translate-y-0.5 hover:shadow-lift">
             <IconClientsBuilding size={32} className="mb-3 text-navy-800" />
-            <h3 className="font-semibold">Clients</h3>
+            <h3 className="font-semibold">Projects</h3>
             <p className="text-sm text-navy-800/55">
-              {clients.length} client{clients.length === 1 ? "" : "s"}
+              {clients.length} project{clients.length === 1 ? "" : "s"}
             </p>
           </Card>
         </Link>

@@ -6,6 +6,7 @@ import { getSession } from "@/lib/auth";
 import { getRun, getDocument } from "@/lib/queries";
 import { providerLabel } from "@/lib/providers";
 import { Card, Chip, Mono, PageHeader } from "@/components/ui";
+import { DownloadButtons } from "@/components/download-buttons";
 import { IconWarning } from "@/components/icons";
 
 export default async function RunPage({
@@ -101,24 +102,43 @@ export default async function RunPage({
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="space-y-6">
           <Card>
-            <h2 className="mb-3 text-lg font-semibold">Input documents</h2>
-            {inputDocs.filter(Boolean).length === 0 ? (
+            <h2 className="mb-3 text-lg font-semibold">Inputs</h2>
+            {inputDocs.filter(Boolean).length === 0 && !run.input_text ? (
               <p className="text-sm text-navy-800/45">
-                No documents selected — ran from project context only.
+                No documents or text — ran from project context only.
               </p>
             ) : (
-              <ul className="space-y-1.5">
-                {inputDocs.map(
-                  (doc) =>
-                    doc && (
-                      <li key={doc.id}>
-                        <Link href={`/docs/${doc.id}`} className="font-medium hover:text-mint-700">
-                          {doc.filename}
-                        </Link>
-                      </li>
-                    ),
+              <div className="space-y-4">
+                {inputDocs.filter(Boolean).length > 0 && (
+                  <div>
+                    <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-navy-800/35">
+                      Documents
+                    </p>
+                    <ul className="space-y-1.5">
+                      {inputDocs.map(
+                        (doc) =>
+                          doc && (
+                            <li key={doc.id}>
+                              <Link href={`/docs/${doc.id}`} className="font-medium hover:text-mint-700">
+                                {doc.filename}
+                              </Link>
+                            </li>
+                          ),
+                      )}
+                    </ul>
+                  </div>
                 )}
-              </ul>
+                {run.input_text && (
+                  <div>
+                    <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-navy-800/35">
+                      Typed context
+                    </p>
+                    <p className="whitespace-pre-wrap rounded-card bg-cream-100 px-3 py-2.5 text-sm text-navy-800/80">
+                      {run.input_text}
+                    </p>
+                  </div>
+                )}
+              </div>
             )}
           </Card>
 
@@ -161,11 +181,19 @@ export default async function RunPage({
             )}
           </div>
           {run.model_response ? (
-            <div className="prose-calyflow">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {run.model_response}
-              </ReactMarkdown>
-            </div>
+            <>
+              <div className="prose-calyflow">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {run.model_response}
+                </ReactMarkdown>
+              </div>
+              <div className="mt-5 border-t border-navy-800/8 pt-4">
+                <DownloadButtons
+                  text={run.model_response}
+                  filename={run.workflow?.name ?? "workflow-output"}
+                />
+              </div>
+            </>
           ) : (
             <p className="text-sm text-navy-800/45">No output recorded.</p>
           )}

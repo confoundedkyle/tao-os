@@ -39,6 +39,7 @@ export async function POST(request: NextRequest) {
   const inputDocIds: string[] = Array.isArray(body?.inputDocIds)
     ? body.inputDocIds.map(String)
     : [];
+  const inputText = typeof body?.inputText === "string" ? body.inputText : "";
 
   const [project, workflow] = await Promise.all([
     getProject(session.workspaceId, projectId),
@@ -74,7 +75,6 @@ export async function POST(request: NextRequest) {
   const preflight = preflightWorkflow(
     workflow.library?.input_spec ?? null,
     projectDocs,
-    inputDocs,
   );
   if (!preflight.ready) {
     return NextResponse.json(
@@ -82,9 +82,10 @@ export async function POST(request: NextRequest) {
       { status: 400 },
     );
   }
-  if (preflight.needsInputPicker && inputDocs.length === 0) {
+  // Typed run notes stand in for an input doc — text-only runs are fine.
+  if (preflight.needsInputPicker && inputDocs.length === 0 && !inputText.trim()) {
     return NextResponse.json(
-      { error: "Select at least one input document" },
+      { error: "Type some context or attach at least one file" },
       { status: 400 },
     );
   }
@@ -120,7 +121,12 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const context = await assembleContext(session.workspaceId, project, inputDocs);
+  const context = await assembleContext(
+    session.workspaceId,
+    project,
+    inputDocs,
+    inputText,
+  );
   contextNotes.push(...context.notes);
   const renderedPrompt = renderPrompt(workflow.prompt_template, context);
 
@@ -131,6 +137,7 @@ export async function POST(request: NextRequest) {
       workspace_workflow_id: workflowId,
       status: "running",
       input_doc_ids: inputDocIds,
+      input_text: inputText.trim() || null,
       rendered_prompt: renderedPrompt,
       context_notes: contextNotes,
       created_by: session.userId,
