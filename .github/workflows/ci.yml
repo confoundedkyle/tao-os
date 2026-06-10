@@ -1,9 +1,9 @@
 name: CI
 
+# Runs on PRs only — pushes to main are gated by the Deploy workflow's
+# docker build, so a second CI run there would be redundant.
 on:
   pull_request:
-  push:
-    branches: [main]
 
 jobs:
   build:
