@@ -6,16 +6,33 @@ import { importWorkflowAction } from "@/lib/actions/workflows";
 import { Button, Card, Chip, PageHeader } from "@/components/ui";
 import {
   IconAiSpark,
+  IconCheck,
   IconDocumentCheck,
   IconEnvelope,
   IconMagnet,
   IconRocket,
   IconScorecard,
+  IconWorkflowNodes,
 } from "@/components/icons";
 
-const CATEGORY_ICONS: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
+type IconComponent = React.ComponentType<{ size?: number; className?: string }>;
+
+// Per-workflow icon so every card is visually distinct. Falls back to the
+// category icon for any workflow not listed here.
+const WORKFLOW_ICONS: Record<string, IconComponent> = {
+  "intake-to-jd-builder": IconDocumentCheck,
+  "job-requirement-analysis": IconWorkflowNodes,
+  "candidate-icp-builder": IconCheck,
+  "sourcing-map": IconMagnet,
+  "job-selling-pitch": IconAiSpark,
+  "outreach-writer": IconEnvelope,
+  "cv-screener": IconScorecard,
+  "submission-pack": IconRocket,
+};
+
+const CATEGORY_ICONS: Record<string, IconComponent> = {
   intake: IconDocumentCheck,
-  icp: IconScorecard,
+  icp: IconCheck,
   sourcing: IconMagnet,
   selling: IconAiSpark,
   outreach: IconEnvelope,
@@ -84,7 +101,8 @@ export default async function LibraryPage({
       </div>
       <div className="grid gap-5 sm:grid-cols-2">
         {shown.map((wf) => {
-          const Icon = CATEGORY_ICONS[wf.category] ?? IconDocumentCheck;
+          const Icon =
+            WORKFLOW_ICONS[wf.slug] ?? CATEGORY_ICONS[wf.category] ?? IconDocumentCheck;
           const isImported = importedIds.has(wf.id);
           return (
             <Card key={wf.id} className="flex flex-col">
