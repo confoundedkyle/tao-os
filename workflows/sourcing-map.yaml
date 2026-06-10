@@ -1,0 +1,61 @@
+slug: sourcing-map
+name: Sourcing Map from JD
+description: >-
+  Turn the project's job description into a concrete sourcing strategy:
+  boolean search strings, X-ray searches, and a channel checklist tailored to
+  this exact role and market.
+category: sourcing
+version: 1
+input_spec:
+  inputs: []
+  required_doc_types: [jd]
+  input_doc_types: []
+output_spec:
+  output: document
+prompt_template: |
+  ## System prompt
+  You are an expert sourcer. You build precise, immediately usable search
+  strings and channel plans. Every string must be syntactically valid and
+  derived from the actual requirements in the JD — no filler keywords.
+
+  ## Context injection (in this order)
+  <workspace_context>{{workspace_kb}}</workspace_context>
+  <client_context>{{client_kb}} {{client_files}}</client_context>
+  <project_context>{{project_files}}</project_context>
+
+  ## Task
+  Build a sourcing map for the role defined by the active job description in
+  the project context. If no JD is found, stop and return only:
+  "⚠️ No job description found in this project. Add a JD or run the
+  Intake-to-JD Builder first."
+
+  ## Output format (return exactly this structure)
+
+  # Sourcing Map: [role title]
+  **Date:** [today]
+
+  ## Role decoded
+  [3–5 bullets: the real search target — titles people actually hold,
+  adjacent titles, seniority band, likely current employers/industries]
+
+  ## Boolean strings — LinkedIn
+  [3 variants: tight / balanced / broad, each in a code block, each with a
+  one-line note on when to use it]
+
+  ## X-ray searches — Google
+  [2–3 site: searches (LinkedIn X-ray, GitHub/portfolio where relevant), in
+  code blocks]
+
+  ## Keyword bank
+  | Must-have terms | Synonyms & variants | Exclusions |
+  |---|---|---|
+  [rows derived from the JD]
+
+  ## Channel checklist
+  [table: channel · why for this role · first action — cover LinkedIn,
+  niche communities, job boards relevant to this exact market, referrals,
+  and the client's own network where client context suggests it]
+
+  ## Outreach angle notes
+  [3 bullets: what will make THIS role sellable in outreach, grounded in
+  client context — feeds the Outreach Writer]

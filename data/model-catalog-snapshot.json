@@ -1,0 +1,77 @@
+{
+  "_comment": "Curated fallback catalog, used by the seed script so model dropdowns work before the first models.dev sync. Pricing is USD per 1M tokens. Refresh via /api/cron/sync-models.",
+  "models": [
+    {
+      "provider": "anthropic",
+      "model_id": "claude-opus-4-8",
+      "display_name": "Claude Opus 4.8",
+      "context_window": 1000000,
+      "pricing": { "input": 5.0, "output": 25.0, "cache_read": 0.5 },
+      "curated": true
+    },
+    {
+      "provider": "anthropic",
+      "model_id": "claude-sonnet-4-6",
+      "display_name": "Claude Sonnet 4.6",
+      "context_window": 1000000,
+      "pricing": { "input": 3.0, "output": 15.0, "cache_read": 0.3 },
+      "curated": true
+    },
+    {
+      "provider": "anthropic",
+      "model_id": "claude-haiku-4-5",
+      "display_name": "Claude Haiku 4.5",
+      "context_window": 200000,
+      "pricing": { "input": 1.0, "output": 5.0, "cache_read": 0.1 },
+      "curated": true
+    },
+    {
+      "provider": "anthropic",
+      "model_id": "claude-sonnet-4-5",
+      "display_name": "Claude Sonnet 4.5 (legacy)",
+      "context_window": 200000,
+      "pricing": { "input": 3.0, "output": 15.0, "cache_read": 0.3 },
+      "curated": false
+    },
+    {
+      "provider": "anthropic",
+      "model_id": "claude-opus-4-5",
+      "display_name": "Claude Opus 4.5 (legacy)",
+      "context_window": 200000,
+      "pricing": { "input": 5.0, "output": 25.0, "cache_read": 0.5 },
+      "curated": false
+    },
+    {
+      "provider": "openai",
+      "model_id": "gpt-5.1",
+      "display_name": "GPT-5.1",
+      "context_window": 400000,
+      "pricing": { "input": 1.25, "output": 10.0, "cache_read": 0.125 },
+      "curated": true
+    },
+    {
+      "provider": "openai",
+      "model_id": "gpt-5-mini",
+      "display_name": "GPT-5 mini",
+      "context_window": 400000,
+      "pricing": { "input": 0.25, "output": 2.0, "cache_read": 0.025 },
+      "curated": true
+    },
+    {
+      "provider": "google",
+      "model_id": "gemini-3-pro-preview",
+      "display_name": "Gemini 3 Pro",
+      "context_window": 1000000,
+      "pricing": { "input": 2.0, "output": 12.0, "cache_read": 0.2 },
+      "curated": true
+    },
+    {
+      "provider": "google",
+      "model_id": "gemini-2.5-flash",
+      "display_name": "Gemini 2.5 Flash",
+      "context_window": 1000000,
+      "pricing": { "input": 0.3, "output": 2.5, "cache_read": 0.03 },
+      "curated": true
+    }
+  ]
+}
