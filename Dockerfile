@@ -9,6 +9,17 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
+# NEXT_PUBLIC_* values are inlined into the client bundle at build time, and
+# CLERK_SECRET_KEY presence toggles single-workspace vs Clerk mode in
+# prerendered pages — the build env must match the runtime env.
+ARG NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
+ARG CLERK_SECRET_KEY
+ARG SINGLE_WORKSPACE
+ENV NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY \
+    NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY \
+    CLERK_SECRET_KEY=$CLERK_SECRET_KEY \
+    SINGLE_WORKSPACE=$SINGLE_WORKSPACE
 RUN npm run build
 
 FROM node:22-slim AS runner
