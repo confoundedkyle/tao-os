@@ -34,7 +34,16 @@ export async function seedCatalogFromSnapshot(): Promise<number> {
  * input/output/cache_read) and `limit.context`. Parsed defensively — shape
  * verified at sync time, not trusted.
  */
-const SYNCED_PROVIDERS = ["anthropic", "openai", "google"];
+const SYNCED_PROVIDERS = [
+  "anthropic",
+  "openai",
+  "google",
+  "mistral",
+  "xai",
+  "deepseek",
+  "groq",
+  "cohere",
+];
 
 export async function syncCatalogFromModelsDev(): Promise<number> {
   const response = await fetch("https://models.dev/api.json", {

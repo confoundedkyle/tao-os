@@ -4,10 +4,16 @@ import { getSession } from "@/lib/auth";
 import { listWorkspaceWorkflows } from "@/lib/queries";
 import { Card, Chip, EmptyState, ButtonLink, PageHeader } from "@/components/ui";
 import { IconWorkflowNodes } from "@/components/icons";
+import { ImportedToast } from "@/components/imported-toast";
 
-export default async function WorkflowsPage() {
+export default async function WorkflowsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ imported?: string }>;
+}) {
   const session = await getSession();
   if (!session) redirect("/sign-in");
+  const { imported } = await searchParams;
   const workflows = await listWorkspaceWorkflows(session.workspaceId);
 
   return (
@@ -15,14 +21,28 @@ export default async function WorkflowsPage() {
       <PageHeader
         title="Your workflows"
         description="Imported copies — edit names and prompts freely, the library originals stay untouched."
-        action={<ButtonLink href="/library" variant="secondary">Browse library</ButtonLink>}
+        action={
+          <div className="flex items-center gap-3">
+            <ButtonLink href="/library">Import from library</ButtonLink>
+            <ButtonLink href="/workflows/new" variant="secondary">
+              Create from scratch
+            </ButtonLink>
+          </div>
+        }
       />
       {workflows.length === 0 ? (
         <EmptyState
           icon={<IconWorkflowNodes size={48} className="text-navy-800/60" />}
           title="No workflows yet"
-          description="Import your first workflow from the curated library to get started."
-          action={<ButtonLink href="/library">Browse the library</ButtonLink>}
+          description="Import one from the curated library, or write your own from scratch."
+          action={
+            <div className="flex items-center gap-3">
+              <ButtonLink href="/library">Import from library</ButtonLink>
+              <ButtonLink href="/workflows/new" variant="secondary">
+                Create from scratch
+              </ButtonLink>
+            </div>
+          }
         />
       ) : (
         <div className="grid gap-5 sm:grid-cols-2">
@@ -33,7 +53,11 @@ export default async function WorkflowsPage() {
                 : false;
             return (
               <Link key={wf.id} href={`/workflows/${wf.id}`}>
-                <Card className="h-full hover:-translate-y-0.5 hover:shadow-lift">
+                <Card
+                  className={`h-full hover:-translate-y-0.5 hover:shadow-lift ${
+                    wf.id === imported ? "ring-2 ring-mint-400" : ""
+                  }`}
+                >
                   <div className="mb-2 flex items-start justify-between gap-2">
                     <h3 className="text-xl font-semibold">{wf.name}</h3>
                     {upgradeAvailable && (
@@ -52,6 +76,7 @@ export default async function WorkflowsPage() {
           })}
         </div>
       )}
+      {imported && <ImportedToast />}
     </>
   );
 }

@@ -5,7 +5,7 @@ import {
   setWorkspaceTypeAction,
   setMonthlySpendLimitAction,
 } from "@/lib/actions/settings";
-import { Button, Card, Chip, Field, inputClass } from "@/components/ui";
+import { Button, Card, Field, inputClass } from "@/components/ui";
 
 const TYPE_LABELS: Record<string, string> = {
   independent: "Independent recruiter",
@@ -29,31 +29,24 @@ export default async function GeneralSettingsPage() {
 
       <Card>
         <h2 className="mb-4 text-xl font-semibold">Workspace</h2>
-        <form action={updateWorkspaceNameAction} className="mb-6 flex items-end gap-3">
-          <div className="flex-1">
-            <Field label="Name">
+        <form action={updateWorkspaceNameAction} className="mb-6">
+          <Field label="Name">
+            <div className="flex items-center gap-3">
               <input
                 name="name"
                 defaultValue={ws.name}
                 disabled={!isAdmin}
                 className={inputClass}
               />
-            </Field>
-          </div>
-          <Button variant="small" type="submit" disabled={!isAdmin}>
-            Save
-          </Button>
+              <Button variant="small" type="submit" disabled={!isAdmin}>
+                Save
+              </Button>
+            </div>
+          </Field>
         </form>
-        <form action={setWorkspaceTypeAction} className="flex items-end gap-3">
-          <div className="flex-1">
-            <Field
-              label="Type"
-              hint={
-                ws.trial_ends_at
-                  ? `Trial ends ${new Date(ws.trial_ends_at).toLocaleDateString("en-GB")}`
-                  : "Independent is free forever with your own API key."
-              }
-            >
+        <form action={setWorkspaceTypeAction} className="mb-6">
+          <Field label="Type">
+            <div className="flex items-center gap-3">
               <select
                 name="workspaceType"
                 defaultValue={ws.workspace_type ?? ""}
@@ -66,23 +59,23 @@ export default async function GeneralSettingsPage() {
                   </option>
                 ))}
               </select>
-            </Field>
-          </div>
-          <Button variant="small" type="submit" disabled={!isAdmin}>
-            Save
-          </Button>
+              <Button variant="small" type="submit" disabled={!isAdmin}>
+                Save
+              </Button>
+            </div>
+          </Field>
         </form>
+        <Field label="Subscription">
+          <p className="text-navy-800/80">
+            {ws.trial_ends_at
+              ? `Trial ends ${new Date(ws.trial_ends_at).toLocaleDateString("en-GB")}`
+              : "Independent is free forever with your own API key."}
+          </p>
+        </Field>
       </Card>
 
       <Card>
-        <div className="mb-1 flex items-center gap-3">
-          <h2 className="text-xl font-semibold">Monthly spend limit</h2>
-          <Chip tone={ws.monthly_spend_limit_usd != null ? "mint" : "navy"}>
-            {ws.monthly_spend_limit_usd != null
-              ? `$${Number(ws.monthly_spend_limit_usd).toFixed(0)}/month`
-              : "off"}
-          </Chip>
-        </div>
+        <h2 className="mb-1 text-xl font-semibold">Monthly spend limit</h2>
         <p className="mb-4 text-sm text-navy-800/55">
           Optional cap on ALL AI usage in this workspace — including runs on
           your own API keys. Runs pause when the limit is hit and resume next

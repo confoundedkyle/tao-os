@@ -12,6 +12,7 @@ const DOC_TYPE_LABELS: Record<string, string> = {
   jd: "JD",
   intake_notes: "Intake notes",
   cv: "CV",
+  scorecard: "Scorecard",
   note: "Note",
   other: "Document",
 };
@@ -52,9 +53,27 @@ function autoFilename(docType: DocType | null, source: "pasted" | "upload") {
   return `${label} – ${source} ${date}`;
 }
 
+/**
+ * Supabase Storage rejects object keys with non-ASCII or special characters
+ * (e.g. the em-dash in "CV Screener — 10 Jun.md"). Sanitise only the storage
+ * key — the original `file.name` is kept verbatim in the `filename` column for
+ * display. A UUID prefix guarantees uniqueness, so collisions aren't a concern.
+ */
+function storageSafeName(name: string): string {
+  return (
+    name
+      .normalize("NFKD")
+      .replace(/[^\x20-\x7E]/g, "") // drop non-ASCII (dashes, accents, …)
+      .replace(/[^a-zA-Z0-9._-]/g, "-") // conservative whitelist
+      .replace(/-+/g, "-")
+      .replace(/^[-.]+|[-.]+$/g, "") || "file"
+  );
+}
+
 function revalidateScope(scopeType: DocScope, scopeId: string) {
-  if (scopeType === "workspace") revalidatePath("/settings");
-  else if (scopeType === "client") revalidatePath(`/clients/${scopeId}`);
+  // "layout" so the sub-tabs (/knowledge + /files) refresh too.
+  if (scopeType === "workspace") revalidatePath("/knowledge", "layout");
+  else if (scopeType === "client") revalidatePath(`/clients/${scopeId}`, "layout");
   else revalidatePath(`/clients/[clientId]/projects/${scopeId}`, "page");
 }
 
@@ -103,7 +122,7 @@ export async function uploadDocumentAction(formData: FormData) {
   await assertScope(session, scopeType, scopeId);
   const extractedText = await extractTextFromFile(file);
 
-  const storagePath = `${session.workspaceId}/${scopeType}/${scopeId}/${randomUUID()}-${file.name}`;
+  const storagePath = `${session.workspaceId}/${scopeType}/${scopeId}/${randomUUID()}-${storageSafeName(file.name)}`;
   const { error: uploadError } = await db()
     .storage.from("documents")
     .upload(storagePath, Buffer.from(await file.arrayBuffer()), {
@@ -167,7 +186,134 @@ export async function saveClientKbAction(formData: FormData) {
     });
     if (error) throw error;
   }
-  revalidatePath(`/clients/${clientId}`);
+  revalidatePath(`/clients/${clientId}`, "layout");
+}
+
+/** Upload a CV and return its ID so the caller can immediately trigger a run. */
+const RUN_INPUT_DOC_TYPES: DocType[] = [
+  "cv",
+  "intake_notes",
+  "note",
+  "scorecard",
+  "other",
+];
+
+/** Upload a per-run input document (CV, intake notes, …) and return its id. */
+export async function uploadInputForRunAction(
+  formData: FormData,
+): Promise<{ docId: string }> {
+  const session = await requireSession();
+  const scopeId = String(formData.get("scopeId"));
+  if (!(await getProject(session.workspaceId, scopeId)))
+    throw new Error("Project not found");
+
+  const requested = String(formData.get("docType") ?? "other") as DocType;
+  const docType = RUN_INPUT_DOC_TYPES.includes(requested) ? requested : "other";
+
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0)
+    throw new Error("Choose a file first");
+  if (file.size > 20 * 1024 * 1024) throw new Error("File too large (20 MB max)");
+
+  const extractedText = await extractTextFromFile(file);
+  const storagePath = `${session.workspaceId}/project/${scopeId}/${randomUUID()}-${storageSafeName(file.name)}`;
+  const { error: uploadError } = await db()
+    .storage.from("documents")
+    .upload(storagePath, Buffer.from(await file.arrayBuffer()), {
+      contentType: file.type || "application/octet-stream",
+    });
+  if (uploadError) throw uploadError;
+
+  const id = randomUUID();
+  const { error } = await db().from("documents").insert({
+    id,
+    scope_type: "project",
+    scope_id: scopeId,
+    workspace_id: session.workspaceId,
+    kind: "file",
+    doc_type: docType,
+    source: "upload",
+    filename: file.name,
+    storage_path: storagePath,
+    extracted_text: extractedText,
+    created_by: session.userId,
+  });
+  if (error) throw error;
+  revalidateScope("project", scopeId);
+  return { docId: id };
+}
+
+/** Markdown/plain-text docs are editable; binary uploads (PDF, DOCX) are not. */
+function isMarkdownEditable(doc: {
+  storage_path: string | null;
+  filename: string | null;
+}): boolean {
+  if (!doc.storage_path) return true; // pasted or app-created note
+  const name = (doc.filename ?? "").toLowerCase();
+  return (
+    name.endsWith(".md") || name.endsWith(".markdown") || name.endsWith(".txt")
+  );
+}
+
+/** Rename a document's display name. The storage object key is left untouched
+ *  (it's a UUID-prefixed key, decoupled from the user-facing filename). */
+export async function renameDocumentAction(docId: string, filename: string) {
+  const session = await requireSession();
+  const doc = await getDocument(session.workspaceId, docId);
+  if (!doc) throw new Error("Document not found");
+  const trimmed = filename.trim();
+  if (!trimmed) throw new Error("Name is required");
+  const { error } = await db()
+    .from("documents")
+    .update({ filename: trimmed })
+    .eq("id", docId);
+  if (error) throw error;
+  revalidateScope(doc.scope_type, doc.scope_id);
+}
+
+export async function updateDocumentTextAction(docId: string, text: string) {
+  const session = await requireSession();
+  const doc = await getDocument(session.workspaceId, docId);
+  if (!doc) throw new Error("Document not found");
+  if (!isMarkdownEditable(doc))
+    throw new Error("Only markdown files can be edited");
+  const { error } = await db()
+    .from("documents")
+    .update({ extracted_text: text })
+    .eq("id", docId);
+  if (error) throw error;
+  revalidateScope(doc.scope_type, doc.scope_id);
+}
+
+/** Creates an empty markdown note in a client or workspace KB and returns its
+ *  id so the UI can open it in edit mode straight away. */
+export async function createKbNoteAction(
+  scopeType: "client" | "workspace",
+  scopeId: string,
+): Promise<{ docId: string }> {
+  const session = await requireSession();
+  await assertScope(session, scopeType, scopeId);
+  const id = randomUUID();
+  const date = new Date().toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+  const { error } = await db().from("documents").insert({
+    id,
+    scope_type: scopeType,
+    scope_id: scopeId,
+    workspace_id: session.workspaceId,
+    kind: "kb",
+    doc_type: "note",
+    source: "pasted",
+    filename: `Notes – ${date}.md`,
+    extracted_text: "",
+    created_by: session.userId,
+  });
+  if (error) throw error;
+  revalidateScope(scopeType, scopeId);
+  return { docId: id };
 }
 
 export async function deleteDocumentAction(docId: string) {

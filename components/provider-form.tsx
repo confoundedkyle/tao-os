@@ -25,9 +25,10 @@ export function ProviderForm({
     null,
   );
 
-  const options = models.filter(
-    (m) => m.provider === provider && (showAll || m.curated),
-  );
+  const providerModels = models.filter((m) => m.provider === provider);
+  const curated = providerModels.filter((m) => m.curated);
+  // Providers without a curated shortlist show their full catalog.
+  const options = showAll || curated.length === 0 ? providerModels : curated;
 
   return (
     <form action={formAction} className="space-y-4">
@@ -42,18 +43,25 @@ export function ProviderForm({
             <option value="anthropic">Anthropic</option>
             <option value="openai">OpenAI</option>
             <option value="google">Google</option>
+            <option value="mistral">Mistral</option>
+            <option value="xai">xAI (Grok)</option>
+            <option value="deepseek">DeepSeek</option>
+            <option value="groq">Groq</option>
+            <option value="cohere">Cohere</option>
           </select>
         </Field>
         <Field
           label="Default model"
           hint={
-            <button
-              type="button"
-              onClick={() => setShowAll((v) => !v)}
-              className="text-mint-700 hover:underline"
-            >
-              {showAll ? "Show recommended only" : "Show all models"}
-            </button>
+            curated.length > 0 ? (
+              <button
+                type="button"
+                onClick={() => setShowAll((v) => !v)}
+                className="text-mint-700 hover:underline"
+              >
+                {showAll ? "Show recommended only" : "Show all models"}
+              </button>
+            ) : undefined
           }
         >
           <select name="defaultModel" className={inputClass}>

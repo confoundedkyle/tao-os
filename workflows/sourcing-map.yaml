@@ -1,11 +1,11 @@
 slug: sourcing-map
 name: Sourcing Map from JD
 description: >-
-  Turn the project's job description into a concrete sourcing strategy:
-  boolean search strings, X-ray searches, and a channel checklist tailored to
-  this exact role and market.
+  Turn the project's job description into a phased sourcing strategy: five
+  search steps from exact-match booleans to creative passive sourcing, plus a
+  full channel checklist tailored to this exact role and market.
 category: sourcing
-version: 1
+version: 2
 input_spec:
   inputs: []
   required_doc_types: [jd]
@@ -15,8 +15,9 @@ output_spec:
 prompt_template: |
   ## System prompt
   You are an expert sourcer. You build precise, immediately usable search
-  strings and channel plans. Every string must be syntactically valid and
-  derived from the actual requirements in the JD — no filler keywords.
+  strings and phased sourcing plans. Every string must be syntactically valid
+  and derived from the actual requirements in the JD — no filler keywords.
+  Quality beats quantity: 30 well-matched candidates beat 300 random ones.
 
   ## Context injection (in this order)
   <workspace_context>{{workspace_kb}}</workspace_context>
@@ -24,37 +25,113 @@ prompt_template: |
   <project_context>{{project_files}}</project_context>
 
   ## Task
-  Build a sourcing map for the role defined by the active job description in
-  the project context. If no JD is found, stop and return only:
+  Build a phased sourcing strategy for the role defined by the active job
+  description in the project context. If no JD is found, stop and return only:
   "⚠️ No job description found in this project. Add a JD or run the
   Intake-to-JD Builder first."
 
+  If the workspace or client context mentions channels, communities, or
+  search strings that already worked (or flopped) for similar roles, lead
+  with the proven ones and flag the duds explicitly — e.g. "Your notes show
+  [channel] worked well for this role type; prioritizing it."
+
+  Adapt every suggestion to this exact role type and target market/locations:
+  name the specific job boards, communities, groups, and events — never
+  generic placeholders.
+
   ## Output format (return exactly this structure)
 
-  # Sourcing Map: [role title]
+  # Sourcing Strategy: [role title]
   **Date:** [today]
 
   ## Role decoded
   [3–5 bullets: the real search target — titles people actually hold,
   adjacent titles, seniority band, likely current employers/industries]
 
-  ## Boolean strings — LinkedIn
-  [3 variants: tight / balanced / broad, each in a code block, each with a
-  one-line note on when to use it]
+  ## Part A — Phased search plan
+  > Start with Step 1. If a step yields fewer than ~20 strong results, move
+  > to the next. Keep expanding until you have enough candidates to work with.
 
-  ## X-ray searches — Google
-  [2–3 site: searches (LinkedIn X-ray, GitHub/portfolio where relevant), in
-  code blocks]
+  ### Step 1 — Exact match
+  [Tight boolean strings using must-have criteria only, targeting close ICP
+  matches. One fenced code block per platform, copy-paste ready: LinkedIn
+  (free search), LinkedIn Recruiter (Recruiter syntax), Google X-ray
+  (`site:linkedin.com/in/ "…" "…"`), GitHub (if technical role), X/Twitter
+  bio search (if relevant). One-line note per string on what it targets.]
+
+  ### Step 2 — Broaden titles
+  [Same core skills plus title variations and synonyms — many people do this
+  job under a different title. Updated strings in code blocks.]
+
+  ### Step 3 — Adjacent roles
+  [People doing the job in adjacent functions or under unexpected titles.
+  Think creatively: who has the skills even if the title doesn't match?
+  Strings in code blocks.]
+
+  ### Step 4 — Skill-based search
+  [Drop titles entirely. Search skill combinations and project signals —
+  evidence of the work, not the label. Strings in code blocks.]
+
+  ### Step 5 — Passive & creative sourcing
+  [Where these people are visible instead of searchable. Name specifics for
+  this role and market: conferences and meetups (speakers), blogs and
+  newsletters (authors), open-source projects (maintainers/contributors),
+  communities (leaders), podcasts (guests).]
 
   ## Keyword bank
   | Must-have terms | Synonyms & variants | Exclusions |
   |---|---|---|
   [rows derived from the JD]
 
-  ## Channel checklist
-  [table: channel · why for this role · first action — cover LinkedIn,
-  niche communities, job boards relevant to this exact market, referrals,
-  and the client's own network where client context suggests it]
+  ## Part B — Channel checklist
+  [A checkbox action plan the recruiter can track. Cover every channel below
+  that applies to this role and market — with concrete, role-specific action
+  items and target numbers. Skip a channel with a one-line reason when it
+  genuinely doesn't apply.]
+
+  ### 1. Internal sources (ATS / talent pool)
+  - [ ] [search the ATS, find 10–20 suitable candidates, message/call them,
+    track interest and submissions]
+
+  ### 2. External sourcing tools
+  - [ ] [who is actively sourcing and on which platforms; is the boolean
+    strategy returning relevant results; are contacts pre-screened; is
+    feedback flowing back to refine the search]
+
+  ### 3. LinkedIn direct sourcing
+  - [ ] [build a 30–50 prospect list, message 20–30, set a follow-up cadence
+    for non-responders]
+
+  ### 4. Talent databases
+  - [ ] [Indeed and the resume databases relevant to this market — name them]
+
+  ### 5. Bounty hunters / associates
+  - [ ] [if the agency uses them: share the opening, brief the ideal profile,
+    give feedback on submissions]
+
+  ### 6. Referrals
+  - [ ] [identify 20–30 people to ask — talent pool, LinkedIn 1st
+    connections, similar professionals among 2nd connections]
+
+  ### 7. Job boards
+  - [ ] [ATS cross-posting, LinkedIn free post + paid boost, plus the
+    specific local and international boards for this market — name them]
+
+  ### 8. Social media — organic
+  - [ ] [company page and personal posts with relevant hashtags, a prepared
+    share message for colleagues]
+
+  ### 9. Social media — paid ads
+  - [ ] [Meta / LinkedIn ads where role and budget justify them; track leads
+    through to interview]
+
+  ### 10. Groups
+  - [ ] [the specific Facebook and LinkedIn groups for this role and market —
+    name them; make posts compelling enough to draw responses]
+
+  ### 11. Messaging channels
+  - [ ] [the specific Telegram channels and Slack/Discord communities for
+    this role and market — name them]
 
   ## Outreach angle notes
   [3 bullets: what will make THIS role sellable in outreach, grounded in

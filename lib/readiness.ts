@@ -8,6 +8,7 @@ export const DOC_TYPE_LABELS: Record<string, string> = {
   jd: "Job description",
   intake_notes: "Intake notes",
   cv: "CV",
+  scorecard: "Scorecard",
   note: "Note",
   output: "Workflow output",
   other: "Other",
@@ -29,7 +30,6 @@ export interface PreflightResult {
 export function preflightWorkflow(
   inputSpec: InputSpec | null,
   projectDocs: Doc[],
-  selectedInputDocs: Doc[] = [],
 ): PreflightResult {
   const required = inputSpec?.required_doc_types ?? [];
   const inputTypes = inputSpec?.input_doc_types ?? [];
@@ -40,17 +40,11 @@ export function preflightWorkflow(
       missing.push(`Add a ${DOC_TYPE_LABELS[docType] ?? docType} first`);
     }
   }
+  // The per-run input (e.g. a CV) is uploaded/picked at run time in the run
+  // panel — it must NOT gate project readiness, or the panel would be hidden
+  // before the user ever gets to choose a file. The run route separately
+  // requires a selected input doc before spending tokens.
   const needsInputPicker = inputTypes.length > 0;
-  if (needsInputPicker && selectedInputDocs.length === 0) {
-    const labels = inputTypes
-      .map((t) => DOC_TYPE_LABELS[t] ?? t)
-      .join(" or ");
-    if (
-      inputTypes.every((t) => activeOfType(projectDocs, t).length === 0)
-    ) {
-      missing.push(`Add a ${labels} first`);
-    }
-  }
   return {
     ready: missing.length === 0,
     missing,

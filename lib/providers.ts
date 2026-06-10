@@ -10,6 +10,11 @@ export const SUPPORTED_PROVIDERS = [
   "anthropic",
   "openai",
   "google",
+  "mistral",
+  "xai",
+  "deepseek",
+  "groq",
+  "cohere",
 ] as const;
 
 export function providerLabel(provider: string): string {
@@ -22,6 +27,16 @@ export function providerLabel(provider: string): string {
       return "OpenAI";
     case "google":
       return "Google";
+    case "mistral":
+      return "Mistral";
+    case "xai":
+      return "xAI (Grok)";
+    case "deepseek":
+      return "DeepSeek";
+    case "groq":
+      return "Groq";
+    case "cohere":
+      return "Cohere";
     default:
       return provider;
   }
@@ -46,6 +61,26 @@ export async function getLanguageModel(
       const { createGoogleGenerativeAI } = await import("@ai-sdk/google");
       return createGoogleGenerativeAI({ apiKey })(modelId);
     }
+    case "mistral": {
+      const { createMistral } = await import("@ai-sdk/mistral");
+      return createMistral({ apiKey })(modelId);
+    }
+    case "xai": {
+      const { createXai } = await import("@ai-sdk/xai");
+      return createXai({ apiKey })(modelId);
+    }
+    case "deepseek": {
+      const { createDeepSeek } = await import("@ai-sdk/deepseek");
+      return createDeepSeek({ apiKey })(modelId);
+    }
+    case "groq": {
+      const { createGroq } = await import("@ai-sdk/groq");
+      return createGroq({ apiKey })(modelId);
+    }
+    case "cohere": {
+      const { createCohere } = await import("@ai-sdk/cohere");
+      return createCohere({ apiKey })(modelId);
+    }
     default:
       throw new Error(`Unsupported provider: ${provider}`);
   }
@@ -59,7 +94,7 @@ export async function validateApiKey(
 ): Promise<{ valid: boolean; message?: string }> {
   try {
     const model = await getLanguageModel(provider, apiKey, modelId);
-    await generateText({ model, prompt: "ping", maxOutputTokens: 1 });
+    await generateText({ model, prompt: "ping", maxOutputTokens: 16 });
     return { valid: true };
   } catch (error) {
     return {

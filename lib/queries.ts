@@ -16,6 +16,27 @@ import type {
 // All reads are scoped by workspace_id resolved from the session — never from
 // the client (SPEC §9 tenant isolation rule).
 
+export async function listClientsWithProjects(
+  workspaceId: string,
+): Promise<(Client & { projects: Project[] })[]> {
+  const { data, error } = await db()
+    .from("clients")
+    .select("*, projects(*)")
+    .eq("workspace_id", workspaceId)
+    .eq("status", "active")
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map((c) => ({
+    ...c,
+    projects: ((c.projects ?? []) as Project[])
+      .filter((p) => p.status === "active")
+      .sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+      ),
+  }));
+}
+
 export async function listClients(workspaceId: string): Promise<Client[]> {
   const { data, error } = await db()
     .from("clients")

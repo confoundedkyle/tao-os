@@ -69,6 +69,7 @@ export async function assembleContext(
   workspaceId: string,
   project: Project & { client: Client },
   inputDocs: Doc[],
+  inputText = "",
 ): Promise<AssembledContext> {
   const notes: string[] = [];
   const inputIds = new Set(inputDocs.map((d) => d.id));
@@ -102,9 +103,13 @@ export async function assembleContext(
     "Project files",
     notes,
   );
-  const inputDocuments = inputDocs
-    .map((d) => `## ${d.filename ?? "Untitled"}\n${d.extracted_text ?? ""}`)
-    .join("\n\n");
+  const inputBlocks = inputDocs.map(
+    (d) => `## ${d.filename ?? "Untitled"}\n${d.extracted_text ?? ""}`,
+  );
+  if (inputText.trim()) {
+    inputBlocks.push(`## Notes typed by the recruiter for this run\n${inputText.trim()}`);
+  }
+  const inputDocuments = inputBlocks.join("\n\n");
 
   return { workspaceKb, clientKb, clientFiles, projectFiles, inputDocuments, notes };
 }

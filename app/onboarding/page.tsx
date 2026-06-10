@@ -6,10 +6,10 @@ import { listCatalogModels } from "@/lib/queries";
 import {
   updateWorkspaceNameAction,
   setWorkspaceTypeAction,
-  saveProviderAction,
   finishOnboardingAction,
 } from "@/lib/actions/settings";
 import { Button, Field, inputClass } from "@/components/ui";
+import { OnboardingByokForm } from "@/components/onboarding-byok-form";
 import { IconAiSpark, IconCheck, IconKey } from "@/components/icons";
 
 const TYPES = [
@@ -51,11 +51,6 @@ export default async function OnboardingPage({
     "use server";
     await setWorkspaceTypeAction(formData);
     redirect("/onboarding?step=3");
-  }
-  async function saveByoKey(formData: FormData) {
-    "use server";
-    await saveProviderAction(null, formData);
-    await finishOnboardingAction();
   }
 
   return (
@@ -168,34 +163,25 @@ export default async function OnboardingPage({
               <summary className="flex cursor-pointer items-center gap-2 font-semibold text-mint-700">
                 <IconKey size={20} /> Bring your own API key
               </summary>
-              <form action={saveByoKey} className="mt-4 space-y-4">
-                <input type="hidden" name="provider" value="anthropic" />
-                <Field label="Anthropic API key">
-                  <input
-                    name="apiKey"
-                    type="password"
-                    required
-                    placeholder="sk-ant-…"
-                    className={inputClass}
-                  />
-                </Field>
-                <Field
-                  label="Default model"
-                  hint="Calyflow's prompts are written and tested for Claude."
-                >
-                  <select name="defaultModel" className={inputClass}>
-                    {anthropicModels
-                      .filter((m) => m.curated)
-                      .map((m) => (
-                        <option key={m.model_id} value={m.model_id}>
-                          {m.display_name}
-                        </option>
-                      ))}
-                  </select>
-                </Field>
-                <Button type="submit">Validate & finish</Button>
-              </form>
+              <OnboardingByokForm
+                models={anthropicModels.filter((m) => m.curated)}
+              />
             </details>
+
+            {!platformEnabled && (
+              <form action={finishOnboardingAction} className="mt-6">
+                <button
+                  type="submit"
+                  className="text-sm text-navy-800/45 underline underline-offset-2 transition hover:text-navy-800/70"
+                >
+                  Skip for now — I don&apos;t have a key yet
+                </button>
+                <p className="mt-1 text-sm text-navy-800/45">
+                  You can add one anytime in Settings → AI Providers. Workflows
+                  won&apos;t run until a valid key is added.
+                </p>
+              </form>
+            )}
 
             <p className="mt-6 text-sm text-navy-800/45">
               <Link href="/settings/providers" className="text-mint-700">

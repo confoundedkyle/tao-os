@@ -8,6 +8,7 @@ const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)",
   "/sign-up(.*)",
   "/api/cron(.*)",
+  "/api/webhooks(.*)",
 ]);
 
 // SINGLE_WORKSPACE mode only checks cookie presence here; the signature is
