@@ -6,6 +6,7 @@ import {
   setMonthlySpendLimitAction,
 } from "@/lib/actions/settings";
 import { Button, Card, Field, inputClass } from "@/components/ui";
+import { ToastForm } from "@/components/toast-form";
 
 const TYPE_LABELS: Record<string, string> = {
   independent: "Independent recruiter",
@@ -29,7 +30,11 @@ export default async function GeneralSettingsPage() {
 
       <Card>
         <h2 className="mb-4 text-xl font-semibold">Workspace</h2>
-        <form action={updateWorkspaceNameAction} className="mb-6">
+        <ToastForm
+          action={updateWorkspaceNameAction}
+          message="Workspace name saved"
+          className="mb-6"
+        >
           <Field label="Name">
             <div className="flex items-center gap-3">
               <input
@@ -43,8 +48,12 @@ export default async function GeneralSettingsPage() {
               </Button>
             </div>
           </Field>
-        </form>
-        <form action={setWorkspaceTypeAction} className="mb-6">
+        </ToastForm>
+        <ToastForm
+          action={setWorkspaceTypeAction}
+          message="Workspace type saved"
+          className="mb-6"
+        >
           <Field label="Type">
             <div className="flex items-center gap-3">
               <select
@@ -64,7 +73,7 @@ export default async function GeneralSettingsPage() {
               </Button>
             </div>
           </Field>
-        </form>
+        </ToastForm>
         <Field label="Subscription">
           <p className="text-navy-800/80">
             {ws.trial_ends_at
@@ -81,7 +90,11 @@ export default async function GeneralSettingsPage() {
           your own API keys. Runs pause when the limit is hit and resume next
           calendar month. Leave empty to turn off.
         </p>
-        <form action={setMonthlySpendLimitAction} className="flex items-end gap-3">
+        <ToastForm
+          action={setMonthlySpendLimitAction}
+          message="Spend limit saved"
+          className="flex flex-wrap items-end gap-3"
+        >
           <div className="max-w-48">
             <Field label="Limit (USD)">
               <input
@@ -99,7 +112,7 @@ export default async function GeneralSettingsPage() {
           <Button variant="small" type="submit" disabled={!isAdmin}>
             Save
           </Button>
-        </form>
+        </ToastForm>
       </Card>
     </div>
   );

@@ -79,20 +79,34 @@ export function SidebarNav({ clients }: { clients: ClientWithProjects[] }) {
       <div className="my-2 border-t border-navy-800/10" />
 
       <div className="mb-1 flex items-center justify-between px-3">
-        <span className="text-[11px] font-semibold uppercase tracking-widest text-navy-800/35">
+        <Link
+          href="/clients"
+          className="text-[11px] font-semibold uppercase tracking-widest text-navy-800/35 transition-colors hover:text-navy-800/70"
+        >
           Clients
-        </span>
+        </Link>
         <Link
           href="/clients"
           className="text-xs text-navy-800/35 transition-colors hover:text-navy-800/70"
-          title="All projects"
+          title={clients.length === 0 ? "Add client" : "All projects"}
         >
-          See all
+          {clients.length === 0 ? "+" : "See all"}
         </Link>
       </div>
 
       {clients.length === 0 && (
-        <p className="px-3 py-1 text-xs text-navy-800/35">No clients yet</p>
+        <div className="mx-1 mt-1 rounded-card border border-mint-400/40 bg-mint-400/10 px-3 py-3">
+          <p className="text-xs leading-relaxed text-navy-800/60">
+            No clients yet — add your first client to create projects and run
+            workflows.
+          </p>
+          <Link
+            href="/clients"
+            className="mt-2 inline-flex items-center rounded-chip bg-mint-400 px-2.5 py-1 text-xs font-semibold text-navy-900 transition hover:opacity-85"
+          >
+            + Add client
+          </Link>
+        </div>
       )}
 
       {clients.map((client) => {
