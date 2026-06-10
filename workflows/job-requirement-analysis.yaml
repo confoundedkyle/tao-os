@@ -10,7 +10,7 @@ version: 1
 input_spec:
   inputs: [document]
   required_doc_types: []
-  input_doc_types: [intake_notes, note, other]
+  input_doc_types: [intake_notes, note, jd, other]
 output_spec:
   output: document
 prompt_template: |
