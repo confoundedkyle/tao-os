@@ -1,0 +1,136 @@
+@import "tailwindcss";
+
+@theme {
+  /* Core palette — DESIGN.md §2 */
+  --color-cream-50: #fbf7f0;
+  --color-cream-100: #f3ede2;
+  --color-navy-900: #131f38;
+  --color-navy-800: #1b2a4a;
+  --color-mint-400: #5bc8a8;
+  --color-mint-700: #1b7a5f;
+  --color-sky-300: #9cc3f0;
+  --color-lavender-300: #c5b6ee;
+  --color-amber-400: #e2a33c;
+  --color-coral-400: #e8836b;
+
+  /* Typography */
+  --font-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+
+  /* Shape — DESIGN.md §6 */
+  --radius-chip: 10px;
+  --radius-card: 14px;
+  --radius-panel: 20px;
+
+  --shadow-lift: 0 8px 30px rgba(19, 31, 56, 0.08);
+}
+
+body {
+  background-color: var(--color-cream-50);
+  color: var(--color-navy-800);
+  font-family: var(--font-sans);
+  font-size: 17px;
+  line-height: 1.65;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  color: var(--color-navy-900);
+}
+
+h1,
+h2 {
+  letter-spacing: -0.01em;
+}
+
+/* Markdown rendering for workflow outputs */
+.prose-calyflow {
+  font-size: 15.5px;
+}
+.prose-calyflow h1 {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 0.5em;
+}
+.prose-calyflow h2 {
+  font-size: 19px;
+  font-weight: 600;
+  margin: 1.2em 0 0.4em;
+}
+.prose-calyflow h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 1em 0 0.3em;
+}
+.prose-calyflow p {
+  margin: 0.5em 0;
+}
+.prose-calyflow ul,
+.prose-calyflow ol {
+  margin: 0.5em 0;
+  padding-left: 1.4em;
+}
+.prose-calyflow ul {
+  list-style: disc;
+}
+.prose-calyflow ol {
+  list-style: decimal;
+}
+.prose-calyflow table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.8em 0;
+  font-size: 14px;
+}
+.prose-calyflow th,
+.prose-calyflow td {
+  border: 1px solid rgba(27, 42, 74, 0.15);
+  padding: 6px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+.prose-calyflow th {
+  background: var(--color-cream-100);
+  font-weight: 600;
+}
+.prose-calyflow code {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  background: var(--color-cream-100);
+  padding: 1px 5px;
+  border-radius: 5px;
+}
+.prose-calyflow pre {
+  background: var(--color-cream-100);
+  border-radius: 10px;
+  padding: 12px 14px;
+  overflow-x: auto;
+  margin: 0.8em 0;
+}
+.prose-calyflow pre code {
+  background: none;
+  padding: 0;
+}
+.prose-calyflow hr {
+  border: none;
+  border-top: 1px solid rgba(27, 42, 74, 0.12);
+  margin: 1.4em 0;
+}
+.prose-calyflow blockquote {
+  border-left: 3px solid var(--color-mint-400);
+  padding-left: 1em;
+  color: rgba(27, 42, 74, 0.7);
+  margin: 0.8em 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

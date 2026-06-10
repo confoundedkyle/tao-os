@@ -1,0 +1,71 @@
+# Build → Artifact Registry → Cloud Run, with Supabase migrations as a
+# pipeline step (SPEC §12). Parameterized so the same workflow deploys any
+# GCP project (SPEC §13).
+#
+# Required repo VARIABLES:
+#   GCP_PROJECT_ID, GCP_REGION, GCP_ARTIFACT_REPO (e.g. "calyflow"),
+#   CLOUD_RUN_SERVICE (e.g. "calyflow-app"),
+#   GCP_WIF_PROVIDER (projects/N/locations/global/workloadIdentityPools/...),
+#   GCP_SERVICE_ACCOUNT (deployer SA email)
+# Required repo SECRETS:
+#   SUPABASE_ACCESS_TOKEN, SUPABASE_DB_PASSWORD, SUPABASE_PROJECT_REF
+
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write # Workload Identity Federation — no SA keys in secrets
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    env:
+      IMAGE: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GCP_ARTIFACT_REPO }}/${{ vars.CLOUD_RUN_SERVICE }}:${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev --quiet
+
+      - name: Build container
+        run: docker build -t "$IMAGE" .
+
+      - name: Push container
+        run: docker push "$IMAGE"
+
+      - name: Apply Supabase migrations
+        uses: supabase/setup-cli@v1
+      - run: |
+          supabase link --project-ref "${{ secrets.SUPABASE_PROJECT_REF }}"
+          supabase db push --password "${{ secrets.SUPABASE_DB_PASSWORD }}"
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Seed library workflows & model catalog
+        run: |
+          npm ci
+          npx tsx scripts/seed.ts
+        env:
+          SUPABASE_URL: https://${{ secrets.SUPABASE_PROJECT_REF }}.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy "${{ vars.CLOUD_RUN_SERVICE }}" \
+            --image "$IMAGE" \
+            --region "${{ vars.GCP_REGION }}" \
+            --project "${{ vars.GCP_PROJECT_ID }}" \
+            --allow-unauthenticated \
+            --timeout 3600
