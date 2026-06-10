@@ -38,6 +38,8 @@ jobs:
     environment: Prod
     env:
       IMAGE: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GCP_ARTIFACT_REPO }}/${{ vars.CLOUD_RUN_SERVICE }}:${{ github.sha }}
+      # secrets.* is not allowed in step `if:` — surface the toggle via env
+      CI_MIGRATIONS_ENABLED: ${{ secrets.SUPABASE_ACCESS_TOKEN != '' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -67,9 +69,9 @@ jobs:
       # SUPABASE_ACCESS_TOKEN + SUPABASE_DB_PASSWORD secrets to have CI apply
       # supabase/migrations on every deploy instead.
       - uses: supabase/setup-cli@v1
-        if: ${{ secrets.SUPABASE_ACCESS_TOKEN != '' }}
+        if: env.CI_MIGRATIONS_ENABLED == 'true'
       - name: Apply Supabase migrations
-        if: ${{ secrets.SUPABASE_ACCESS_TOKEN != '' }}
+        if: env.CI_MIGRATIONS_ENABLED == 'true'
         run: |
           PROJECT_REF="$(echo "$SUPABASE_URL" | sed -E 's#https://([^.]+)\.supabase\.co.*#\1#')"
           supabase link --project-ref "$PROJECT_REF"
