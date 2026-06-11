@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { setModuleActiveAction } from "@/lib/actions/modules";
 import { MODULES, type ModuleKey } from "@/lib/types";
+import { useToast } from "@/components/use-toast";
 
 export function ModulesGrid({
   activeKeys = [],
@@ -26,6 +27,7 @@ export function ModulesGrid({
           </p>
           <ModuleFooter
             moduleKey={module.key}
+            label={module.label}
             isActive={active.has(module.key)}
             canManage={canManage}
           />
@@ -37,21 +39,25 @@ export function ModulesGrid({
 
 function ModuleFooter({
   moduleKey,
+  label,
   isActive,
   canManage,
 }: {
   moduleKey: ModuleKey;
+  label: string;
   isActive: boolean;
   canManage: boolean;
 }) {
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const { toast, showToast } = useToast();
 
   function toggle() {
     startTransition(async () => {
       try {
         setError(null);
         await setModuleActiveAction(moduleKey, !isActive);
+        showToast(`${label} ${isActive ? "deactivated" : "activated"}`);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Could not update");
       }
@@ -104,7 +110,12 @@ function ModuleFooter({
               : "Activate"}
         </button>
       </div>
-      {error && <p className="mt-2 text-sm text-coral-400">{error}</p>}
+      {error && (
+        <p role="alert" className="mt-2 text-sm text-coral-400">
+          {error}
+        </p>
+      )}
+      {toast}
     </div>
   );
 }

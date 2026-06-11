@@ -1,22 +1,11 @@
-import { redirect } from "next/navigation";
-import { getSession } from "@/lib/auth";
+import { requireModulePage } from "@/lib/modules";
 import { listProspects } from "@/lib/queries";
 import { TalentProspects } from "@/components/talent-prospects";
-import { PageHeader } from "@/components/ui";
 
 export default async function TalentPoolPage() {
-  const session = await getSession();
-  if (!session) redirect("/sign-in");
+  const session = await requireModulePage("talent_pool");
 
   const prospects = await listProspects(session.workspaceId);
 
-  return (
-    <>
-      <PageHeader
-        title="Target Talent Pool"
-        description="Build a niche pipeline of prospects — open one to attach a CV."
-      />
-      <TalentProspects prospects={prospects} />
-    </>
-  );
+  return <TalentProspects prospects={prospects} />;
 }

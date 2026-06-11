@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
-import { getSession } from "@/lib/auth";
+import { notFound } from "next/navigation";
+import { requireModulePage } from "@/lib/modules";
 import { getProspect, listDocuments } from "@/lib/queries";
 import { AddDocument } from "@/components/add-document";
 import { Card, Chip, PageHeader } from "@/components/ui";
@@ -10,8 +10,7 @@ export default async function ProspectPage({
 }: {
   params: Promise<{ prospectId: string }>;
 }) {
-  const session = await getSession();
-  if (!session) redirect("/sign-in");
+  const session = await requireModulePage("talent_pool");
   const { prospectId } = await params;
 
   const prospect = await getProspect(session.workspaceId, prospectId);
