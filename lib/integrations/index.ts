@@ -3,7 +3,9 @@ import { db } from "../db";
 import { decrypt, encrypt } from "../crypto";
 import type { Connection } from "../types";
 import { airtableAdapter } from "./airtable";
+import { apolloAdapter } from "./apollo";
 import { ashbyAdapter } from "./ashby";
+import { contactoutAdapter } from "./contactout";
 import { hunterAdapter } from "./hunter";
 import type { ConnectorAdapter } from "./types";
 
@@ -13,7 +15,9 @@ export type { ConnectorAdapter, ResourceRef } from "./types";
 // is the set with a working backend.
 const ADAPTERS: Record<string, ConnectorAdapter> = {
   airtable: airtableAdapter,
+  apollo: apolloAdapter,
   ashby: ashbyAdapter,
+  contactout: contactoutAdapter,
   hunter: hunterAdapter,
 };
 
