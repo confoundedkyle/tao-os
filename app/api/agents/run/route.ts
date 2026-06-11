@@ -119,14 +119,17 @@ export async function POST(request: NextRequest) {
   let airtableToken: string | null = null;
   let apolloToken: string | null = null;
   let ashbyToken: string | null = null;
+  let contactoutToken: string | null = null;
   let hunterToken: string | null = null;
   try {
-    [airtableToken, apolloToken, ashbyToken, hunterToken] = await Promise.all([
-      tokenFor("airtable_", "airtable"),
-      tokenFor("apollo_", "apollo"),
-      tokenFor("ashby_", "ashby"),
-      tokenFor("hunter_", "hunter"),
-    ]);
+    [airtableToken, apolloToken, ashbyToken, contactoutToken, hunterToken] =
+      await Promise.all([
+        tokenFor("airtable_", "airtable"),
+        tokenFor("apollo_", "apollo"),
+        tokenFor("ashby_", "ashby"),
+        tokenFor("contactout_", "contactout"),
+        tokenFor("hunter_", "hunter"),
+      ]);
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Connection error" },
@@ -166,6 +169,7 @@ export async function POST(request: NextRequest) {
     airtableToken,
     apolloToken,
     ashbyToken,
+    contactoutToken,
     hunterToken,
     createdDocIds: [],
   };

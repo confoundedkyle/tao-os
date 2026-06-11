@@ -6,6 +6,7 @@ import { listDocuments, getDocument } from "../queries";
 import { airtableAdapter } from "../integrations/airtable";
 import { apolloAdapter } from "../integrations/apollo";
 import { ashbyAdapter } from "../integrations/ashby";
+import { contactoutAdapter } from "../integrations/contactout";
 import { hunterAdapter } from "../integrations/hunter";
 import type { Doc } from "../types";
 
@@ -22,6 +23,7 @@ export interface ToolContext {
   airtableToken: string | null;
   apolloToken: string | null;
   ashbyToken: string | null;
+  contactoutToken: string | null;
   hunterToken: string | null;
   /** Documents the agent created this run (mutated by calyflow_create_document). */
   createdDocIds: string[];
@@ -312,6 +314,126 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    contactout_people_search: tool({
+      description:
+        "Search ContactOut's database of LinkedIn profiles by name, job title, company, location, seniority, or skills. Returns name, title, company, location, and the LinkedIn URL per person as a Markdown table. Contact details are NOT revealed by default (search is free); set revealInfo only when you need contacts for every row — it consumes email and phone credits PER PROFILE. Prefer searching first, then enriching only the selected people with contactout_linkedin_enrich.",
+      inputSchema: z.object({
+        name: z.string().optional().describe("Person name to search for."),
+        jobTitles: z
+          .array(z.string())
+          .optional()
+          .describe('Job titles to match, e.g. ["VP Engineering", "Head of Talent"].'),
+        companies: z
+          .array(z.string())
+          .optional()
+          .describe('Company names, e.g. ["Stripe", "Acme"].'),
+        locations: z
+          .array(z.string())
+          .optional()
+          .describe('Locations, e.g. ["San Francisco, CA", "London"].'),
+        seniorities: z
+          .array(z.string())
+          .optional()
+          .describe(
+            'Seniority levels, e.g. ["director", "vice president", "c-level"].',
+          ),
+        skills: z
+          .array(z.string())
+          .optional()
+          .describe('Skills to match, e.g. ["Network Security"].'),
+        page: z
+          .number()
+          .int()
+          .positive()
+          .optional()
+          .describe("Result page, starting at 1."),
+        revealInfo: z
+          .boolean()
+          .optional()
+          .describe(
+            "Reveal emails/phones for every returned profile. COSTS credits per profile — leave unset unless contacts are needed for all results.",
+          ),
+        limit: z
+          .number()
+          .int()
+          .positive()
+          .optional()
+          .describe("Max profiles to return, up to 25 (default 10)."),
+      }),
+      execute: async (args) => {
+        if (!ctx.contactoutToken) return { error: notConnected("ContactOut") };
+        return contactoutAdapter.peopleSearch(ctx.contactoutToken, args);
+      },
+    }),
+
+    contactout_linkedin_enrich: tool({
+      description:
+        "Get a person's contact details (work emails, personal emails, phone numbers) from their LinkedIn profile URL via ContactOut. COSTS one email credit and one phone credit per call — only enrich people you actually intend to contact. Set profileOnly to fetch the profile without contact info (no contact credits).",
+      inputSchema: z.object({
+        profileUrl: z
+          .string()
+          .describe(
+            "Full LinkedIn profile URL, e.g. https://linkedin.com/in/janedoe.",
+          ),
+        profileOnly: z
+          .boolean()
+          .optional()
+          .describe("Fetch the profile without revealing contacts (free)."),
+      }),
+      execute: async (args) => {
+        if (!ctx.contactoutToken) return { error: notConnected("ContactOut") };
+        return contactoutAdapter.linkedinEnrich(ctx.contactoutToken, args);
+      },
+    }),
+
+    contactout_person_enrich: tool({
+      description:
+        "Find a person's contact details via ContactOut when you don't have their LinkedIn URL — provide their name plus at least one anchor (companies, companyDomain, jobTitle, location, or a known email). Returns work/personal emails and phones. Consumes credits per successful match.",
+      inputSchema: z.object({
+        fullName: z.string().optional(),
+        firstName: z.string().optional(),
+        lastName: z.string().optional(),
+        companies: z
+          .array(z.string())
+          .optional()
+          .describe('Current or past companies, e.g. ["Stripe"].'),
+        companyDomain: z
+          .string()
+          .optional()
+          .describe("Company domain, e.g. acme.com."),
+        jobTitle: z.string().optional(),
+        location: z.string().optional(),
+        linkedinUrl: z
+          .string()
+          .optional()
+          .describe("If you have the LinkedIn URL, prefer contactout_linkedin_enrich."),
+        email: z
+          .string()
+          .optional()
+          .describe("A known email of theirs, to find the rest."),
+        include: z
+          .array(z.enum(["work_email", "personal_email", "phone"]))
+          .optional()
+          .describe("Contact types to reveal (defaults to all three)."),
+      }),
+      execute: async (args) => {
+        if (!ctx.contactoutToken) return { error: notConnected("ContactOut") };
+        return contactoutAdapter.personEnrich(ctx.contactoutToken, args);
+      },
+    }),
+
+    contactout_email_verify: tool({
+      description:
+        "Verify the deliverability of an email address via ContactOut. Returns valid, invalid, accept_all, disposable, or unknown. Cheap — use before adding an email to an outreach list.",
+      inputSchema: z.object({
+        email: z.string().describe("The email address to verify."),
+      }),
+      execute: async ({ email }) => {
+        if (!ctx.contactoutToken) return { error: notConnected("ContactOut") };
+        return contactoutAdapter.emailVerify(ctx.contactoutToken, email);
+      },
+    }),
+
     calyflow_create_document: tool({
       description:
         "Save a Markdown document into the current project (e.g. your final analysis/summary). Returns the new document id.",
@@ -368,5 +490,9 @@ export const ALL_TOOL_NAMES = [
   "apollo_search_people",
   "apollo_enrich_person",
   "apollo_search_organizations",
+  "contactout_people_search",
+  "contactout_linkedin_enrich",
+  "contactout_person_enrich",
+  "contactout_email_verify",
   "calyflow_create_document",
 ] as const;
