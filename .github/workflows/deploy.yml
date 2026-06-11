@@ -37,7 +37,23 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Quality gate before anything credentialed runs: lint, typecheck, and the
+  # vitest suite. Needs no secrets — tests stub their own env.
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+
   build-and-deploy:
+    needs: verify
     runs-on: ubuntu-latest
     environment: Prod
     env:

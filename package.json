@@ -7,6 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "seed": "tsx scripts/seed.ts",
     "sync-models": "tsx scripts/sync-models.ts",
     "seed-default-kb": "tsx scripts/seed-default-kb.ts"
@@ -44,7 +47,9 @@
     "eslint-config-next": "16.2.9",
     "tailwindcss": "^4",
     "tsx": "^4.22.4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vite-tsconfig-paths": "^6.1.1",
+    "vitest": "^4.1.8"
   },
   "license": "AGPL-3.0-only"
 }
