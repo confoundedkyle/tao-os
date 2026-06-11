@@ -1,17 +1,21 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import {
   createAccountAction,
   deleteAccountAction,
   updateAccountAction,
 } from "@/lib/actions/crm";
 import type { CrmAccount } from "@/lib/types";
-import { Button, Card, Field, inputClass } from "@/components/ui";
+import { Button, Card, EmptyState, Field, inputClass } from "@/components/ui";
+import { useToast } from "@/components/use-toast";
 
 export function CrmAccounts({ accounts }: { accounts: CrmAccount[] }) {
+  const [adding, setAdding] = useState(false);
   const [query, setQuery] = useState("");
-  const formRef = useRef<HTMLFormElement>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+  const { toast, showToast } = useToast();
 
   const q = query.trim().toLowerCase();
   const visible = q
@@ -22,87 +26,161 @@ export function CrmAccounts({ accounts }: { accounts: CrmAccount[] }) {
       )
     : accounts;
 
-  async function add(formData: FormData) {
-    await createAccountAction(formData);
-    formRef.current?.reset();
+  function add(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    startTransition(async () => {
+      try {
+        setError(null);
+        await createAccountAction(formData);
+        setAdding(false);
+        showToast("Account added");
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Could not add account");
+      }
+    });
   }
 
   return (
     <section className="mb-12">
-      <h2 className="mb-3 text-xl font-semibold">Accounts</h2>
-
-      <Card className="mb-5">
-        <form ref={formRef} action={add} className="grid gap-3 sm:grid-cols-2">
-          <Field label="Name">
-            <input name="name" required className={inputClass} />
-          </Field>
-          <Field label="Website">
-            <input name="website" className={inputClass} placeholder="https://" />
-          </Field>
-          <Field label="Industry">
-            <input name="industry" className={inputClass} />
-          </Field>
-          <Field label="Notes">
-            <input name="notes" className={inputClass} />
-          </Field>
-          <div className="sm:col-span-2">
-            <Button type="submit" variant="small">
-              Add account
-            </Button>
-          </div>
-        </form>
-      </Card>
-
-      <div className="mb-4">
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search accounts…"
-          className={inputClass}
-        />
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <h2 className="text-xl font-semibold">Accounts</h2>
+        <Button variant="small" onClick={() => setAdding((v) => !v)}>
+          {adding ? "Close" : "Add account"}
+        </Button>
       </div>
 
-      {visible.length === 0 ? (
-        <p className="text-sm text-navy-800/45">
-          {accounts.length === 0 ? "No accounts yet." : "No matches."}
-        </p>
-      ) : (
-        <div className="space-y-2">
-          {visible.map((account) => (
-            <AccountRow key={account.id} account={account} />
-          ))}
-        </div>
+      {adding && (
+        <Card className="mb-5">
+          <form onSubmit={add} className="grid gap-3 sm:grid-cols-2">
+            <Field label="Name">
+              <input name="name" required className={inputClass} />
+            </Field>
+            <Field label="Website">
+              <input
+                name="website"
+                className={inputClass}
+                placeholder="https://"
+              />
+            </Field>
+            <Field label="Industry">
+              <input name="industry" className={inputClass} />
+            </Field>
+            <Field label="Notes">
+              <textarea name="notes" rows={3} className={inputClass} />
+            </Field>
+            <div className="flex items-center gap-3 sm:col-span-2">
+              <Button type="submit" variant="small" disabled={pending}>
+                {pending ? "Adding…" : "Add account"}
+              </Button>
+              {error && (
+                <p role="alert" className="text-xs text-coral-400">
+                  {error}
+                </p>
+              )}
+            </div>
+          </form>
+        </Card>
       )}
+
+      {accounts.length === 0 ? (
+        !adding && (
+          <EmptyState
+            title="No accounts yet"
+            description="Add the companies you work with to start tracking leads against them."
+            action={
+              <Button variant="small" onClick={() => setAdding(true)}>
+                Add account
+              </Button>
+            }
+          />
+        )
+      ) : (
+        <>
+          <div className="mb-4">
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search accounts…"
+              aria-label="Search accounts"
+              className={inputClass}
+            />
+          </div>
+
+          {visible.length === 0 ? (
+            <p className="text-sm text-navy-800/45">
+              No matches.{" "}
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                className="font-semibold text-mint-700 hover:underline"
+              >
+                Clear search
+              </button>
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {visible.map((account) => (
+                <AccountRow
+                  key={account.id}
+                  account={account}
+                  showToast={showToast}
+                />
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
+      {toast}
     </section>
   );
 }
 
-function AccountRow({ account }: { account: CrmAccount }) {
+function AccountRow({
+  account,
+  showToast,
+}: {
+  account: CrmAccount;
+  showToast: (message: string) => void;
+}) {
   const [editing, setEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
   function remove() {
-    if (!window.confirm(`Delete "${account.name}"?`)) return;
+    if (!window.confirm(`Delete "${account.name}"? This cannot be undone.`))
+      return;
     startTransition(async () => {
       try {
         setError(null);
         await deleteAccountAction(account.id);
+        showToast("Account deleted");
       } catch (err) {
         setError(err instanceof Error ? err.message : "Could not delete");
       }
     });
   }
 
-  async function save(formData: FormData) {
-    await updateAccountAction(formData);
-    setEditing(false);
+  function save(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    startTransition(async () => {
+      try {
+        setError(null);
+        await updateAccountAction(formData);
+        showToast("Account updated");
+        setEditing(false);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Could not save");
+      }
+    });
   }
 
   if (editing) {
     return (
       <Card>
-        <form action={save} className="grid gap-3 sm:grid-cols-2">
+        <form onSubmit={save} className="grid gap-3 sm:grid-cols-2">
           <input type="hidden" name="id" value={account.id} />
           <Field label="Name">
             <input
@@ -127,15 +205,16 @@ function AccountRow({ account }: { account: CrmAccount }) {
             />
           </Field>
           <Field label="Notes">
-            <input
+            <textarea
               name="notes"
+              rows={3}
               defaultValue={account.notes ?? ""}
               className={inputClass}
             />
           </Field>
-          <div className="flex gap-2 sm:col-span-2">
-            <Button type="submit" variant="small">
-              Save
+          <div className="flex items-center gap-2 sm:col-span-2">
+            <Button type="submit" variant="small" disabled={pending}>
+              {pending ? "Saving…" : "Save"}
             </Button>
             <Button
               type="button"
@@ -144,6 +223,11 @@ function AccountRow({ account }: { account: CrmAccount }) {
             >
               Cancel
             </Button>
+            {error && (
+              <p role="alert" className="text-xs text-coral-400">
+                {error}
+              </p>
+            )}
           </div>
         </form>
       </Card>
@@ -159,9 +243,15 @@ function AccountRow({ account }: { account: CrmAccount }) {
             "—"}
         </p>
         {account.notes && (
-          <p className="mt-1 text-sm text-navy-800/45">{account.notes}</p>
+          <p className="mt-1 line-clamp-2 text-sm text-navy-800/45">
+            {account.notes}
+          </p>
         )}
-        {error && <p className="mt-1 text-xs text-coral-400">{error}</p>}
+        {error && (
+          <p role="alert" className="mt-1 text-xs text-coral-400">
+            {error}
+          </p>
+        )}
       </div>
       <div className="flex flex-shrink-0 gap-2">
         <button

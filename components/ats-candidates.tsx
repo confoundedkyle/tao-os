@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import {
   createCandidateAction,
   deleteCandidateAction,
@@ -9,7 +9,16 @@ import {
 import type { AtsCandidateStatus } from "@/lib/types";
 import type { AtsCandidateWithProject } from "@/lib/queries";
 import type { ClientWithProjects } from "@/components/sidebar-nav";
-import { Button, Card, Chip, Field, inputClass } from "@/components/ui";
+import {
+  Button,
+  Card,
+  Chip,
+  EmptyState,
+  Field,
+  PageHeader,
+  inputClass,
+} from "@/components/ui";
+import { useToast } from "@/components/use-toast";
 
 const STATUSES: AtsCandidateStatus[] = [
   "sourced",
@@ -56,9 +65,12 @@ export function AtsCandidates({
   candidates: AtsCandidateWithProject[];
   clients: ClientWithProjects[];
 }) {
+  const [adding, setAdding] = useState(false);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<"all" | AtsCandidateStatus>("all");
-  const formRef = useRef<HTMLFormElement>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+  const { toast, showToast } = useToast();
 
   const q = query.trim().toLowerCase();
   const visible = candidates.filter((c) => {
@@ -69,87 +81,149 @@ export function AtsCandidates({
       .some((v) => v!.toLowerCase().includes(q));
   });
 
-  async function add(formData: FormData) {
-    await createCandidateAction(formData);
-    formRef.current?.reset();
+  function add(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    startTransition(async () => {
+      try {
+        setError(null);
+        await createCandidateAction(formData);
+        setAdding(false);
+        showToast("Candidate added");
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Could not add candidate");
+      }
+    });
   }
 
   return (
     <>
-      <Card className="mb-5">
-        <form ref={formRef} action={add} className="grid gap-3 sm:grid-cols-2">
-          <Field label="Name">
-            <input name="name" required className={inputClass} />
-          </Field>
-          <Field label="Role">
-            <select name="project_id" className={inputClass} defaultValue="">
-              <ProjectOptions clients={clients} />
-            </select>
-          </Field>
-          <Field label="Email">
-            <input name="email" type="email" className={inputClass} />
-          </Field>
-          <Field label="Phone">
-            <input name="phone" className={inputClass} />
-          </Field>
-          <Field label="Status">
-            <select name="status" className={inputClass} defaultValue="sourced">
+      <PageHeader
+        title="ATS"
+        description="Track candidates and associate them with the roles (projects) you're hiring for."
+        action={
+          <Button variant="small" onClick={() => setAdding((v) => !v)}>
+            {adding ? "Close" : "Add candidate"}
+          </Button>
+        }
+      />
+
+      {adding && (
+        <Card className="mb-5">
+          <form onSubmit={add} className="grid gap-3 sm:grid-cols-2">
+            <Field label="Name">
+              <input name="name" required className={inputClass} />
+            </Field>
+            <Field label="Role">
+              <select name="project_id" className={inputClass} defaultValue="">
+                <ProjectOptions clients={clients} />
+              </select>
+            </Field>
+            <Field label="Email">
+              <input name="email" type="email" className={inputClass} />
+            </Field>
+            <Field label="Phone">
+              <input name="phone" className={inputClass} />
+            </Field>
+            <Field label="Status">
+              <select
+                name="status"
+                className={inputClass}
+                defaultValue="sourced"
+              >
+                {STATUSES.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Notes">
+              <textarea name="notes" rows={3} className={inputClass} />
+            </Field>
+            <div className="flex items-end gap-3 sm:col-span-2">
+              <Button type="submit" variant="small" disabled={pending}>
+                {pending ? "Adding…" : "Add candidate"}
+              </Button>
+              {error && (
+                <p role="alert" className="text-xs text-coral-400">
+                  {error}
+                </p>
+              )}
+            </div>
+          </form>
+        </Card>
+      )}
+
+      {candidates.length === 0 ? (
+        !adding && (
+          <EmptyState
+            title="No candidates yet"
+            description="Add your first candidate and track them through the pipeline."
+            action={
+              <Button variant="small" onClick={() => setAdding(true)}>
+                Add candidate
+              </Button>
+            }
+          />
+        )
+      ) : (
+        <>
+          <div className="mb-4 flex flex-wrap gap-3">
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search candidates…"
+              aria-label="Search candidates"
+              className={`${inputClass} max-w-xs`}
+            />
+            <select
+              value={status}
+              onChange={(e) =>
+                setStatus(e.target.value as "all" | AtsCandidateStatus)
+              }
+              aria-label="Filter by status"
+              className={`${inputClass} max-w-[12rem]`}
+            >
+              <option value="all">All statuses</option>
               {STATUSES.map((s) => (
                 <option key={s} value={s}>
                   {s}
                 </option>
               ))}
             </select>
-          </Field>
-          <Field label="Notes">
-            <input name="notes" className={inputClass} />
-          </Field>
-          <div className="flex items-end sm:col-span-2">
-            <Button type="submit" variant="small">
-              Add candidate
-            </Button>
           </div>
-        </form>
-      </Card>
 
-      <div className="mb-4 flex flex-wrap gap-3">
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search candidates…"
-          className={`${inputClass} max-w-xs`}
-        />
-        <select
-          value={status}
-          onChange={(e) =>
-            setStatus(e.target.value as "all" | AtsCandidateStatus)
-          }
-          className={`${inputClass} max-w-[12rem]`}
-        >
-          <option value="all">All statuses</option>
-          {STATUSES.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {visible.length === 0 ? (
-        <p className="text-sm text-navy-800/45">
-          {candidates.length === 0 ? "No candidates yet." : "No matches."}
-        </p>
-      ) : (
-        <div className="space-y-2">
-          {visible.map((candidate) => (
-            <CandidateRow
-              key={candidate.id}
-              candidate={candidate}
-              clients={clients}
-            />
-          ))}
-        </div>
+          {visible.length === 0 ? (
+            <p className="text-sm text-navy-800/45">
+              No matches.{" "}
+              <button
+                type="button"
+                onClick={() => {
+                  setQuery("");
+                  setStatus("all");
+                }}
+                className="font-semibold text-mint-700 hover:underline"
+              >
+                Clear filters
+              </button>
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {visible.map((candidate) => (
+                <CandidateRow
+                  key={candidate.id}
+                  candidate={candidate}
+                  clients={clients}
+                  showToast={showToast}
+                />
+              ))}
+            </div>
+          )}
+        </>
       )}
+
+      {toast}
     </>
   );
 }
@@ -157,35 +231,49 @@ export function AtsCandidates({
 function CandidateRow({
   candidate,
   clients,
+  showToast,
 }: {
   candidate: AtsCandidateWithProject;
   clients: ClientWithProjects[];
+  showToast: (message: string) => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
   function remove() {
-    if (!window.confirm(`Delete "${candidate.name}"?`)) return;
+    if (!window.confirm(`Delete "${candidate.name}"? This cannot be undone.`))
+      return;
     startTransition(async () => {
       try {
         setError(null);
         await deleteCandidateAction(candidate.id);
+        showToast("Candidate deleted");
       } catch (err) {
         setError(err instanceof Error ? err.message : "Could not delete");
       }
     });
   }
 
-  async function save(formData: FormData) {
-    await updateCandidateAction(formData);
-    setEditing(false);
+  function save(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    startTransition(async () => {
+      try {
+        setError(null);
+        await updateCandidateAction(formData);
+        showToast("Candidate updated");
+        setEditing(false);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Could not save");
+      }
+    });
   }
 
   if (editing) {
     return (
       <Card>
-        <form action={save} className="grid gap-3 sm:grid-cols-2">
+        <form onSubmit={save} className="grid gap-3 sm:grid-cols-2">
           <input type="hidden" name="id" value={candidate.id} />
           <Field label="Name">
             <input
@@ -233,15 +321,16 @@ function CandidateRow({
             </select>
           </Field>
           <Field label="Notes">
-            <input
+            <textarea
               name="notes"
+              rows={3}
               defaultValue={candidate.notes ?? ""}
               className={inputClass}
             />
           </Field>
-          <div className="flex gap-2 sm:col-span-2">
-            <Button type="submit" variant="small">
-              Save
+          <div className="flex items-center gap-2 sm:col-span-2">
+            <Button type="submit" variant="small" disabled={pending}>
+              {pending ? "Saving…" : "Save"}
             </Button>
             <Button
               type="button"
@@ -250,6 +339,11 @@ function CandidateRow({
             >
               Cancel
             </Button>
+            {error && (
+              <p role="alert" className="text-xs text-coral-400">
+                {error}
+              </p>
+            )}
           </div>
         </form>
       </Card>
@@ -274,9 +368,15 @@ function CandidateRow({
             "—"}
         </p>
         {candidate.notes && (
-          <p className="mt-1 text-sm text-navy-800/45">{candidate.notes}</p>
+          <p className="mt-1 line-clamp-2 text-sm text-navy-800/45">
+            {candidate.notes}
+          </p>
         )}
-        {error && <p className="mt-1 text-xs text-coral-400">{error}</p>}
+        {error && (
+          <p role="alert" className="mt-1 text-xs text-coral-400">
+            {error}
+          </p>
+        )}
       </div>
       <div className="flex flex-shrink-0 gap-2">
         <button
