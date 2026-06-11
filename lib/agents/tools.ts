@@ -16,6 +16,7 @@ import { lemlistAdapter } from "../integrations/lemlist";
 import { loxoAdapter } from "../integrations/loxo";
 import { lushaAdapter } from "../integrations/lusha";
 import { manatalAdapter } from "../integrations/manatal";
+import { workableAdapter } from "../integrations/workable";
 import type { Doc } from "../types";
 
 // Agent tools. Each tool's execute closes over a server-derived ToolContext —
@@ -41,6 +42,7 @@ export interface ToolContext {
   loxoToken: string | null;
   lushaToken: string | null;
   manatalToken: string | null;
+  workableToken: string | null;
   /** Documents the agent created this run (mutated by calyflow_create_document). */
   createdDocIds: string[];
 }
@@ -832,6 +834,40 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    workable_list_jobs: tool({
+      description:
+        "List jobs in the connected Workable ATS (title, state, department, location, shortcode). Filter by state: draft, published, closed, archived. Use to find the role you are sourcing for — the shortcode scopes candidate lookups.",
+      inputSchema: z.object({
+        state: z
+          .string()
+          .optional()
+          .describe("Job state filter: draft, published, closed, archived."),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.workableToken) return { error: notConnected("Workable") };
+        return workableAdapter.listJobs(ctx.workableToken, args);
+      },
+    }),
+
+    workable_list_candidates: tool({
+      description:
+        "List candidates in the connected Workable ATS as a Markdown table (name, email, phone, headline, stage, job). Filters combine: shortcode (a job's pipeline, from workable_list_jobs), stage, and email (find a specific person).",
+      inputSchema: z.object({
+        shortcode: z
+          .string()
+          .optional()
+          .describe("Job shortcode to scope to one role's pipeline."),
+        stage: z.string().optional().describe("Stage slug filter."),
+        email: z.string().optional().describe("Find a candidate by email."),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.workableToken) return { error: notConnected("Workable") };
+        return workableAdapter.listCandidates(ctx.workableToken, args);
+      },
+    }),
+
     calyflow_create_document: tool({
       description:
         "Save a Markdown document into the current project (e.g. your final analysis/summary). Returns the new document id.",
@@ -915,5 +951,7 @@ export const ALL_TOOL_NAMES = [
   "manatal_list_jobs",
   "manatal_search_candidates",
   "manatal_list_job_candidates",
+  "workable_list_jobs",
+  "workable_list_candidates",
   "calyflow_create_document",
 ] as const;

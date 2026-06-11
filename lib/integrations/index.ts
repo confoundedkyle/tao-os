@@ -15,6 +15,7 @@ import { lemlistAdapter } from "./lemlist";
 import { loxoAdapter } from "./loxo";
 import { lushaAdapter } from "./lusha";
 import { manatalAdapter } from "./manatal";
+import { workableAdapter } from "./workable";
 import type { ConnectorAdapter } from "./types";
 
 export type { ConnectorAdapter, ResourceRef } from "./types";
@@ -35,6 +36,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   loxo: loxoAdapter,
   lusha: lushaAdapter,
   manatal: manatalAdapter,
+  workable: workableAdapter,
 };
 
 export function getAdapter(provider: string): ConnectorAdapter | null {

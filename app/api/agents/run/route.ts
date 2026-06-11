@@ -129,6 +129,7 @@ export async function POST(request: NextRequest) {
   let loxoToken: string | null = null;
   let lushaToken: string | null = null;
   let manatalToken: string | null = null;
+  let workableToken: string | null = null;
   try {
     [
       airtableToken,
@@ -144,6 +145,7 @@ export async function POST(request: NextRequest) {
       loxoToken,
       lushaToken,
       manatalToken,
+      workableToken,
     ] = await Promise.all([
       tokenFor("airtable_", "airtable"),
       tokenFor("apollo_", "apollo"),
@@ -158,6 +160,7 @@ export async function POST(request: NextRequest) {
       tokenFor("loxo_", "loxo"),
       tokenFor("lusha_", "lusha"),
       tokenFor("manatal_", "manatal"),
+      tokenFor("workable_", "workable"),
     ]);
   } catch (err) {
     return NextResponse.json(
@@ -208,6 +211,7 @@ export async function POST(request: NextRequest) {
     loxoToken,
     lushaToken,
     manatalToken,
+    workableToken,
     createdDocIds: [],
   };
 
