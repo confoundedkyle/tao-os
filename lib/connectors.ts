@@ -48,7 +48,7 @@ export const CONNECTORS: Connector[] = [
   { name: "Zoho CRM", category: "crm", blurb: "Sync clients and deals from Zoho's sales suite." },
 
   // Tools (sourcing & outreach)
-  { name: "Apollo", category: "tool", blurb: "Source contact data from the 270M-profile B2B database." },
+  { name: "Apollo", category: "tool", blurb: "Source contact data from the 270M-profile B2B database.", provider: "apollo", live: true, auth: "apikey" },
   { name: "Bright Data", category: "tool", blurb: "Enrich profiles with large-scale public web data." },
   { name: "ContactOut", category: "tool", blurb: "Find personal emails and phones behind LinkedIn profiles." },
   { name: "Coresignal", category: "tool", blurb: "Enrich candidates with fresh public employment data." },

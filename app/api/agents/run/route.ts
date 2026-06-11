@@ -117,11 +117,13 @@ export async function POST(request: NextRequest) {
     return getValidAccessToken(connection);
   };
   let airtableToken: string | null = null;
+  let apolloToken: string | null = null;
   let ashbyToken: string | null = null;
   let hunterToken: string | null = null;
   try {
-    [airtableToken, ashbyToken, hunterToken] = await Promise.all([
+    [airtableToken, apolloToken, ashbyToken, hunterToken] = await Promise.all([
       tokenFor("airtable_", "airtable"),
+      tokenFor("apollo_", "apollo"),
       tokenFor("ashby_", "ashby"),
       tokenFor("hunter_", "hunter"),
     ]);
@@ -162,6 +164,7 @@ export async function POST(request: NextRequest) {
     clientId: project.client.id,
     userId: session.userId,
     airtableToken,
+    apolloToken,
     ashbyToken,
     hunterToken,
     createdDocIds: [],

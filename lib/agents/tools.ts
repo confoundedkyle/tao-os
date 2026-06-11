@@ -4,6 +4,7 @@ import { z } from "zod";
 import { db } from "../db";
 import { listDocuments, getDocument } from "../queries";
 import { airtableAdapter } from "../integrations/airtable";
+import { apolloAdapter } from "../integrations/apollo";
 import { ashbyAdapter } from "../integrations/ashby";
 import { hunterAdapter } from "../integrations/hunter";
 import type { Doc } from "../types";
@@ -19,6 +20,7 @@ export interface ToolContext {
   userId: string;
   /** Valid access tokens per connector, or null when not connected. */
   airtableToken: string | null;
+  apolloToken: string | null;
   ashbyToken: string | null;
   hunterToken: string | null;
   /** Documents the agent created this run (mutated by calyflow_create_document). */
@@ -232,6 +234,84 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    apollo_search_people: tool({
+      description:
+        "Search Apollo's B2B database for people at target companies by job title, seniority, company domain/name, and location. Returns name, title, company, location, and email status as a Markdown table. NOTE: email addresses are usually masked in search results — use apollo_enrich_person to reveal a specific person's actual email.",
+      inputSchema: z.object({
+        domain: z
+          .string()
+          .optional()
+          .describe("Company domain to target, e.g. acme.com (preferred)."),
+        company: z
+          .string()
+          .optional()
+          .describe("Company name, if the domain isn't known."),
+        titles: z
+          .array(z.string())
+          .optional()
+          .describe('Job titles to match, e.g. ["VP Engineering", "Head of Talent"].'),
+        seniorities: z
+          .array(z.string())
+          .optional()
+          .describe(
+            'Seniority levels: owner, founder, c_suite, partner, vp, head, director, manager, senior, entry, intern.',
+          ),
+        locations: z
+          .array(z.string())
+          .optional()
+          .describe('Person locations, e.g. ["San Francisco, US", "London, UK"].'),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.apolloToken) return { error: notConnected("Apollo") };
+        return apolloAdapter.searchPeople(ctx.apolloToken, args);
+      },
+    }),
+
+    apollo_enrich_person: tool({
+      description:
+        "Reveal a specific person's contact details (work email, phone, LinkedIn) via Apollo's People Match. Provide their name and the company domain (or company name). Set revealEmail to surface personal emails when work email is unavailable.",
+      inputSchema: z.object({
+        fullName: z.string().optional(),
+        firstName: z.string().optional(),
+        lastName: z.string().optional(),
+        domain: z.string().optional().describe("Company domain, e.g. acme.com."),
+        company: z.string().optional(),
+        revealEmail: z
+          .boolean()
+          .optional()
+          .describe("Reveal personal emails when no work email is found."),
+      }),
+      execute: async (args) => {
+        if (!ctx.apolloToken) return { error: notConnected("Apollo") };
+        return apolloAdapter.enrichPerson(ctx.apolloToken, args);
+      },
+    }),
+
+    apollo_search_organizations: tool({
+      description:
+        "Find target companies in Apollo by keyword (industry/technology), location, and employee-size range. Returns company name, domain, industry, employee count, and location as a Markdown table. Use to build a target-account list before searching for people.",
+      inputSchema: z.object({
+        keywords: z
+          .string()
+          .optional()
+          .describe("Keyword tags, e.g. 'fintech' or 'healthcare software'."),
+        locations: z
+          .array(z.string())
+          .optional()
+          .describe('Company HQ locations, e.g. ["United States", "Germany"].'),
+        employeeRanges: z
+          .array(z.string())
+          .optional()
+          .describe('Employee-count ranges, e.g. ["1,10", "11,50", "51,200"].'),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.apolloToken) return { error: notConnected("Apollo") };
+        return apolloAdapter.searchOrganizations(ctx.apolloToken, args);
+      },
+    }),
+
     calyflow_create_document: tool({
       description:
         "Save a Markdown document into the current project (e.g. your final analysis/summary). Returns the new document id.",
@@ -285,5 +365,8 @@ export const ALL_TOOL_NAMES = [
   "hunter_domain_search",
   "hunter_email_finder",
   "hunter_email_verifier",
+  "apollo_search_people",
+  "apollo_enrich_person",
+  "apollo_search_organizations",
   "calyflow_create_document",
 ] as const;
