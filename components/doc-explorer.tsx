@@ -13,6 +13,7 @@ import {
 } from "@/lib/actions/documents";
 import type { Doc } from "@/lib/types";
 import { Button } from "./ui";
+import { Toast } from "./toast";
 
 /** Markdown/plain-text docs are editable; binary uploads (PDF, DOCX) are not. */
 function isEditable(doc: Doc): boolean {
@@ -73,6 +74,14 @@ export function DocExplorer({
   const [nameDraft, setNameDraft] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  // Incrementing key re-mounts the Toast so a re-save restarts its timer.
+  const [toastKey, setToastKey] = useState(0);
+  const [toastMsg, setToastMsg] = useState("Saved");
+
+  function showToast(message: string) {
+    setToastMsg(message);
+    setToastKey((k) => k + 1);
+  }
 
   // Fall back to the first doc if the selected one was deleted.
   const selected = docs.find((d) => d.id === selectedId) ?? docs[0] ?? null;
@@ -102,6 +111,7 @@ export function DocExplorer({
         setError(null);
         await renameDocumentAction(selected.id, next);
         setRenaming(false);
+        showToast("Name updated");
       } catch (err) {
         setError(err instanceof Error ? err.message : "Could not rename");
       }
@@ -121,6 +131,7 @@ export function DocExplorer({
         setError(null);
         await updateDocumentTextAction(selected.id, draft);
         setEditing(false);
+        showToast(mode === "kb" ? "Note saved" : "Document saved");
       } catch (err) {
         setError(err instanceof Error ? err.message : "Could not save");
       }
@@ -164,6 +175,7 @@ export function DocExplorer({
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(280px,1fr)_2fr]">
+      {toastKey > 0 && <Toast key={toastKey} message={toastMsg} />}
       {/* Left: GitHub-style flat file list */}
       <div>
         <div className="overflow-hidden rounded-card border border-navy-800/12 bg-white">

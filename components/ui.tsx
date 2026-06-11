@@ -120,7 +120,9 @@ export function PageHeader({
   return (
     <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
       <div>
-        <h1 className="text-[32px] font-bold leading-tight">{title}</h1>
+        <h1 className="text-2xl font-bold leading-tight sm:text-[32px]">
+          {title}
+        </h1>
         {description ? (
           <p className="mt-1 max-w-[68ch] text-navy-800/55">{description}</p>
         ) : null}

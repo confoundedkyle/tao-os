@@ -54,7 +54,7 @@ export default async function DashboardPage() {
             background: "linear-gradient(135deg, #5bc8a8, #9cc3f0)",
           }}
         />
-        <h1 className="text-[32px] font-bold">
+        <h1 className="text-2xl font-bold sm:text-[32px]">
           Welcome back to {session.workspace.name}
         </h1>
         <p className="max-w-[68ch] text-navy-800/55">

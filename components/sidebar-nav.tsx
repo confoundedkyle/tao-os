@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { Client, Project } from "@/lib/types";
 
-type ClientWithProjects = Client & { projects: Project[] };
+export type ClientWithProjects = Client & { projects: Project[] };
 
 const mainNav = [
   { href: "/", label: "Dashboard", exact: true },
@@ -39,13 +39,11 @@ function Chevron({ className }: { className?: string }) {
 export function SidebarNav({ clients }: { clients: ClientWithProjects[] }) {
   const pathname = usePathname();
 
-  const activeClientId = pathname.match(/^\/clients\/([^/]+)/)?.[1];
-
-  const [expanded, setExpanded] = useState<Set<string>>(() => {
-    const s = new Set<string>();
-    if (activeClientId) s.add(activeClientId);
-    return s;
-  });
+  // Expand every client by default so projects are visible without clicking;
+  // users can still collapse any client individually.
+  const [expanded, setExpanded] = useState<Set<string>>(
+    () => new Set(clients.map((c) => c.id)),
+  );
 
   const toggle = (clientId: string) => {
     setExpanded((prev) => {
@@ -111,6 +109,9 @@ export function SidebarNav({ clients }: { clients: ClientWithProjects[] }) {
 
       {clients.map((client) => {
         const isClientActive = pathname.startsWith(`/clients/${client.id}`);
+        // On a project page the project link below carries the highlight;
+        // the client row is highlighted on the client's own pages/tabs.
+        const onProjectPage = pathname.includes("/projects/");
         const isOpen = expanded.has(client.id);
 
         return (
@@ -118,7 +119,9 @@ export function SidebarNav({ clients }: { clients: ClientWithProjects[] }) {
             <div
               className={cn(
                 "flex items-center gap-0.5 rounded-lg transition-colors",
-                isClientActive && !isOpen ? "bg-mint-400/15" : "",
+                isClientActive && (!onProjectPage || !isOpen)
+                  ? "bg-mint-400/15"
+                  : "",
               )}
             >
               <button
@@ -137,9 +140,11 @@ export function SidebarNav({ clients }: { clients: ClientWithProjects[] }) {
                 href={`/clients/${client.id}`}
                 className={cn(
                   "flex-1 truncate py-1.5 pr-2 text-sm transition-colors",
-                  isClientActive
-                    ? "font-medium text-navy-900"
-                    : "text-navy-800/65 hover:text-navy-900",
+                  isClientActive && (!onProjectPage || !isOpen)
+                    ? "font-medium text-mint-700"
+                    : isClientActive
+                      ? "font-medium text-navy-900"
+                      : "text-navy-800/65 hover:text-navy-900",
                 )}
               >
                 {client.name}
@@ -155,7 +160,7 @@ export function SidebarNav({ clients }: { clients: ClientWithProjects[] }) {
                 )}
                 {client.projects.map((project) => {
                   const href = `/clients/${client.id}/projects/${project.id}`;
-                  const active = pathname === href;
+                  const active = pathname.startsWith(href);
                   return (
                     <Link
                       key={project.id}
