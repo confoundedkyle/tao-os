@@ -34,6 +34,11 @@ export const env = {
   get platformApiKey() {
     return process.env.CALYFLOW_PLATFORM_API_KEY ?? "";
   },
+  /** Underlying provider the platform key/model belong to (anthropic, openai,
+   *  google, …). Must match the key in CALYFLOW_PLATFORM_API_KEY. */
+  get platformProvider() {
+    return process.env.CALYFLOW_PLATFORM_PROVIDER ?? "anthropic";
+  },
   get platformModel() {
     return process.env.CALYFLOW_PLATFORM_MODEL ?? "claude-sonnet-4-6";
   },

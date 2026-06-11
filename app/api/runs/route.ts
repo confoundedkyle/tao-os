@@ -194,10 +194,16 @@ export async function POST(request: NextRequest) {
             candidate.apiKey,
             candidate.model,
           );
+          // streamText swallows provider errors (401, bad model, …) into a
+          // generic "No output generated" unless we capture them via onError.
+          let streamError: unknown = null;
           const result = streamText({
             model,
             prompt: renderedPrompt,
             abortSignal: AbortSignal.timeout(150_000),
+            onError: ({ error }) => {
+              streamError = error;
+            },
           });
           for await (const chunk of result.textStream) {
             served = candidate;
@@ -205,6 +211,9 @@ export async function POST(request: NextRequest) {
             text += chunk;
             controller.enqueue(encoder.encode(chunk));
           }
+          // Surface the real provider error so it's recorded and (if a fallback
+          // exists) we advance to the next provider in the catch below.
+          if (streamError) throw streamError;
           served = candidate;
           fallbackUsed = attempt > 0;
           const finalUsage = await result.usage;
