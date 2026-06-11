@@ -325,6 +325,30 @@ export async function listAgentRuns(
   return data as (AgentRun & { agent: { name: string } | null })[];
 }
 
+export async function listRecentAgentRuns(
+  workspaceId: string,
+  limit = 8,
+): Promise<
+  (AgentRun & {
+    agent: { name: string } | null;
+    project: { id: string; name: string } | null;
+  })[]
+> {
+  const { data, error } = await db()
+    .from("agent_runs")
+    .select(
+      "*, agent:workspace_agents!inner(name, workspace_id), project:projects(id, name)",
+    )
+    .eq("workspace_agents.workspace_id", workspaceId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return data as (AgentRun & {
+    agent: { name: string } | null;
+    project: { id: string; name: string } | null;
+  })[];
+}
+
 /** All-provider spend for the current calendar month (UTC), in USD —
  *  workflow runs and agent runs combined. */
 export async function monthSpendUsd(workspaceId: string): Promise<number> {
