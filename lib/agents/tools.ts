@@ -6,6 +6,7 @@ import { listDocuments, getDocument } from "../queries";
 import { airtableAdapter } from "../integrations/airtable";
 import { apolloAdapter } from "../integrations/apollo";
 import { ashbyAdapter } from "../integrations/ashby";
+import { breezyhrAdapter } from "../integrations/breezyhr";
 import { contactoutAdapter } from "../integrations/contactout";
 import { hunterAdapter } from "../integrations/hunter";
 import type { Doc } from "../types";
@@ -23,6 +24,7 @@ export interface ToolContext {
   airtableToken: string | null;
   apolloToken: string | null;
   ashbyToken: string | null;
+  breezyhrToken: string | null;
   contactoutToken: string | null;
   hunterToken: string | null;
   /** Documents the agent created this run (mutated by calyflow_create_document). */
@@ -174,6 +176,62 @@ function buildAll(ctx: ToolContext): ToolSet {
       execute: async ({ query }) => {
         if (!ctx.ashbyToken) return { error: notConnected("Ashby") };
         return ashbyAdapter.searchCandidates(ctx.ashbyToken, { query });
+      },
+    }),
+
+    breezyhr_list_positions: tool({
+      description:
+        "List positions/requisitions in the connected BreezyHR ATS (name, state, department, location, position id). Use to find the role you are sourcing for. Operates on the account's first company unless companyId is given.",
+      inputSchema: z.object({
+        state: z
+          .string()
+          .optional()
+          .describe(
+            'Filter by position state, e.g. "published" for live roles, "draft", "closed".',
+          ),
+        companyId: z
+          .string()
+          .optional()
+          .describe("BreezyHR company id, only needed for multi-company accounts."),
+      }),
+      execute: async (args) => {
+        if (!ctx.breezyhrToken) return { error: notConnected("BreezyHR") };
+        return breezyhrAdapter.listPositions(ctx.breezyhrToken, args);
+      },
+    }),
+
+    breezyhr_list_candidates: tool({
+      description:
+        "List the candidates in a BreezyHR position's pipeline as a Markdown table (name, email, phone, headline, stage, origin). BreezyHR scopes candidates to a position — get the positionId from breezyhr_list_positions first.",
+      inputSchema: z.object({
+        positionId: z
+          .string()
+          .describe("Position id (from breezyhr_list_positions)."),
+        companyId: z
+          .string()
+          .optional()
+          .describe("BreezyHR company id, only needed for multi-company accounts."),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.breezyhrToken) return { error: notConnected("BreezyHR") };
+        return breezyhrAdapter.listCandidates(ctx.breezyhrToken, args);
+      },
+    }),
+
+    breezyhr_search_candidates: tool({
+      description:
+        "Search BreezyHR candidates across positions by exact email address. Returns matching candidates as a Markdown table.",
+      inputSchema: z.object({
+        email: z.string().describe("The candidate email address to search for."),
+        companyId: z
+          .string()
+          .optional()
+          .describe("BreezyHR company id, only needed for multi-company accounts."),
+      }),
+      execute: async (args) => {
+        if (!ctx.breezyhrToken) return { error: notConnected("BreezyHR") };
+        return breezyhrAdapter.searchCandidates(ctx.breezyhrToken, args);
       },
     }),
 
@@ -484,6 +542,9 @@ export const ALL_TOOL_NAMES = [
   "ashby_list_jobs",
   "ashby_list_candidates",
   "ashby_search_candidates",
+  "breezyhr_list_positions",
+  "breezyhr_list_candidates",
+  "breezyhr_search_candidates",
   "hunter_domain_search",
   "hunter_email_finder",
   "hunter_email_verifier",
