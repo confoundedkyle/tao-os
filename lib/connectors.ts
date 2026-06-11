@@ -7,6 +7,13 @@ export interface Connector {
   name: string;
   category: ConnectorCategory;
   blurb: string;
+  /** Provider id matching workspace_connections.provider + the adapter registry.
+   *  Present only for connectors with a working backend. */
+  provider?: string;
+  /** True when the connector can actually be activated (has an adapter). */
+  live?: boolean;
+  /** How the connector authenticates — drives the Connect affordance. */
+  auth?: "oauth" | "apikey";
 }
 
 export const CONNECTOR_CATEGORY_LABELS: Record<ConnectorCategory, string> = {
@@ -17,7 +24,7 @@ export const CONNECTOR_CATEGORY_LABELS: Record<ConnectorCategory, string> = {
 
 export const CONNECTORS: Connector[] = [
   // ATS
-  { name: "Ashby", category: "ats", blurb: "Sync roles and candidates from the analytics-first modern ATS." },
+  { name: "Ashby", category: "ats", blurb: "Sync roles and candidates from the analytics-first modern ATS.", provider: "ashby", live: true, auth: "apikey" },
   { name: "BreezyHR", category: "ats", blurb: "Pull pipelines from the visual drag-and-drop hiring tool." },
   { name: "Greenhouse", category: "ats", blurb: "Sync jobs and candidates from the enterprise hiring standard." },
   { name: "JazzHR", category: "ats", blurb: "Import candidates from the SMB-friendly recruiting software." },
@@ -34,7 +41,7 @@ export const CONNECTORS: Connector[] = [
   { name: "Zoho Recruit", category: "ats", blurb: "Import candidates from Zoho's staffing-ready ATS." },
 
   // CRM
-  { name: "Airtable", category: "crm", blurb: "Sync the flexible candidate and client bases you already run." },
+  { name: "Airtable", category: "crm", blurb: "Sync the flexible candidate and client bases you already run.", provider: "airtable", live: true, auth: "oauth" },
   { name: "Dripify", category: "crm", blurb: "Pull LinkedIn outreach campaigns and replies automatically." },
   { name: "HubSpot", category: "crm", blurb: "Sync client companies, deals, and contacts effortlessly." },
   { name: "Pipedrive", category: "crm", blurb: "Pull your BD pipeline and client deals into Calyflow." },

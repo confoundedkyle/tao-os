@@ -49,6 +49,19 @@ export const env = {
   get cronSecret() {
     return process.env.CRON_SECRET ?? "";
   },
+
+  /** Public base URL of this deployment, used to build OAuth redirect URIs
+   *  (e.g. https://app.calyflow.com). No trailing slash. */
+  get appBaseUrl() {
+    return (process.env.APP_BASE_URL ?? "").replace(/\/$/, "");
+  },
+  /** Airtable OAuth app credentials (the connector spike). */
+  get airtableClientId() {
+    return process.env.AIRTABLE_CLIENT_ID ?? "";
+  },
+  get airtableClientSecret() {
+    return process.env.AIRTABLE_CLIENT_SECRET ?? "";
+  },
   /** Svix signing secret for the Clerk webhook endpoint. */
   get clerkWebhookSigningSecret() {
     return process.env.CLERK_WEBHOOK_SIGNING_SECRET ?? "";
