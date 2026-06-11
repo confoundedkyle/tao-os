@@ -163,6 +163,15 @@ export function IconRocket(props: IconProps) {
   );
 }
 
+export function IconMegaphone(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M4 10v4a1 1 0 0 0 1 1h2l9 4V5L7 9H5a1 1 0 0 0-1 1Z" fill={mint} />
+      <path d="M7 15v3a1 1 0 0 0 1 1h1.5a1 1 0 0 0 1-1v-2.2M19 9a3 3 0 0 1 0 6" />
+    </Svg>
+  );
+}
+
 export function IconWarning(props: IconProps) {
   return (
     <Svg {...props}>
