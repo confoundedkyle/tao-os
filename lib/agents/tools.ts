@@ -9,6 +9,7 @@ import { ashbyAdapter } from "../integrations/ashby";
 import { breezyhrAdapter } from "../integrations/breezyhr";
 import { brightdataAdapter } from "../integrations/brightdata";
 import { contactoutAdapter } from "../integrations/contactout";
+import { greenhouseAdapter } from "../integrations/greenhouse";
 import { hunterAdapter } from "../integrations/hunter";
 import type { Doc } from "../types";
 
@@ -28,6 +29,7 @@ export interface ToolContext {
   breezyhrToken: string | null;
   brightdataToken: string | null;
   contactoutToken: string | null;
+  greenhouseToken: string | null;
   hunterToken: string | null;
   /** Documents the agent created this run (mutated by calyflow_create_document). */
   createdDocIds: string[];
@@ -234,6 +236,49 @@ function buildAll(ctx: ToolContext): ToolSet {
       execute: async (args) => {
         if (!ctx.breezyhrToken) return { error: notConnected("BreezyHR") };
         return breezyhrAdapter.searchCandidates(ctx.breezyhrToken, args);
+      },
+    }),
+
+    greenhouse_list_jobs: tool({
+      description:
+        "List jobs/requisitions in the connected Greenhouse ATS (name, status, department, office, job id). Use to find the role you are sourcing for.",
+      inputSchema: z.object({
+        openOnly: z
+          .boolean()
+          .optional()
+          .describe("Only return jobs with status open."),
+      }),
+      execute: async (args) => {
+        if (!ctx.greenhouseToken) return { error: notConnected("Greenhouse") };
+        return greenhouseAdapter.listJobs(ctx.greenhouseToken, args);
+      },
+    }),
+
+    greenhouse_list_candidates: tool({
+      description:
+        "List candidates from the connected Greenhouse ATS as a Markdown table (name, email, company, title, job, stage). Pass jobId (from greenhouse_list_jobs) to scope to one role's pipeline; paginated, use limit to control volume.",
+      inputSchema: z.object({
+        jobId: z
+          .string()
+          .optional()
+          .describe("Greenhouse job id to scope candidates to one role."),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.greenhouseToken) return { error: notConnected("Greenhouse") };
+        return greenhouseAdapter.listCandidates(ctx.greenhouseToken, args);
+      },
+    }),
+
+    greenhouse_search_candidates: tool({
+      description:
+        "Search Greenhouse candidates by exact email address. Returns matching candidates as a Markdown table.",
+      inputSchema: z.object({
+        email: z.string().describe("The candidate email address to search for."),
+      }),
+      execute: async (args) => {
+        if (!ctx.greenhouseToken) return { error: notConnected("Greenhouse") };
+        return greenhouseAdapter.searchCandidates(ctx.greenhouseToken, args);
       },
     }),
 
@@ -610,5 +655,8 @@ export const ALL_TOOL_NAMES = [
   "contactout_linkedin_enrich",
   "contactout_person_enrich",
   "contactout_email_verify",
+  "greenhouse_list_jobs",
+  "greenhouse_list_candidates",
+  "greenhouse_search_candidates",
   "calyflow_create_document",
 ] as const;
