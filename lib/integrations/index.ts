@@ -4,6 +4,7 @@ import { decrypt, encrypt } from "../crypto";
 import type { Connection } from "../types";
 import { airtableAdapter } from "./airtable";
 import { ashbyAdapter } from "./ashby";
+import { hunterAdapter } from "./hunter";
 import type { ConnectorAdapter } from "./types";
 
 export type { ConnectorAdapter, ResourceRef } from "./types";
@@ -13,6 +14,7 @@ export type { ConnectorAdapter, ResourceRef } from "./types";
 const ADAPTERS: Record<string, ConnectorAdapter> = {
   airtable: airtableAdapter,
   ashby: ashbyAdapter,
+  hunter: hunterAdapter,
 };
 
 export function getAdapter(provider: string): ConnectorAdapter | null {

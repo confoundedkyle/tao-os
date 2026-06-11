@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Session } from "@/lib/types";
+import type { ModuleKey, Session } from "@/lib/types";
 import { IconAiSpark } from "./icons";
 import { AccountControls } from "./account-controls";
 import { MobileNav } from "./mobile-nav";
@@ -9,9 +9,11 @@ import type { ClientWithProjects } from "./sidebar-nav";
 export function AppTopbar({
   session,
   clients,
+  modules = [],
 }: {
   session: Session;
   clients: ClientWithProjects[];
+  modules?: ModuleKey[];
 }) {
   return (
     <header className="flex flex-shrink-0 items-center justify-between gap-3 border-b border-navy-800/10 bg-cream-50 px-4 py-2 sm:px-6 lg:justify-end lg:border-0 lg:bg-transparent lg:px-10 lg:py-4">
@@ -29,7 +31,7 @@ export function AppTopbar({
         <AccountControls session={session} />
       </div>
 
-      <MobileNav clients={clients}>
+      <MobileNav clients={clients} modules={modules}>
         <AccountControls session={session} />
       </MobileNav>
     </header>

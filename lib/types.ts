@@ -28,7 +28,7 @@ export interface Project {
   created_at: string;
 }
 
-export type DocScope = "workspace" | "client" | "project";
+export type DocScope = "workspace" | "client" | "project" | "prospect";
 export type DocKind = "kb" | "file";
 export type DocType = "jd" | "intake_notes" | "cv" | "scorecard" | "note" | "output" | "other";
 
@@ -120,6 +120,117 @@ export interface WorkflowRun {
   cost_usd: number | null;
   created_by: string | null;
   created_at: string;
+}
+
+// --- Activatable workspace modules (CRM / ATS / Target Talent Pool) ---
+
+export type ModuleKey = "crm" | "ats" | "talent_pool";
+
+/** Shared registry used by the Settings grid and the sidebar. */
+export const MODULES: {
+  key: ModuleKey;
+  label: string;
+  href: string;
+  description: string;
+}[] = [
+  {
+    key: "crm",
+    label: "CRM",
+    href: "/crm",
+    description: "Track accounts and the leads connected to them.",
+  },
+  {
+    key: "ats",
+    label: "ATS",
+    href: "/ats",
+    description: "Manage candidates and associate them with project roles.",
+  },
+  {
+    key: "talent_pool",
+    label: "Target Talent Pool",
+    href: "/talent-pool",
+    description:
+      "Build a niche prospect pipeline with skills, notes, and CVs.",
+  },
+];
+
+export interface WorkspaceModule {
+  id: string;
+  workspace_id: string;
+  module_key: ModuleKey;
+  is_active: boolean;
+  activated_at: string | null;
+  created_by: string | null;
+  created_at: string;
+}
+
+export interface CrmAccount {
+  id: string;
+  workspace_id: string;
+  name: string;
+  website: string | null;
+  industry: string | null;
+  status: "active" | "archived";
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type CrmLeadStatus =
+  | "new"
+  | "contacted"
+  | "qualified"
+  | "won"
+  | "lost";
+
+export interface CrmLead {
+  id: string;
+  workspace_id: string;
+  account_id: string | null;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  title: string | null;
+  status: CrmLeadStatus;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type AtsCandidateStatus =
+  | "sourced"
+  | "screening"
+  | "interview"
+  | "offer"
+  | "hired"
+  | "rejected";
+
+export interface AtsCandidate {
+  id: string;
+  workspace_id: string;
+  project_id: string | null;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  status: AtsCandidateStatus;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TalentProspect {
+  id: string;
+  workspace_id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  country: string | null;
+  city: string | null;
+  linkedin_url: string | null;
+  notes: string | null;
+  profile: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Session {

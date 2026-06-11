@@ -17,11 +17,13 @@ import type { LibraryAgent } from "@/lib/types";
 const TOOL_CONNECTOR_PREFIXES: Record<string, string> = {
   airtable_: "airtable",
   ashby_: "ashby",
+  hunter_: "hunter",
 };
 
 const CONNECTOR_LABELS: Record<string, string> = {
   airtable: "Airtable",
   ashby: "Ashby",
+  hunter: "Hunter.io",
 };
 
 function requiredConnectorsFor(tools: string[]): string[] {

@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { requireSession } from "../auth";
 import { db } from "../db";
 import { extractTextFromFile } from "../extract";
-import { getClient, getDocument, getProject } from "../queries";
+import { getClient, getDocument, getProject, getProspect } from "../queries";
 import type { DocKind, DocScope, DocType, Session } from "../types";
 
 const DOC_TYPE_LABELS: Record<string, string> = {
@@ -27,6 +27,9 @@ async function assertScope(
   } else if (scopeType === "client") {
     if (!(await getClient(session.workspaceId, scopeId)))
       throw new Error("Client not found");
+  } else if (scopeType === "prospect") {
+    if (!(await getProspect(session.workspaceId, scopeId)))
+      throw new Error("Prospect not found");
   } else {
     if (!(await getProject(session.workspaceId, scopeId)))
       throw new Error("Project not found");
@@ -74,6 +77,7 @@ function revalidateScope(scopeType: DocScope, scopeId: string) {
   // "layout" so the sub-tabs (/knowledge + /files) refresh too.
   if (scopeType === "workspace") revalidatePath("/knowledge", "layout");
   else if (scopeType === "client") revalidatePath(`/clients/${scopeId}`, "layout");
+  else if (scopeType === "prospect") revalidatePath(`/talent-pool/${scopeId}`, "page");
   else revalidatePath(`/clients/[clientId]/projects/${scopeId}`, "page");
 }
 
