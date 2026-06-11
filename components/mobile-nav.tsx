@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { SidebarNav, type ClientWithProjects } from "./sidebar-nav";
 
@@ -16,10 +16,14 @@ export function MobileNav({
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
-  // Close the drawer after navigating.
-  useEffect(() => {
-    setOpen(false);
-  }, [pathname]);
+  // Close the drawer after navigating. Done during render (not in an effect)
+  // per React's "you might not need an effect" guidance — guarded so it
+  // converges in one extra render.
+  const [navPath, setNavPath] = useState(pathname);
+  if (pathname !== navPath) {
+    setNavPath(pathname);
+    if (open) setOpen(false);
+  }
 
   return (
     <div className="lg:hidden">

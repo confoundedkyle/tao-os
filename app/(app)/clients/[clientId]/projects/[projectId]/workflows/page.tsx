@@ -10,7 +10,7 @@ import {
 } from "@/lib/queries";
 import { checkBudgets } from "@/lib/budgets";
 import { env } from "@/lib/env";
-import { activeOfType, preflightWorkflow } from "@/lib/readiness";
+import { preflightWorkflow } from "@/lib/readiness";
 import { DocList } from "@/components/doc-list";
 import { RunPanel, type RunPanelWorkflow } from "@/components/run-panel";
 import { ButtonLink, Card, Chip, Mono } from "@/components/ui";
