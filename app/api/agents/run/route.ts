@@ -123,6 +123,7 @@ export async function POST(request: NextRequest) {
   let brightdataToken: string | null = null;
   let contactoutToken: string | null = null;
   let greenhouseToken: string | null = null;
+  let hubspotToken: string | null = null;
   let hunterToken: string | null = null;
   try {
     [
@@ -133,6 +134,7 @@ export async function POST(request: NextRequest) {
       brightdataToken,
       contactoutToken,
       greenhouseToken,
+      hubspotToken,
       hunterToken,
     ] = await Promise.all([
       tokenFor("airtable_", "airtable"),
@@ -142,6 +144,7 @@ export async function POST(request: NextRequest) {
       tokenFor("brightdata_", "brightdata"),
       tokenFor("contactout_", "contactout"),
       tokenFor("greenhouse_", "greenhouse"),
+      tokenFor("hubspot_", "hubspot"),
       tokenFor("hunter_", "hunter"),
     ]);
   } catch (err) {
@@ -187,6 +190,7 @@ export async function POST(request: NextRequest) {
     brightdataToken,
     contactoutToken,
     greenhouseToken,
+    hubspotToken,
     hunterToken,
     createdDocIds: [],
   };

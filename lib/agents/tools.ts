@@ -10,6 +10,7 @@ import { breezyhrAdapter } from "../integrations/breezyhr";
 import { brightdataAdapter } from "../integrations/brightdata";
 import { contactoutAdapter } from "../integrations/contactout";
 import { greenhouseAdapter } from "../integrations/greenhouse";
+import { hubspotAdapter } from "../integrations/hubspot";
 import { hunterAdapter } from "../integrations/hunter";
 import type { Doc } from "../types";
 
@@ -30,6 +31,7 @@ export interface ToolContext {
   brightdataToken: string | null;
   contactoutToken: string | null;
   greenhouseToken: string | null;
+  hubspotToken: string | null;
   hunterToken: string | null;
   /** Documents the agent created this run (mutated by calyflow_create_document). */
   createdDocIds: string[];
@@ -279,6 +281,51 @@ function buildAll(ctx: ToolContext): ToolSet {
       execute: async (args) => {
         if (!ctx.greenhouseToken) return { error: notConnected("Greenhouse") };
         return greenhouseAdapter.searchCandidates(ctx.greenhouseToken, args);
+      },
+    }),
+
+    hubspot_search_contacts: tool({
+      description:
+        "Search contacts in the connected HubSpot CRM by name, email, or other text (name, email, title, company, phone). Omit query to list recent contacts.",
+      inputSchema: z.object({
+        query: z
+          .string()
+          .optional()
+          .describe("Free-text search, e.g. a name, email, or company."),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.hubspotToken) return { error: notConnected("HubSpot") };
+        return hubspotAdapter.searchContacts(ctx.hubspotToken, args);
+      },
+    }),
+
+    hubspot_search_companies: tool({
+      description:
+        "Search companies in the connected HubSpot CRM by name or domain (name, domain, industry, location, employee count). Omit query to list recent companies.",
+      inputSchema: z.object({
+        query: z
+          .string()
+          .optional()
+          .describe("Free-text search, e.g. a company name or domain."),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.hubspotToken) return { error: notConnected("HubSpot") };
+        return hubspotAdapter.searchCompanies(ctx.hubspotToken, args);
+      },
+    }),
+
+    hubspot_search_deals: tool({
+      description:
+        "Search deals in the connected HubSpot CRM by name (deal name, amount, stage, pipeline, close date). Omit query to list recent deals.",
+      inputSchema: z.object({
+        query: z.string().optional().describe("Free-text search, e.g. a deal or client name."),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.hubspotToken) return { error: notConnected("HubSpot") };
+        return hubspotAdapter.searchDeals(ctx.hubspotToken, args);
       },
     }),
 
@@ -658,5 +705,8 @@ export const ALL_TOOL_NAMES = [
   "greenhouse_list_jobs",
   "greenhouse_list_candidates",
   "greenhouse_search_candidates",
+  "hubspot_search_contacts",
+  "hubspot_search_companies",
+  "hubspot_search_deals",
   "calyflow_create_document",
 ] as const;
