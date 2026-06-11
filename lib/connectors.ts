@@ -30,7 +30,7 @@ export const CONNECTORS: Connector[] = [
   { name: "JazzHR", category: "ats", blurb: "Import candidates from the SMB-friendly recruiting software." },
   { name: "Lever", category: "ats", blurb: "Sync pipelines from the CRM-style ATS teams love." },
   { name: "Loxo", category: "ats", blurb: "Pull candidates from the AI recruiting platform for agencies.", provider: "loxo", live: true, auth: "apikey" },
-  { name: "Manatal", category: "ats", blurb: "Import candidates from the affordable AI-recommendation ATS." },
+  { name: "Manatal", category: "ats", blurb: "Import candidates from the affordable AI-recommendation ATS.", provider: "manatal", live: true, auth: "apikey" },
   { name: "Pinpoint", category: "ats", blurb: "Sync roles from the in-house talent acquisition platform." },
   { name: "Recruitee", category: "ats", blurb: "Pull collaborative hiring pipelines straight into your projects." },
   { name: "Recruiterflow", category: "ats", blurb: "Sync the ATS + CRM built for recruiting firms." },

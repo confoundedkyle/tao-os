@@ -15,6 +15,7 @@ import { hunterAdapter } from "../integrations/hunter";
 import { lemlistAdapter } from "../integrations/lemlist";
 import { loxoAdapter } from "../integrations/loxo";
 import { lushaAdapter } from "../integrations/lusha";
+import { manatalAdapter } from "../integrations/manatal";
 import type { Doc } from "../types";
 
 // Agent tools. Each tool's execute closes over a server-derived ToolContext —
@@ -39,6 +40,7 @@ export interface ToolContext {
   lemlistToken: string | null;
   loxoToken: string | null;
   lushaToken: string | null;
+  manatalToken: string | null;
   /** Documents the agent created this run (mutated by calyflow_create_document). */
   createdDocIds: string[];
 }
@@ -749,6 +751,52 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    manatal_list_jobs: tool({
+      description:
+        "List jobs in the connected Manatal ATS (position, status, location, job id). Filter by positionName and/or status. Use to find the role you are sourcing for.",
+      inputSchema: z.object({
+        positionName: z
+          .string()
+          .optional()
+          .describe("Filter by position name."),
+        status: z.string().optional().describe("Filter by job status."),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.manatalToken) return { error: notConnected("Manatal") };
+        return manatalAdapter.listJobs(ctx.manatalToken, args);
+      },
+    }),
+
+    manatal_search_candidates: tool({
+      description:
+        "Search candidates in the connected Manatal ATS by name, email, current company, or current position (the list endpoint is the search — filters combine). Omit all filters to list recent candidates.",
+      inputSchema: z.object({
+        fullName: z.string().optional(),
+        email: z.string().optional(),
+        company: z.string().optional().describe("Current company filter."),
+        position: z.string().optional().describe("Current position/title filter."),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.manatalToken) return { error: notConnected("Manatal") };
+        return manatalAdapter.searchCandidates(ctx.manatalToken, args);
+      },
+    }),
+
+    manatal_list_job_candidates: tool({
+      description:
+        "List a Manatal job's pipeline (matches) with each candidate's details and stage as a Markdown table. Get the jobId from manatal_list_jobs first. Max 25 candidates per call.",
+      inputSchema: z.object({
+        jobId: z.string().describe("Job id (from manatal_list_jobs)."),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.manatalToken) return { error: notConnected("Manatal") };
+        return manatalAdapter.listJobCandidates(ctx.manatalToken, args);
+      },
+    }),
+
     lusha_search_person: tool({
       description:
         "Look up a person in Lusha's B2B contact database — by LinkedIn URL, email, or firstName+lastName plus companyName/companyDomain. Returns a free preview: who matched, which data points exist, what each reveal costs in credits, and the contact id. Does NOT reveal emails/phones — use lusha_enrich_contacts with the contact id for that.",
@@ -864,5 +912,8 @@ export const ALL_TOOL_NAMES = [
   "loxo_list_job_candidates",
   "lusha_search_person",
   "lusha_enrich_contacts",
+  "manatal_list_jobs",
+  "manatal_search_candidates",
+  "manatal_list_job_candidates",
   "calyflow_create_document",
 ] as const;
