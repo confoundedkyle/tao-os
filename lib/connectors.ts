@@ -29,7 +29,7 @@ export const CONNECTORS: Connector[] = [
   { name: "Greenhouse", category: "ats", blurb: "Sync jobs and candidates from the enterprise hiring standard.", provider: "greenhouse", live: true, auth: "apikey" },
   { name: "JazzHR", category: "ats", blurb: "Import candidates from the SMB-friendly recruiting software." },
   { name: "Lever", category: "ats", blurb: "Sync pipelines from the CRM-style ATS teams love." },
-  { name: "Loxo", category: "ats", blurb: "Pull candidates from the AI recruiting platform for agencies." },
+  { name: "Loxo", category: "ats", blurb: "Pull candidates from the AI recruiting platform for agencies.", provider: "loxo", live: true, auth: "apikey" },
   { name: "Manatal", category: "ats", blurb: "Import candidates from the affordable AI-recommendation ATS." },
   { name: "Pinpoint", category: "ats", blurb: "Sync roles from the in-house talent acquisition platform." },
   { name: "Recruitee", category: "ats", blurb: "Pull collaborative hiring pipelines straight into your projects." },

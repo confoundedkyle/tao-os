@@ -12,6 +12,7 @@ import { greenhouseAdapter } from "./greenhouse";
 import { hubspotAdapter } from "./hubspot";
 import { hunterAdapter } from "./hunter";
 import { lemlistAdapter } from "./lemlist";
+import { loxoAdapter } from "./loxo";
 import type { ConnectorAdapter } from "./types";
 
 export type { ConnectorAdapter, ResourceRef } from "./types";
@@ -29,6 +30,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   hubspot: hubspotAdapter,
   hunter: hunterAdapter,
   lemlist: lemlistAdapter,
+  loxo: loxoAdapter,
 };
 
 export function getAdapter(provider: string): ConnectorAdapter | null {

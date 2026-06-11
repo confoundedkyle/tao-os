@@ -126,6 +126,7 @@ export async function POST(request: NextRequest) {
   let hubspotToken: string | null = null;
   let hunterToken: string | null = null;
   let lemlistToken: string | null = null;
+  let loxoToken: string | null = null;
   try {
     [
       airtableToken,
@@ -138,6 +139,7 @@ export async function POST(request: NextRequest) {
       hubspotToken,
       hunterToken,
       lemlistToken,
+      loxoToken,
     ] = await Promise.all([
       tokenFor("airtable_", "airtable"),
       tokenFor("apollo_", "apollo"),
@@ -149,6 +151,7 @@ export async function POST(request: NextRequest) {
       tokenFor("hubspot_", "hubspot"),
       tokenFor("hunter_", "hunter"),
       tokenFor("lemlist_", "lemlist"),
+      tokenFor("loxo_", "loxo"),
     ]);
   } catch (err) {
     return NextResponse.json(
@@ -196,6 +199,7 @@ export async function POST(request: NextRequest) {
     hubspotToken,
     hunterToken,
     lemlistToken,
+    loxoToken,
     createdDocIds: [],
   };
 

@@ -13,6 +13,7 @@ import { greenhouseAdapter } from "../integrations/greenhouse";
 import { hubspotAdapter } from "../integrations/hubspot";
 import { hunterAdapter } from "../integrations/hunter";
 import { lemlistAdapter } from "../integrations/lemlist";
+import { loxoAdapter } from "../integrations/loxo";
 import type { Doc } from "../types";
 
 // Agent tools. Each tool's execute closes over a server-derived ToolContext —
@@ -35,6 +36,7 @@ export interface ToolContext {
   hubspotToken: string | null;
   hunterToken: string | null;
   lemlistToken: string | null;
+  loxoToken: string | null;
   /** Documents the agent created this run (mutated by calyflow_create_document). */
   createdDocIds: string[];
 }
@@ -638,6 +640,48 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    loxo_list_jobs: tool({
+      description:
+        "List jobs in the connected Loxo ATS (title, status, company, location, job id). Optionally filter with a text query. Use to find the role you are sourcing for.",
+      inputSchema: z.object({
+        query: z
+          .string()
+          .optional()
+          .describe("Text filter, e.g. a role title or client company."),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.loxoToken) return { error: notConnected("Loxo") };
+        return loxoAdapter.listJobs(ctx.loxoToken, args);
+      },
+    }),
+
+    loxo_search_people: tool({
+      description:
+        "Search the connected Loxo people database by name, title, company, or email. Returns name, title, company, location, and email as a Markdown table.",
+      inputSchema: z.object({
+        query: z.string().describe("Search text, e.g. a name, title, or company."),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.loxoToken) return { error: notConnected("Loxo") };
+        return loxoAdapter.searchPeople(ctx.loxoToken, args);
+      },
+    }),
+
+    loxo_list_job_candidates: tool({
+      description:
+        "List the candidates attached to a Loxo job's pipeline as a Markdown table. Get the jobId from loxo_list_jobs first.",
+      inputSchema: z.object({
+        jobId: z.string().describe("Job id (from loxo_list_jobs)."),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.loxoToken) return { error: notConnected("Loxo") };
+        return loxoAdapter.listJobCandidates(ctx.loxoToken, args);
+      },
+    }),
+
     lemlist_list_campaigns: tool({
       description:
         "List outreach campaigns in the connected lemlist account (name, status, errors, campaign id). Filter by status: running, draft, paused, ended, archived, errors.",
@@ -778,5 +822,8 @@ export const ALL_TOOL_NAMES = [
   "lemlist_list_campaigns",
   "lemlist_list_activities",
   "lemlist_add_lead",
+  "loxo_list_jobs",
+  "loxo_search_people",
+  "loxo_list_job_candidates",
   "calyflow_create_document",
 ] as const;
