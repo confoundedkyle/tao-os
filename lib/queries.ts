@@ -3,19 +3,35 @@ import { db } from "./db";
 import type {
   AgentRun,
   AiProvider,
+  AtsCandidate,
   CatalogModel,
   Client,
   Connection,
+  CrmAccount,
+  CrmLead,
   Doc,
   DocKind,
   DocScope,
   LibraryAgent,
   LibraryWorkflow,
+  ModuleKey,
   Project,
+  TalentProspect,
   WorkflowRun,
   WorkspaceAgent,
+  WorkspaceModule,
   WorkspaceWorkflow,
 } from "./types";
+
+export type CrmLeadWithAccount = CrmLead & {
+  account: { id: string; name: string } | null;
+};
+
+export type AtsCandidateWithProject = AtsCandidate & {
+  project:
+    | { id: string; name: string; client: { id: string; name: string } | null }
+    | null;
+};
 
 // All reads are scoped by workspace_id resolved from the session — never from
 // the client (SPEC §9 tenant isolation rule).
@@ -347,6 +363,143 @@ export async function listRecentAgentRuns(
     agent: { name: string } | null;
     project: { id: string; name: string } | null;
   })[];
+}
+
+// --- Activatable workspace modules ---
+
+export async function listModules(
+  workspaceId: string,
+): Promise<WorkspaceModule[]> {
+  const { data, error } = await db()
+    .from("workspace_modules")
+    .select("*")
+    .eq("workspace_id", workspaceId);
+  if (error) throw error;
+  return data as WorkspaceModule[];
+}
+
+/** Module keys the workspace has switched on — drives the sidebar nav. */
+export async function listActiveModuleKeys(
+  workspaceId: string,
+): Promise<ModuleKey[]> {
+  const { data, error } = await db()
+    .from("workspace_modules")
+    .select("module_key")
+    .eq("workspace_id", workspaceId)
+    .eq("is_active", true);
+  // Tolerate the table not existing yet (migration 0007 not applied) so the
+  // rest of the app keeps working — treat as no active modules.
+  if (error) {
+    if (error.code === "PGRST205") return [];
+    throw error;
+  }
+  return (data ?? []).map((r) => r.module_key as ModuleKey);
+}
+
+// --- CRM ---
+
+export async function listAccounts(
+  workspaceId: string,
+): Promise<CrmAccount[]> {
+  const { data, error } = await db()
+    .from("crm_accounts")
+    .select("*")
+    .eq("workspace_id", workspaceId)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data as CrmAccount[];
+}
+
+export async function getAccount(
+  workspaceId: string,
+  accountId: string,
+): Promise<CrmAccount | null> {
+  const { data } = await db()
+    .from("crm_accounts")
+    .select("*")
+    .eq("workspace_id", workspaceId)
+    .eq("id", accountId)
+    .maybeSingle();
+  return data as CrmAccount | null;
+}
+
+export async function listLeads(
+  workspaceId: string,
+): Promise<CrmLeadWithAccount[]> {
+  const { data, error } = await db()
+    .from("crm_leads")
+    .select("*, account:crm_accounts(id, name)")
+    .eq("workspace_id", workspaceId)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data as CrmLeadWithAccount[];
+}
+
+export async function getLead(
+  workspaceId: string,
+  leadId: string,
+): Promise<CrmLead | null> {
+  const { data } = await db()
+    .from("crm_leads")
+    .select("*")
+    .eq("workspace_id", workspaceId)
+    .eq("id", leadId)
+    .maybeSingle();
+  return data as CrmLead | null;
+}
+
+// --- ATS ---
+
+export async function listCandidates(
+  workspaceId: string,
+): Promise<AtsCandidateWithProject[]> {
+  const { data, error } = await db()
+    .from("ats_candidates")
+    .select("*, project:projects(id, name, client:clients(id, name))")
+    .eq("workspace_id", workspaceId)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data as AtsCandidateWithProject[];
+}
+
+export async function getCandidate(
+  workspaceId: string,
+  candidateId: string,
+): Promise<AtsCandidate | null> {
+  const { data } = await db()
+    .from("ats_candidates")
+    .select("*")
+    .eq("workspace_id", workspaceId)
+    .eq("id", candidateId)
+    .maybeSingle();
+  return data as AtsCandidate | null;
+}
+
+// --- Target Talent Pool ---
+
+export async function listProspects(
+  workspaceId: string,
+): Promise<TalentProspect[]> {
+  const { data, error } = await db()
+    .from("talent_prospects")
+    .select("*")
+    .eq("workspace_id", workspaceId)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data as TalentProspect[];
+}
+
+export async function getProspect(
+  workspaceId: string,
+  prospectId: string,
+): Promise<TalentProspect | null> {
+  const { data } = await db()
+    .from("talent_prospects")
+    .select("*")
+    .eq("workspace_id", workspaceId)
+    .eq("id", prospectId)
+    .maybeSingle();
+  return data as TalentProspect | null;
 }
 
 /** All-provider spend for the current calendar month (UTC), in USD —

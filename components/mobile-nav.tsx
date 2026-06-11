@@ -2,15 +2,18 @@
 
 import { useState } from "react";
 import { usePathname } from "next/navigation";
+import type { ModuleKey } from "@/lib/types";
 import { SidebarNav, type ClientWithProjects } from "./sidebar-nav";
 
 /** Hamburger button + slide-over drawer with the app nav; the account
  *  controls (Clerk profile) are passed in as server-rendered children. */
 export function MobileNav({
   clients,
+  modules = [],
   children,
 }: {
   clients: ClientWithProjects[];
+  modules?: ModuleKey[];
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
@@ -70,7 +73,7 @@ export function MobileNav({
               </button>
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto">
-              <SidebarNav clients={clients} />
+              <SidebarNav clients={clients} modules={modules} />
             </div>
             <div className="flex-shrink-0 border-t border-navy-800/10 px-4 py-3">
               {children}
