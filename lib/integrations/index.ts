@@ -6,6 +6,7 @@ import { airtableAdapter } from "./airtable";
 import { apolloAdapter } from "./apollo";
 import { ashbyAdapter } from "./ashby";
 import { breezyhrAdapter } from "./breezyhr";
+import { brightdataAdapter } from "./brightdata";
 import { contactoutAdapter } from "./contactout";
 import { hunterAdapter } from "./hunter";
 import type { ConnectorAdapter } from "./types";
@@ -19,6 +20,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   apollo: apolloAdapter,
   ashby: ashbyAdapter,
   breezyhr: breezyhrAdapter,
+  brightdata: brightdataAdapter,
   contactout: contactoutAdapter,
   hunter: hunterAdapter,
 };

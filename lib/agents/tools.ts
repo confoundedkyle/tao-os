@@ -7,6 +7,7 @@ import { airtableAdapter } from "../integrations/airtable";
 import { apolloAdapter } from "../integrations/apollo";
 import { ashbyAdapter } from "../integrations/ashby";
 import { breezyhrAdapter } from "../integrations/breezyhr";
+import { brightdataAdapter } from "../integrations/brightdata";
 import { contactoutAdapter } from "../integrations/contactout";
 import { hunterAdapter } from "../integrations/hunter";
 import type { Doc } from "../types";
@@ -25,6 +26,7 @@ export interface ToolContext {
   apolloToken: string | null;
   ashbyToken: string | null;
   breezyhrToken: string | null;
+  brightdataToken: string | null;
   contactoutToken: string | null;
   hunterToken: string | null;
   /** Documents the agent created this run (mutated by calyflow_create_document). */
@@ -372,6 +374,56 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    brightdata_scrape_linkedin_profiles: tool({
+      description:
+        "Scrape full public LinkedIn profiles (headline, current company, location, experience, about) by profile URL via Bright Data. Up to 5 URLs per call; each collected profile is billed. Scrapes can take 1–3 minutes — if the result says the collection is still running, note the snapshot id, do other work, and fetch it later with brightdata_get_snapshot.",
+      inputSchema: z.object({
+        urls: z
+          .array(z.string())
+          .describe(
+            'LinkedIn profile URLs, e.g. ["https://www.linkedin.com/in/janedoe"]. Max 5 per call.',
+          ),
+      }),
+      execute: async (args) => {
+        if (!ctx.brightdataToken) return { error: notConnected("Bright Data") };
+        return brightdataAdapter.scrapeLinkedinProfiles(
+          ctx.brightdataToken,
+          args,
+        );
+      },
+    }),
+
+    brightdata_scrape_linkedin_companies: tool({
+      description:
+        "Scrape public LinkedIn company pages (industry, size, HQ, website, about) by company URL via Bright Data. Up to 5 URLs per call; each collected record is billed. Scrapes can take 1–3 minutes — if the result says the collection is still running, fetch it later with brightdata_get_snapshot.",
+      inputSchema: z.object({
+        urls: z
+          .array(z.string())
+          .describe(
+            'LinkedIn company URLs, e.g. ["https://www.linkedin.com/company/acme"]. Max 5 per call.',
+          ),
+      }),
+      execute: async (args) => {
+        if (!ctx.brightdataToken) return { error: notConnected("Bright Data") };
+        return brightdataAdapter.scrapeLinkedinCompanies(
+          ctx.brightdataToken,
+          args,
+        );
+      },
+    }),
+
+    brightdata_get_snapshot: tool({
+      description:
+        "Fetch the results of a Bright Data collection that was still running when triggered (use the snapshot id a brightdata_scrape_* tool returned). Free to call; returns the records once ready.",
+      inputSchema: z.object({
+        snapshotId: z.string().describe("Snapshot id from a brightdata_scrape_* result."),
+      }),
+      execute: async ({ snapshotId }) => {
+        if (!ctx.brightdataToken) return { error: notConnected("Bright Data") };
+        return brightdataAdapter.getSnapshot(ctx.brightdataToken, snapshotId);
+      },
+    }),
+
     contactout_people_search: tool({
       description:
         "Search ContactOut's database of LinkedIn profiles by name, job title, company, location, seniority, or skills. Returns name, title, company, location, and the LinkedIn URL per person as a Markdown table. Contact details are NOT revealed by default (search is free); set revealInfo only when you need contacts for every row — it consumes email and phone credits PER PROFILE. Prefer searching first, then enriching only the selected people with contactout_linkedin_enrich.",
@@ -551,6 +603,9 @@ export const ALL_TOOL_NAMES = [
   "apollo_search_people",
   "apollo_enrich_person",
   "apollo_search_organizations",
+  "brightdata_scrape_linkedin_profiles",
+  "brightdata_scrape_linkedin_companies",
+  "brightdata_get_snapshot",
   "contactout_people_search",
   "contactout_linkedin_enrich",
   "contactout_person_enrich",

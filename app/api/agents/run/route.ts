@@ -120,6 +120,7 @@ export async function POST(request: NextRequest) {
   let apolloToken: string | null = null;
   let ashbyToken: string | null = null;
   let breezyhrToken: string | null = null;
+  let brightdataToken: string | null = null;
   let contactoutToken: string | null = null;
   let hunterToken: string | null = null;
   try {
@@ -128,6 +129,7 @@ export async function POST(request: NextRequest) {
       apolloToken,
       ashbyToken,
       breezyhrToken,
+      brightdataToken,
       contactoutToken,
       hunterToken,
     ] = await Promise.all([
@@ -135,6 +137,7 @@ export async function POST(request: NextRequest) {
       tokenFor("apollo_", "apollo"),
       tokenFor("ashby_", "ashby"),
       tokenFor("breezyhr_", "breezyhr"),
+      tokenFor("brightdata_", "brightdata"),
       tokenFor("contactout_", "contactout"),
       tokenFor("hunter_", "hunter"),
     ]);
@@ -178,6 +181,7 @@ export async function POST(request: NextRequest) {
     apolloToken,
     ashbyToken,
     breezyhrToken,
+    brightdataToken,
     contactoutToken,
     hunterToken,
     createdDocIds: [],

@@ -49,7 +49,7 @@ export const CONNECTORS: Connector[] = [
 
   // Tools (sourcing & outreach)
   { name: "Apollo", category: "tool", blurb: "Source contact data from the 270M-profile B2B database.", provider: "apollo", live: true, auth: "apikey" },
-  { name: "Bright Data", category: "tool", blurb: "Enrich profiles with large-scale public web data." },
+  { name: "Bright Data", category: "tool", blurb: "Enrich profiles with large-scale public web data.", provider: "brightdata", live: true, auth: "apikey" },
   { name: "ContactOut", category: "tool", blurb: "Find personal emails and phones behind LinkedIn profiles.", provider: "contactout", live: true, auth: "apikey" },
   { name: "Coresignal", category: "tool", blurb: "Enrich candidates with fresh public employment data." },
   { name: "HireEZ", category: "tool", blurb: "AI outbound sourcing across 800M+ candidate profiles." },
