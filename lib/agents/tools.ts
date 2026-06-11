@@ -12,6 +12,7 @@ import { contactoutAdapter } from "../integrations/contactout";
 import { greenhouseAdapter } from "../integrations/greenhouse";
 import { hubspotAdapter } from "../integrations/hubspot";
 import { hunterAdapter } from "../integrations/hunter";
+import { lemlistAdapter } from "../integrations/lemlist";
 import type { Doc } from "../types";
 
 // Agent tools. Each tool's execute closes over a server-derived ToolContext —
@@ -33,6 +34,7 @@ export interface ToolContext {
   greenhouseToken: string | null;
   hubspotToken: string | null;
   hunterToken: string | null;
+  lemlistToken: string | null;
   /** Documents the agent created this run (mutated by calyflow_create_document). */
   createdDocIds: string[];
 }
@@ -636,6 +638,71 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    lemlist_list_campaigns: tool({
+      description:
+        "List outreach campaigns in the connected lemlist account (name, status, errors, campaign id). Filter by status: running, draft, paused, ended, archived, errors.",
+      inputSchema: z.object({
+        status: z
+          .string()
+          .optional()
+          .describe("Campaign status filter, e.g. running."),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.lemlistToken) return { error: notConnected("lemlist") };
+        return lemlistAdapter.listCampaigns(ctx.lemlistToken, args);
+      },
+    }),
+
+    lemlist_list_activities: tool({
+      description:
+        "List recent lemlist outreach activity (emails sent/opened/clicked/replied, per lead and campaign). Filter by campaignId and/or type (e.g. emailsReplied, emailsOpened, emailsSent) to report on campaign performance.",
+      inputSchema: z.object({
+        campaignId: z
+          .string()
+          .optional()
+          .describe("Campaign id (from lemlist_list_campaigns)."),
+        type: z
+          .string()
+          .optional()
+          .describe("Activity type, e.g. emailsReplied, emailsOpened, emailsSent."),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.lemlistToken) return { error: notConnected("lemlist") };
+        return lemlistAdapter.listActivities(ctx.lemlistToken, args);
+      },
+    }),
+
+    lemlist_add_lead: tool({
+      description:
+        "Add a lead to a lemlist outreach campaign. CAUTION: if the campaign is running, lemlist will start sending real outreach emails to this person — only add leads the user explicitly asked to enroll, and never enroll in bulk without instruction. Deduplicates by email across campaigns by default. Provide firstName/lastName/companyName so the sequence's personalisation variables resolve.",
+      inputSchema: z.object({
+        campaignId: z
+          .string()
+          .describe("Target campaign id (from lemlist_list_campaigns)."),
+        email: z.string().describe("The lead's email address."),
+        firstName: z.string().optional(),
+        lastName: z.string().optional(),
+        companyName: z.string().optional(),
+        jobTitle: z.string().optional(),
+        linkedinUrl: z.string().optional(),
+        companyDomain: z.string().optional(),
+        icebreaker: z
+          .string()
+          .optional()
+          .describe("Personalised opening line, if the sequence uses one."),
+        deduplicate: z
+          .boolean()
+          .optional()
+          .describe("Skip if the email already exists in any campaign (default true)."),
+      }),
+      execute: async (args) => {
+        if (!ctx.lemlistToken) return { error: notConnected("lemlist") };
+        return lemlistAdapter.addLead(ctx.lemlistToken, args);
+      },
+    }),
+
     calyflow_create_document: tool({
       description:
         "Save a Markdown document into the current project (e.g. your final analysis/summary). Returns the new document id.",
@@ -708,5 +775,8 @@ export const ALL_TOOL_NAMES = [
   "hubspot_search_contacts",
   "hubspot_search_companies",
   "hubspot_search_deals",
+  "lemlist_list_campaigns",
+  "lemlist_list_activities",
+  "lemlist_add_lead",
   "calyflow_create_document",
 ] as const;
