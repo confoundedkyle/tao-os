@@ -47,8 +47,11 @@ export async function getLanguageModel(
   apiKey: string,
   modelId: string,
 ): Promise<LanguageModel> {
-  switch (provider) {
-    case "calyflow":
+  // The "calyflow" platform default runs on whatever real provider the
+  // platform key belongs to (CALYFLOW_PLATFORM_PROVIDER) — Anthropic by
+  // default, but configurable so an OpenAI/Google key works as the default.
+  const effective = provider === "calyflow" ? env.platformProvider : provider;
+  switch (effective) {
     case "anthropic": {
       const { createAnthropic } = await import("@ai-sdk/anthropic");
       return createAnthropic({ apiKey })(modelId);
@@ -82,7 +85,7 @@ export async function getLanguageModel(
       return createCohere({ apiKey })(modelId);
     }
     default:
-      throw new Error(`Unsupported provider: ${provider}`);
+      throw new Error(`Unsupported provider: ${effective}`);
   }
 }
 
@@ -135,10 +138,12 @@ export async function resolveRunProviders(
   for (const row of (data ?? []) as AiProvider[]) {
     if (row.provider === "calyflow") {
       if (!env.platformProviderEnabled) continue;
+      // The platform model is centrally configured (env), not per-workspace —
+      // use it directly so it can't drift from a value stored at row creation.
       providers.push({
         row,
         apiKey: env.platformApiKey,
-        model: row.default_model || env.platformModel,
+        model: env.platformModel,
       });
     } else {
       if (!row.api_key_cipher || !row.default_model) continue;
@@ -181,7 +186,8 @@ export async function computeCostUsd(
     cachedInputTokens?: number;
   },
 ): Promise<number | null> {
-  const catalogProvider = provider === "calyflow" ? "anthropic" : provider;
+  const catalogProvider =
+    provider === "calyflow" ? env.platformProvider : provider;
   const { data } = await db()
     .from("model_catalog")
     .select("pricing")

@@ -10,7 +10,7 @@ import {
 } from "@/lib/queries";
 import { checkBudgets } from "@/lib/budgets";
 import { env } from "@/lib/env";
-import { activeOfType, preflightWorkflow } from "@/lib/readiness";
+import { preflightWorkflow } from "@/lib/readiness";
 import { DocList } from "@/components/doc-list";
 import { RunPanel, type RunPanelWorkflow } from "@/components/run-panel";
 import { ButtonLink, Card, Chip, Mono } from "@/components/ui";
@@ -67,7 +67,9 @@ export default async function ProjectWorkflowsPage({
     }
   }
 
-  const outputDocs = docs.filter((d) => d.doc_type === "output");
+  const outputDocs = docs
+    .filter((d) => d.doc_type === "output")
+    .sort((a, b) => b.created_at.localeCompare(a.created_at)); // newest first
 
   return (
     <div className="space-y-6">
@@ -97,6 +99,13 @@ export default async function ProjectWorkflowsPage({
           />
         )}
       </Card>
+
+      {outputDocs.length > 0 && (
+        <Card>
+          <h2 className="mb-4 text-xl font-semibold">Output documents</h2>
+          <DocList docs={outputDocs} />
+        </Card>
+      )}
 
       <Card>
         <h2 className="mb-4 text-xl font-semibold">Run history</h2>
@@ -149,13 +158,6 @@ export default async function ProjectWorkflowsPage({
           </ul>
         )}
       </Card>
-
-      {outputDocs.length > 0 && (
-        <Card>
-          <h2 className="mb-4 text-xl font-semibold">Output documents</h2>
-          <DocList docs={outputDocs} />
-        </Card>
-      )}
     </div>
   );
 }

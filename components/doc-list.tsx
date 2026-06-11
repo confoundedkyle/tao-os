@@ -3,6 +3,7 @@ import { setDocumentActiveAction } from "@/lib/actions/documents";
 import { DOC_TYPE_LABELS } from "@/lib/readiness";
 import type { Doc } from "@/lib/types";
 import { Chip, Mono } from "./ui";
+import { LocalDateTime } from "./local-datetime";
 import { DeleteDocButton } from "./delete-doc-button";
 
 export function DocList({ docs }: { docs: Doc[] }) {
@@ -21,10 +22,7 @@ export function DocList({ docs }: { docs: Doc[] }) {
               {doc.filename ?? "Untitled"}
             </Link>
             <Mono className="ml-2">
-              {new Date(doc.created_at).toLocaleDateString("en-GB", {
-                day: "numeric",
-                month: "short",
-              })}
+              <LocalDateTime iso={doc.created_at} />
             </Mono>
           </div>
           {doc.doc_type && doc.doc_type !== "other" && (

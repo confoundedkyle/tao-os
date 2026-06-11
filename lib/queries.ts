@@ -1,15 +1,19 @@
 import "server-only";
 import { db } from "./db";
 import type {
+  AgentRun,
   AiProvider,
   CatalogModel,
   Client,
+  Connection,
   Doc,
   DocKind,
   DocScope,
+  LibraryAgent,
   LibraryWorkflow,
   Project,
   WorkflowRun,
+  WorkspaceAgent,
   WorkspaceWorkflow,
 } from "./types";
 
@@ -243,16 +247,134 @@ export async function listRecentRuns(
   })[];
 }
 
-/** All-provider spend for the current calendar month (UTC), in USD. */
+// --- Data-source connectors ---
+
+export async function listConnections(
+  workspaceId: string,
+): Promise<Connection[]> {
+  const { data, error } = await db()
+    .from("workspace_connections")
+    .select("*")
+    .eq("workspace_id", workspaceId)
+    .order("created_at");
+  if (error) throw error;
+  return data as Connection[];
+}
+
+export async function getConnection(
+  workspaceId: string,
+  provider: string,
+): Promise<Connection | null> {
+  const { data } = await db()
+    .from("workspace_connections")
+    .select("*")
+    .eq("workspace_id", workspaceId)
+    .eq("provider", provider)
+    .maybeSingle();
+  return data as Connection | null;
+}
+
+// --- Dynamic data agents ---
+
+export async function listLibraryAgents(): Promise<LibraryAgent[]> {
+  const { data, error } = await db()
+    .from("library_agents")
+    .select("*")
+    .order("name");
+  if (error) throw error;
+  return data as LibraryAgent[];
+}
+
+export async function listWorkspaceAgents(
+  workspaceId: string,
+): Promise<WorkspaceAgent[]> {
+  const { data, error } = await db()
+    .from("workspace_agents")
+    .select("*")
+    .eq("workspace_id", workspaceId)
+    .order("created_at");
+  if (error) throw error;
+  return data as WorkspaceAgent[];
+}
+
+export async function getWorkspaceAgent(
+  workspaceId: string,
+  agentId: string,
+): Promise<WorkspaceAgent | null> {
+  const { data } = await db()
+    .from("workspace_agents")
+    .select("*")
+    .eq("workspace_id", workspaceId)
+    .eq("id", agentId)
+    .maybeSingle();
+  return data as WorkspaceAgent | null;
+}
+
+export async function listAgentRuns(
+  workspaceId: string,
+  projectId: string,
+): Promise<(AgentRun & { agent: { name: string } | null })[]> {
+  const project = await getProject(workspaceId, projectId);
+  if (!project) return [];
+  const { data, error } = await db()
+    .from("agent_runs")
+    .select("*, agent:workspace_agents(name)")
+    .eq("project_id", projectId)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data as (AgentRun & { agent: { name: string } | null })[];
+}
+
+export async function listRecentAgentRuns(
+  workspaceId: string,
+  limit = 8,
+): Promise<
+  (AgentRun & {
+    agent: { name: string } | null;
+    project: { id: string; name: string } | null;
+  })[]
+> {
+  const { data, error } = await db()
+    .from("agent_runs")
+    .select(
+      "*, agent:workspace_agents!inner(name, workspace_id), project:projects(id, name)",
+    )
+    .eq("workspace_agents.workspace_id", workspaceId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return data as (AgentRun & {
+    agent: { name: string } | null;
+    project: { id: string; name: string } | null;
+  })[];
+}
+
+/** All-provider spend for the current calendar month (UTC), in USD —
+ *  workflow runs and agent runs combined. */
 export async function monthSpendUsd(workspaceId: string): Promise<number> {
   const monthStart = new Date();
   monthStart.setUTCDate(1);
   monthStart.setUTCHours(0, 0, 0, 0);
-  const { data, error } = await db()
-    .from("workflow_runs")
-    .select("cost_usd, workspace_workflows!inner(workspace_id)")
-    .eq("workspace_workflows.workspace_id", workspaceId)
-    .gte("created_at", monthStart.toISOString());
-  if (error) throw error;
-  return (data ?? []).reduce((sum, row) => sum + Number(row.cost_usd ?? 0), 0);
+  const since = monthStart.toISOString();
+  const [workflowSpend, agentSpend] = await Promise.all([
+    db()
+      .from("workflow_runs")
+      .select("cost_usd, workspace_workflows!inner(workspace_id)")
+      .eq("workspace_workflows.workspace_id", workspaceId)
+      .gte("created_at", since),
+    db()
+      .from("agent_runs")
+      .select("cost_usd, workspace_agents!inner(workspace_id)")
+      .eq("workspace_agents.workspace_id", workspaceId)
+      .gte("created_at", since),
+  ]);
+  if (workflowSpend.error) throw workflowSpend.error;
+  // Tolerate agent_runs not existing yet (migration 0006 not applied) so the
+  // rest of the app keeps working — count agent spend as 0 until it's there.
+  if (agentSpend.error && agentSpend.error.code !== "PGRST205") {
+    throw agentSpend.error;
+  }
+  const sum = (rows: { cost_usd: number | null }[] | null) =>
+    (rows ?? []).reduce((acc, row) => acc + Number(row.cost_usd ?? 0), 0);
+  return sum(workflowSpend.data) + sum(agentSpend.data);
 }

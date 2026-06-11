@@ -34,6 +34,11 @@ export const env = {
   get platformApiKey() {
     return process.env.CALYFLOW_PLATFORM_API_KEY ?? "";
   },
+  /** Underlying provider the platform key/model belong to (anthropic, openai,
+   *  google, …). Must match the key in CALYFLOW_PLATFORM_API_KEY. */
+  get platformProvider() {
+    return process.env.CALYFLOW_PLATFORM_PROVIDER ?? "anthropic";
+  },
   get platformModel() {
     return process.env.CALYFLOW_PLATFORM_MODEL ?? "claude-sonnet-4-6";
   },
@@ -43,6 +48,19 @@ export const env = {
 
   get cronSecret() {
     return process.env.CRON_SECRET ?? "";
+  },
+
+  /** Public base URL of this deployment, used to build OAuth redirect URIs
+   *  (e.g. https://app.calyflow.com). No trailing slash. */
+  get appBaseUrl() {
+    return (process.env.APP_BASE_URL ?? "").replace(/\/$/, "");
+  },
+  /** Airtable OAuth app credentials (the connector spike). */
+  get airtableClientId() {
+    return process.env.AIRTABLE_CLIENT_ID ?? "";
+  },
+  get airtableClientSecret() {
+    return process.env.AIRTABLE_CLIENT_SECRET ?? "";
   },
   /** Svix signing secret for the Clerk webhook endpoint. */
   get clerkWebhookSigningSecret() {

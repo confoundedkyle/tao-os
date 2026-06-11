@@ -1,10 +1,22 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { checkBudgets } from "@/lib/budgets";
-import { listRecentRuns } from "@/lib/queries";
+import { listRecentAgentRuns, listRecentRuns } from "@/lib/queries";
 import { env } from "@/lib/env";
 import Link from "next/link";
 import { ButtonLink, Card, Chip, Mono } from "@/components/ui";
+
+interface RecentRow {
+  id: string;
+  kind: "workflow" | "agent";
+  name: string;
+  model: string | null;
+  tokens: number;
+  cost: number | null;
+  status: string;
+  createdAt: string;
+  href: string | null;
+}
 
 function Meter({ fraction }: { fraction: number }) {
   const pct = Math.min(Math.round(fraction * 100), 100);
@@ -20,10 +32,40 @@ function Meter({ fraction }: { fraction: number }) {
 export default async function UsagePage() {
   const session = await getSession();
   if (!session) redirect("/sign-in");
-  const [budget, runs] = await Promise.all([
+  const [budget, workflowRuns, agentRuns] = await Promise.all([
     checkBudgets(session.workspace, "calyflow"),
     listRecentRuns(session.workspaceId, 20),
+    listRecentAgentRuns(session.workspaceId, 20),
   ]);
+
+  // Merge workflow + agent runs into one recency-sorted feed.
+  const runs: RecentRow[] = [
+    ...workflowRuns.map((r) => ({
+      id: r.id,
+      kind: "workflow" as const,
+      name: r.workflow?.name ?? "—",
+      model: r.model,
+      tokens: (r.input_tokens ?? 0) + (r.output_tokens ?? 0),
+      cost: r.cost_usd != null ? Number(r.cost_usd) : null,
+      status: r.status,
+      createdAt: r.created_at,
+      href: `/runs/${r.id}`,
+    })),
+    ...agentRuns.map((r) => ({
+      id: r.id,
+      kind: "agent" as const,
+      name: r.agent?.name ?? "Agent",
+      model: r.model,
+      tokens: (r.input_tokens ?? 0) + (r.output_tokens ?? 0),
+      cost: r.cost_usd != null ? Number(r.cost_usd) : null,
+      status: r.status,
+      createdAt: r.created_at,
+      // Agent runs have no detail page; deep-link to the saved output if any.
+      href: r.output_doc_id ? `/docs/${r.output_doc_id}` : null,
+    })),
+  ]
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+    .slice(0, 20);
 
   const creditFraction =
     budget.platformCreditUsd > 0
@@ -96,7 +138,7 @@ export default async function UsagePage() {
           <table className="w-full text-[14px]">
             <thead>
               <tr className="border-b border-navy-800/12 text-left text-navy-800/50">
-                <th className="py-2 font-semibold">Workflow</th>
+                <th className="py-2 font-semibold">Run</th>
                 <th className="py-2 font-semibold">Model</th>
                 <th className="py-2 text-right font-semibold">Tokens</th>
                 <th className="py-2 text-right font-semibold">Cost</th>
@@ -106,30 +148,37 @@ export default async function UsagePage() {
             <tbody>
               {runs.map((run) => (
                 <tr
-                  key={run.id}
+                  key={`${run.kind}-${run.id}`}
                   className="relative border-b border-navy-800/6 transition-colors hover:bg-cream-100"
                 >
                   <td className="py-2">
-                    <Link
-                      href={`/runs/${run.id}`}
-                      className="font-medium hover:text-mint-700 before:absolute before:inset-0 before:content-['']"
-                    >
-                      {run.workflow?.name ?? "—"}
-                    </Link>
+                    <span className="flex items-center gap-2">
+                      <Chip tone={run.kind === "agent" ? "sky" : "navy"}>
+                        {run.kind === "agent" ? "Agent" : "Workflow"}
+                      </Chip>
+                      {run.href ? (
+                        <Link
+                          href={run.href}
+                          className="font-medium hover:text-mint-700 before:absolute before:inset-0 before:content-['']"
+                        >
+                          {run.name}
+                        </Link>
+                      ) : (
+                        <span className="font-medium">{run.name}</span>
+                      )}
+                    </span>
                   </td>
                   <td className="py-2">
                     <Mono className="!text-[12.5px]">{run.model ?? "—"}</Mono>
                   </td>
                   <td className="py-2 text-right">
                     <Mono className="!text-[12.5px]">
-                      {((run.input_tokens ?? 0) + (run.output_tokens ?? 0)).toLocaleString()}
+                      {run.tokens.toLocaleString()}
                     </Mono>
                   </td>
                   <td className="py-2 text-right">
                     <Mono className="!text-[12.5px]">
-                      {run.cost_usd != null
-                        ? `$${Number(run.cost_usd).toFixed(4)}`
-                        : "—"}
+                      {run.cost != null ? `$${run.cost.toFixed(4)}` : "—"}
                     </Mono>
                   </td>
                   <td className="py-2 text-right">

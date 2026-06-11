@@ -10,6 +10,7 @@ import {
   IconDocumentCheck,
   IconEnvelope,
   IconMagnet,
+  IconMegaphone,
   IconRocket,
   IconScorecard,
   IconWorkflowNodes,
@@ -28,6 +29,7 @@ const WORKFLOW_ICONS: Record<string, IconComponent> = {
   "outreach-writer": IconEnvelope,
   "cv-screener": IconScorecard,
   "submission-pack": IconRocket,
+  "candidate-marketing-profile": IconMegaphone,
 };
 
 const CATEGORY_ICONS: Record<string, IconComponent> = {
@@ -35,6 +37,7 @@ const CATEGORY_ICONS: Record<string, IconComponent> = {
   icp: IconCheck,
   sourcing: IconMagnet,
   selling: IconAiSpark,
+  marketing: IconMegaphone,
   outreach: IconEnvelope,
   screening: IconScorecard,
   submission: IconRocket,
@@ -45,6 +48,7 @@ const CATEGORIES = [
   "icp",
   "sourcing",
   "selling",
+  "marketing",
   "outreach",
   "screening",
   "submission",

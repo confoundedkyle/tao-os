@@ -39,7 +39,7 @@ export interface Doc {
   workspace_id: string;
   kind: DocKind;
   doc_type: DocType | null;
-  source: "upload" | "pasted" | "workflow" | null;
+  source: "upload" | "pasted" | "workflow" | "agent" | null;
   filename: string | null;
   storage_path: string | null;
   extracted_text: string | null;
@@ -127,4 +127,75 @@ export interface Session {
   workspaceId: string;
   role: "admin" | "member";
   workspace: Workspace;
+}
+
+// --- Data-source connectors ---
+
+export type ConnectionStatus = "active" | "error" | "revoked";
+
+export interface Connection {
+  id: string;
+  workspace_id: string;
+  provider: string;
+  access_token_cipher: string | null;
+  refresh_token_cipher: string | null;
+  token_expires_at: string | null;
+  account_label: string | null;
+  scopes: string | null;
+  status: ConnectionStatus;
+  created_by: string | null;
+  created_at: string;
+}
+
+// --- Dynamic data agents ---
+
+export interface LibraryAgent {
+  id: string;
+  slug: string;
+  name: string;
+  description: string;
+  instructions: string;
+  allowed_tools: string[];
+  model: string | null;
+  max_steps: number;
+  version: number;
+}
+
+export interface WorkspaceAgent {
+  id: string;
+  workspace_id: string;
+  library_agent_id: string | null;
+  name: string;
+  instructions: string;
+  allowed_tools: string[];
+  model: string | null;
+  max_steps: number;
+  imported_version: number | null;
+  created_at: string;
+}
+
+/** One entry in an agent run's tool-call trace (stored in agent_runs.steps). */
+export interface AgentRunStep {
+  type: "tool-call" | "tool-result" | "tool-error";
+  tool: string;
+  summary: string;
+}
+
+export interface AgentRun {
+  id: string;
+  project_id: string;
+  workspace_agent_id: string;
+  status: "running" | "succeeded" | "failed";
+  task: string | null;
+  steps: AgentRunStep[] | null;
+  output_doc_id: string | null;
+  error_message: string | null;
+  provider: string | null;
+  model: string | null;
+  input_tokens: number | null;
+  output_tokens: number | null;
+  cache_read_tokens: number | null;
+  cost_usd: number | null;
+  created_by: string | null;
+  created_at: string;
 }

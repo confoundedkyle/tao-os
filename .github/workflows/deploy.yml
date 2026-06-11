@@ -8,12 +8,16 @@
 #   GCP_WIF_PROVIDER (projects/N/locations/global/workloadIdentityPools/...),
 #   GCP_SERVICE_ACCOUNT (deployer SA email),
 #   SINGLE_WORKSPACE, ADMIN_EMAILS,
-#   PLATFORM_PROVIDER_ENABLED, CALYFLOW_PLATFORM_MODEL,
-#   ONE_TIME_PLATFORM_CREDIT_DEFAULT_USD, MOCK_AI
+#   PLATFORM_PROVIDER_ENABLED, CALYFLOW_PLATFORM_PROVIDER,
+#   CALYFLOW_PLATFORM_MODEL,
+#   ONE_TIME_PLATFORM_CREDIT_DEFAULT_USD, MOCK_AI,
+#   APP_BASE_URL (public app URL, for connector OAuth redirects)
 # Required "Prod" environment SECRETS:
 #   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, NEXT_PUBLIC_SUPABASE_ANON_KEY,
 #   APP_ENCRYPTION_KEY, NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY, CLERK_SECRET_KEY,
 #   CLERK_WEBHOOK_SIGNING_SECRET, CALYFLOW_PLATFORM_API_KEY, CRON_SECRET
+# Optional connector SECRETS (Airtable):
+#   AIRTABLE_CLIENT_ID, AIRTABLE_CLIENT_SECRET
 # Optional SECRETS (enable CI-applied DB migrations):
 #   SUPABASE_ACCESS_TOKEN, SUPABASE_DB_PASSWORD
 
@@ -105,8 +109,10 @@ jobs:
               "SINGLE_WORKSPACE", "ADMIN_EMAILS",
               "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY", "CLERK_SECRET_KEY",
               "CLERK_WEBHOOK_SIGNING_SECRET", "PLATFORM_PROVIDER_ENABLED",
-              "CALYFLOW_PLATFORM_API_KEY", "CALYFLOW_PLATFORM_MODEL",
+              "CALYFLOW_PLATFORM_API_KEY", "CALYFLOW_PLATFORM_PROVIDER",
+              "CALYFLOW_PLATFORM_MODEL",
               "ONE_TIME_PLATFORM_CREDIT_DEFAULT_USD", "CRON_SECRET", "MOCK_AI",
+              "APP_BASE_URL", "AIRTABLE_CLIENT_ID", "AIRTABLE_CLIENT_SECRET",
             ];
             const env = Object.fromEntries(
               keys.filter((k) => process.env[k]).map((k) => [k, process.env[k]])
@@ -125,10 +131,17 @@ jobs:
           CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
           PLATFORM_PROVIDER_ENABLED: ${{ vars.PLATFORM_PROVIDER_ENABLED }}
           CALYFLOW_PLATFORM_API_KEY: ${{ secrets.CALYFLOW_PLATFORM_API_KEY }}
+          CALYFLOW_PLATFORM_PROVIDER: ${{ vars.CALYFLOW_PLATFORM_PROVIDER }}
           CALYFLOW_PLATFORM_MODEL: ${{ vars.CALYFLOW_PLATFORM_MODEL }}
           ONE_TIME_PLATFORM_CREDIT_DEFAULT_USD: ${{ vars.ONE_TIME_PLATFORM_CREDIT_DEFAULT_USD }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           MOCK_AI: ${{ vars.MOCK_AI }}
+          # Data-source connectors (Airtable). APP_BASE_URL is the public app URL
+          # (e.g. https://app.calyflow.com); the Airtable redirect URL registered
+          # in the OAuth integration must be ${APP_BASE_URL}/api/connectors/airtable/callback.
+          APP_BASE_URL: ${{ vars.APP_BASE_URL }}
+          AIRTABLE_CLIENT_ID: ${{ secrets.AIRTABLE_CLIENT_ID }}
+          AIRTABLE_CLIENT_SECRET: ${{ secrets.AIRTABLE_CLIENT_SECRET }}
 
       - name: Deploy to Cloud Run
         run: |

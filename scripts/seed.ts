@@ -1,6 +1,7 @@
 /**
  * Seeds the database from repo files (SPEC §4, §13):
  *   - /workflows/*.yaml        → library_workflows (upsert by slug)
+ *   - /agents/*.yaml           → library_agents (upsert by slug)
  *   - /data/model-catalog-snapshot.json → model_catalog (upsert)
  *
  * The same mechanism that seeds Calyflow cloud seeds any self-hosted
@@ -55,6 +56,45 @@ async function seedWorkflows() {
   }
 }
 
+interface AgentYaml {
+  slug: string;
+  name: string;
+  description: string;
+  instructions: string;
+  allowed_tools: string[];
+  model: string | null;
+  max_steps: number;
+  version?: number;
+}
+
+async function seedAgents() {
+  const dir = join(__dirname, "..", "agents");
+  let files: string[];
+  try {
+    files = readdirSync(dir).filter((f) => f.endsWith(".yaml"));
+  } catch {
+    return; // no agents directory yet — nothing to seed
+  }
+  for (const file of files) {
+    const a = load(readFileSync(join(dir, file), "utf8")) as AgentYaml;
+    const { error } = await db.from("library_agents").upsert(
+      {
+        slug: a.slug,
+        name: a.name,
+        description: a.description,
+        instructions: a.instructions,
+        allowed_tools: a.allowed_tools,
+        model: a.model ?? null,
+        max_steps: a.max_steps ?? 12,
+        version: a.version ?? 1,
+      },
+      { onConflict: "slug" },
+    );
+    if (error) throw new Error(`${file}: ${error.message}`);
+    console.log(`✓ agent ${a.slug} (v${a.version ?? 1})`);
+  }
+}
+
 async function seedCatalog() {
   const snapshot = JSON.parse(
     readFileSync(join(__dirname, "..", "data", "model-catalog-snapshot.json"), "utf8"),
@@ -73,6 +113,7 @@ async function seedCatalog() {
 
 (async () => {
   await seedWorkflows();
+  await seedAgents();
   await seedCatalog();
   console.log("Seed complete.");
 })().catch((err) => {
