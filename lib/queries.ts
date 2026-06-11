@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { db } from "./db";
 import type {
   AgentRun,
@@ -378,23 +379,27 @@ export async function listModules(
   return data as WorkspaceModule[];
 }
 
-/** Module keys the workspace has switched on — drives the sidebar nav. */
-export async function listActiveModuleKeys(
-  workspaceId: string,
-): Promise<ModuleKey[]> {
-  const { data, error } = await db()
-    .from("workspace_modules")
-    .select("module_key")
-    .eq("workspace_id", workspaceId)
-    .eq("is_active", true);
-  // Tolerate the table not existing yet (migration 0007 not applied) so the
-  // rest of the app keeps working — treat as no active modules.
-  if (error) {
-    if (error.code === "PGRST205") return [];
-    throw error;
-  }
-  return (data ?? []).map((r) => r.module_key as ModuleKey);
-}
+/**
+ * Module keys the workspace has switched on — drives the sidebar nav.
+ * cache()-wrapped: the layout and module page guards both call this within
+ * one request, so the result is shared instead of hitting the DB twice.
+ */
+export const listActiveModuleKeys = cache(
+  async (workspaceId: string): Promise<ModuleKey[]> => {
+    const { data, error } = await db()
+      .from("workspace_modules")
+      .select("module_key")
+      .eq("workspace_id", workspaceId)
+      .eq("is_active", true);
+    // Tolerate the table not existing yet (migration 0007 not applied) so the
+    // rest of the app keeps working — treat as no active modules.
+    if (error) {
+      if (error.code === "PGRST205") return [];
+      throw error;
+    }
+    return (data ?? []).map((r) => r.module_key as ModuleKey);
+  },
+);
 
 // --- CRM ---
 

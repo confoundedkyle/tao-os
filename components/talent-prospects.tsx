@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import {
   createProspectAction,
@@ -8,15 +8,26 @@ import {
   updateProspectAction,
 } from "@/lib/actions/talent";
 import type { TalentProspect } from "@/lib/types";
-import { Button, Card, Field, inputClass } from "@/components/ui";
+import {
+  Button,
+  Card,
+  EmptyState,
+  Field,
+  PageHeader,
+  inputClass,
+} from "@/components/ui";
+import { useToast } from "@/components/use-toast";
 
 export function TalentProspects({
   prospects,
 }: {
   prospects: TalentProspect[];
 }) {
+  const [adding, setAdding] = useState(false);
   const [query, setQuery] = useState("");
-  const formRef = useRef<HTMLFormElement>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+  const { toast, showToast } = useToast();
 
   const q = query.trim().toLowerCase();
   const visible = q
@@ -27,75 +38,138 @@ export function TalentProspects({
       )
     : prospects;
 
-  async function add(formData: FormData) {
-    await createProspectAction(formData);
-    formRef.current?.reset();
+  function add(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    startTransition(async () => {
+      try {
+        setError(null);
+        await createProspectAction(formData);
+        setAdding(false);
+        showToast("Prospect added");
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Could not add prospect");
+      }
+    });
   }
 
   return (
     <>
-      <Card className="mb-5">
-        <form ref={formRef} action={add} className="grid gap-3 sm:grid-cols-2">
-          <Field label="Name">
-            <input name="name" required className={inputClass} />
-          </Field>
-          <Field label="LinkedIn URL">
-            <input
-              name="linkedin_url"
-              className={inputClass}
-              placeholder="https://linkedin.com/in/…"
-            />
-          </Field>
-          <Field label="Email">
-            <input name="email" type="email" className={inputClass} />
-          </Field>
-          <Field label="Phone">
-            <input name="phone" className={inputClass} />
-          </Field>
-          <Field label="Country">
-            <input name="country" className={inputClass} />
-          </Field>
-          <Field label="City">
-            <input name="city" className={inputClass} />
-          </Field>
-          <div className="sm:col-span-2">
-            <Field label="Notes (skills, abilities, context)">
-              <textarea name="notes" rows={3} className={inputClass} />
+      <PageHeader
+        title="Target Talent Pool"
+        description="Build a niche pipeline of prospects — open one to attach a CV."
+        action={
+          <Button variant="small" onClick={() => setAdding((v) => !v)}>
+            {adding ? "Close" : "Add prospect"}
+          </Button>
+        }
+      />
+
+      {adding && (
+        <Card className="mb-5">
+          <form onSubmit={add} className="grid gap-3 sm:grid-cols-2">
+            <Field label="Name">
+              <input name="name" required className={inputClass} />
             </Field>
-          </div>
-          <div className="sm:col-span-2">
-            <Button type="submit" variant="small">
-              Add prospect
-            </Button>
-          </div>
-        </form>
-      </Card>
-
-      <div className="mb-4">
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search prospects…"
-          className={`${inputClass} max-w-md`}
-        />
-      </div>
-
-      {visible.length === 0 ? (
-        <p className="text-sm text-navy-800/45">
-          {prospects.length === 0 ? "No prospects yet." : "No matches."}
-        </p>
-      ) : (
-        <div className="space-y-2">
-          {visible.map((prospect) => (
-            <ProspectRow key={prospect.id} prospect={prospect} />
-          ))}
-        </div>
+            <Field label="LinkedIn URL">
+              <input
+                name="linkedin_url"
+                className={inputClass}
+                placeholder="https://linkedin.com/in/…"
+              />
+            </Field>
+            <Field label="Email">
+              <input name="email" type="email" className={inputClass} />
+            </Field>
+            <Field label="Phone">
+              <input name="phone" className={inputClass} />
+            </Field>
+            <Field label="Country">
+              <input name="country" className={inputClass} />
+            </Field>
+            <Field label="City">
+              <input name="city" className={inputClass} />
+            </Field>
+            <div className="sm:col-span-2">
+              <Field label="Notes (skills, abilities, context)">
+                <textarea name="notes" rows={3} className={inputClass} />
+              </Field>
+            </div>
+            <div className="flex items-center gap-3 sm:col-span-2">
+              <Button type="submit" variant="small" disabled={pending}>
+                {pending ? "Adding…" : "Add prospect"}
+              </Button>
+              {error && (
+                <p role="alert" className="text-xs text-coral-400">
+                  {error}
+                </p>
+              )}
+            </div>
+          </form>
+        </Card>
       )}
+
+      {prospects.length === 0 ? (
+        !adding && (
+          <EmptyState
+            title="No prospects yet"
+            description="Add your first prospect — open their profile afterwards to attach a CV."
+            action={
+              <Button variant="small" onClick={() => setAdding(true)}>
+                Add prospect
+              </Button>
+            }
+          />
+        )
+      ) : (
+        <>
+          <div className="mb-4">
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search prospects…"
+              aria-label="Search prospects"
+              className={`${inputClass} max-w-md`}
+            />
+          </div>
+
+          {visible.length === 0 ? (
+            <p className="text-sm text-navy-800/45">
+              No matches.{" "}
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                className="font-semibold text-mint-700 hover:underline"
+              >
+                Clear search
+              </button>
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {visible.map((prospect) => (
+                <ProspectRow
+                  key={prospect.id}
+                  prospect={prospect}
+                  showToast={showToast}
+                />
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
+      {toast}
     </>
   );
 }
 
-function ProspectRow({ prospect }: { prospect: TalentProspect }) {
+function ProspectRow({
+  prospect,
+  showToast,
+}: {
+  prospect: TalentProspect;
+  showToast: (message: string) => void;
+}) {
   const [editing, setEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -111,21 +185,32 @@ function ProspectRow({ prospect }: { prospect: TalentProspect }) {
       try {
         setError(null);
         await deleteProspectAction(prospect.id);
+        showToast("Prospect deleted");
       } catch (err) {
         setError(err instanceof Error ? err.message : "Could not delete");
       }
     });
   }
 
-  async function save(formData: FormData) {
-    await updateProspectAction(formData);
-    setEditing(false);
+  function save(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    startTransition(async () => {
+      try {
+        setError(null);
+        await updateProspectAction(formData);
+        showToast("Prospect updated");
+        setEditing(false);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Could not save");
+      }
+    });
   }
 
   if (editing) {
     return (
       <Card>
-        <form action={save} className="grid gap-3 sm:grid-cols-2">
+        <form onSubmit={save} className="grid gap-3 sm:grid-cols-2">
           <input type="hidden" name="id" value={prospect.id} />
           <Field label="Name">
             <input
@@ -181,9 +266,9 @@ function ProspectRow({ prospect }: { prospect: TalentProspect }) {
               />
             </Field>
           </div>
-          <div className="flex gap-2 sm:col-span-2">
-            <Button type="submit" variant="small">
-              Save
+          <div className="flex items-center gap-2 sm:col-span-2">
+            <Button type="submit" variant="small" disabled={pending}>
+              {pending ? "Saving…" : "Save"}
             </Button>
             <Button
               type="button"
@@ -192,6 +277,11 @@ function ProspectRow({ prospect }: { prospect: TalentProspect }) {
             >
               Cancel
             </Button>
+            {error && (
+              <p role="alert" className="text-xs text-coral-400">
+                {error}
+              </p>
+            )}
           </div>
         </form>
       </Card>
@@ -205,7 +295,7 @@ function ProspectRow({ prospect }: { prospect: TalentProspect }) {
       <div className="min-w-0">
         <Link
           href={`/talent-pool/${prospect.id}`}
-          className="font-semibold hover:text-mint-700"
+          className="font-semibold underline-offset-4 hover:text-mint-700 hover:underline"
         >
           {prospect.name}
         </Link>
@@ -219,15 +309,13 @@ function ProspectRow({ prospect }: { prospect: TalentProspect }) {
             {prospect.notes}
           </p>
         )}
-        {error && <p className="mt-1 text-xs text-coral-400">{error}</p>}
+        {error && (
+          <p role="alert" className="mt-1 text-xs text-coral-400">
+            {error}
+          </p>
+        )}
       </div>
       <div className="flex flex-shrink-0 gap-2">
-        <Link
-          href={`/talent-pool/${prospect.id}`}
-          className="rounded-chip border border-navy-800/15 px-2.5 py-1 text-xs font-semibold text-navy-800/65 transition hover:border-navy-800/35 hover:text-navy-900"
-        >
-          Open
-        </Link>
         <button
           type="button"
           onClick={() => setEditing(true)}
