@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
-import { listClientsWithProjects } from "@/lib/queries";
+import { listActiveModuleKeys, listClientsWithProjects } from "@/lib/queries";
 import { AppSidebar } from "@/components/app-sidebar";
 import { AppTopbar } from "@/components/app-topbar";
 
@@ -12,14 +12,17 @@ export default async function AppLayout({
   const session = await getSession();
   if (!session) redirect("/sign-in");
   if (!session.workspace.workspace_type) redirect("/onboarding");
-  const clients = await listClientsWithProjects(session.workspace.id);
+  const [clients, modules] = await Promise.all([
+    listClientsWithProjects(session.workspace.id),
+    listActiveModuleKeys(session.workspace.id),
+  ]);
 
   return (
     <div className="flex h-dvh overflow-hidden">
-      <AppSidebar clients={clients} />
+      <AppSidebar clients={clients} modules={modules} />
       {/* min-w-0 lets grids/tables shrink instead of overflowing on mobile */}
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <AppTopbar session={session} clients={clients} />
+        <AppTopbar session={session} clients={clients} modules={modules} />
         <main className="flex flex-1 flex-col overflow-y-auto px-4 pt-6 sm:px-6 lg:px-10 lg:pt-2">
           <div className="flex-1">{children}</div>
           <footer className="mt-16 border-t border-navy-800/8 py-4 text-center text-xs text-navy-800/35">

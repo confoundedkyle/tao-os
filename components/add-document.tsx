@@ -232,7 +232,7 @@ export function AddDocument({
   compact = false,
   existingDocs,
 }: {
-  scopeType: "workspace" | "client" | "project";
+  scopeType: "workspace" | "client" | "project" | "prospect";
   scopeId: string;
   kind?: "kb" | "file";
   docTypes?: string[];

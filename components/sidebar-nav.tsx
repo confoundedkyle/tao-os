@@ -2,7 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { Client, Project } from "@/lib/types";
+import { MODULES, type Client, type ModuleKey, type Project } from "@/lib/types";
 
 export type ClientWithProjects = Client & { projects: Project[] };
 
@@ -36,8 +36,15 @@ function Chevron({ className }: { className?: string }) {
   );
 }
 
-export function SidebarNav({ clients }: { clients: ClientWithProjects[] }) {
+export function SidebarNav({
+  clients,
+  modules = [],
+}: {
+  clients: ClientWithProjects[];
+  modules?: ModuleKey[];
+}) {
   const pathname = usePathname();
+  const activeModules = MODULES.filter((m) => modules.includes(m.key));
 
   // Expand every client by default so projects are visible without clicking;
   // users can still collapse any client individually.
@@ -73,6 +80,26 @@ export function SidebarNav({ clients }: { clients: ClientWithProjects[] }) {
           {item.label}
         </Link>
       ))}
+
+      {activeModules.length > 0 && (
+        <>
+          <div className="my-2 border-t border-navy-800/10" />
+          {activeModules.map((module) => (
+            <Link
+              key={module.key}
+              href={module.href}
+              className={cn(
+                "rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                isActive(module.href)
+                  ? "bg-mint-400/15 text-mint-700"
+                  : "text-navy-800/65 hover:bg-cream-100 hover:text-navy-900",
+              )}
+            >
+              {module.label}
+            </Link>
+          ))}
+        </>
+      )}
 
       <div className="my-2 border-t border-navy-800/10" />
 
