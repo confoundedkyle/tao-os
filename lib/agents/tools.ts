@@ -16,6 +16,7 @@ import { lemlistAdapter } from "../integrations/lemlist";
 import { loxoAdapter } from "../integrations/loxo";
 import { lushaAdapter } from "../integrations/lusha";
 import { manatalAdapter } from "../integrations/manatal";
+import { teamtailorAdapter } from "../integrations/teamtailor";
 import { workableAdapter } from "../integrations/workable";
 import type { Doc } from "../types";
 
@@ -42,6 +43,7 @@ export interface ToolContext {
   loxoToken: string | null;
   lushaToken: string | null;
   manatalToken: string | null;
+  teamtailorToken: string | null;
   workableToken: string | null;
   /** Documents the agent created this run (mutated by calyflow_create_document). */
   createdDocIds: string[];
@@ -834,6 +836,45 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    teamtailor_list_jobs: tool({
+      description:
+        "List jobs in the connected Teamtailor ATS (title, status, remote status, job id). Filter by status: published, draft, archived, scheduled, internal.",
+      inputSchema: z.object({
+        status: z.string().optional().describe("Job status filter."),
+        limit: z.number().int().positive().optional().describe("Max 30."),
+      }),
+      execute: async (args) => {
+        if (!ctx.teamtailorToken) return { error: notConnected("Teamtailor") };
+        return teamtailorAdapter.listJobs(ctx.teamtailorToken, args);
+      },
+    }),
+
+    teamtailor_list_candidates: tool({
+      description:
+        "List candidates in the connected Teamtailor ATS as a Markdown table (name, email, phone, pitch). Pass email to find a specific person; omit filters to list recent candidates.",
+      inputSchema: z.object({
+        email: z.string().optional().describe("Find a candidate by email."),
+        limit: z.number().int().positive().optional().describe("Max 30."),
+      }),
+      execute: async (args) => {
+        if (!ctx.teamtailorToken) return { error: notConnected("Teamtailor") };
+        return teamtailorAdapter.listCandidates(ctx.teamtailorToken, args);
+      },
+    }),
+
+    teamtailor_list_job_candidates: tool({
+      description:
+        "List the candidates who applied to a Teamtailor job as a Markdown table. Get the jobId from teamtailor_list_jobs first.",
+      inputSchema: z.object({
+        jobId: z.string().describe("Job id (from teamtailor_list_jobs)."),
+        limit: z.number().int().positive().optional().describe("Max 30."),
+      }),
+      execute: async (args) => {
+        if (!ctx.teamtailorToken) return { error: notConnected("Teamtailor") };
+        return teamtailorAdapter.listJobApplications(ctx.teamtailorToken, args);
+      },
+    }),
+
     workable_list_jobs: tool({
       description:
         "List jobs in the connected Workable ATS (title, state, department, location, shortcode). Filter by state: draft, published, closed, archived. Use to find the role you are sourcing for — the shortcode scopes candidate lookups.",
@@ -951,6 +992,9 @@ export const ALL_TOOL_NAMES = [
   "manatal_list_jobs",
   "manatal_search_candidates",
   "manatal_list_job_candidates",
+  "teamtailor_list_jobs",
+  "teamtailor_list_candidates",
+  "teamtailor_list_job_candidates",
   "workable_list_jobs",
   "workable_list_candidates",
   "calyflow_create_document",
