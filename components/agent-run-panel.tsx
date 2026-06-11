@@ -16,6 +16,7 @@ export interface AgentRunPanelAgent {
 const CONNECTOR_LABELS: Record<string, string> = {
   airtable: "Airtable",
   ashby: "Ashby",
+  hunter: "Hunter.io",
 };
 
 interface Step {
@@ -30,6 +31,12 @@ const TOOL_LABELS: Record<string, string> = {
   airtable_list_bases: "Listed Airtable bases",
   airtable_list_tables: "Listed Airtable tables",
   airtable_query_records: "Queried Airtable",
+  ashby_list_jobs: "Listed Ashby jobs",
+  ashby_list_candidates: "Listed Ashby candidates",
+  ashby_search_candidates: "Searched Ashby candidates",
+  hunter_domain_search: "Searched Hunter.io for contacts",
+  hunter_email_finder: "Found an email (Hunter.io)",
+  hunter_email_verifier: "Verified an email (Hunter.io)",
   calyflow_create_document: "Saved document",
 };
 

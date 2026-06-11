@@ -118,10 +118,12 @@ export async function POST(request: NextRequest) {
   };
   let airtableToken: string | null = null;
   let ashbyToken: string | null = null;
+  let hunterToken: string | null = null;
   try {
-    [airtableToken, ashbyToken] = await Promise.all([
+    [airtableToken, ashbyToken, hunterToken] = await Promise.all([
       tokenFor("airtable_", "airtable"),
       tokenFor("ashby_", "ashby"),
+      tokenFor("hunter_", "hunter"),
     ]);
   } catch (err) {
     return NextResponse.json(
@@ -161,6 +163,7 @@ export async function POST(request: NextRequest) {
     userId: session.userId,
     airtableToken,
     ashbyToken,
+    hunterToken,
     createdDocIds: [],
   };
 

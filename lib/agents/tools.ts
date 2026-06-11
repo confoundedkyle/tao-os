@@ -5,6 +5,7 @@ import { db } from "../db";
 import { listDocuments, getDocument } from "../queries";
 import { airtableAdapter } from "../integrations/airtable";
 import { ashbyAdapter } from "../integrations/ashby";
+import { hunterAdapter } from "../integrations/hunter";
 import type { Doc } from "../types";
 
 // Agent tools. Each tool's execute closes over a server-derived ToolContext —
@@ -19,6 +20,7 @@ export interface ToolContext {
   /** Valid access tokens per connector, or null when not connected. */
   airtableToken: string | null;
   ashbyToken: string | null;
+  hunterToken: string | null;
   /** Documents the agent created this run (mutated by calyflow_create_document). */
   createdDocIds: string[];
 }
@@ -171,6 +173,65 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    hunter_domain_search: tool({
+      description:
+        "Find people at a company via Hunter.io — pass a company domain (e.g. acme.com) or company name, optionally filtered by department and/or seniority to target specific roles/functions. Returns name, position, department, seniority, email, and confidence.",
+      inputSchema: z.object({
+        domain: z
+          .string()
+          .optional()
+          .describe("Company domain, e.g. acme.com (preferred)."),
+        company: z
+          .string()
+          .optional()
+          .describe("Company name, if the domain isn't known."),
+        department: z
+          .string()
+          .optional()
+          .describe(
+            "Comma-separated departments: executive, it, finance, management, sales, legal, support, hr, marketing, communication, education, design, health, operations.",
+          ),
+        seniority: z
+          .string()
+          .optional()
+          .describe("Comma-separated seniority: junior, senior, executive."),
+        type: z.enum(["personal", "generic"]).optional(),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.hunterToken) return { error: notConnected("Hunter.io") };
+        return hunterAdapter.domainSearch(ctx.hunterToken, args);
+      },
+    }),
+
+    hunter_email_finder: tool({
+      description:
+        "Find a specific person's email address at a company via Hunter.io. Provide their name and the company domain (or company name).",
+      inputSchema: z.object({
+        domain: z.string().optional().describe("Company domain, e.g. acme.com."),
+        company: z.string().optional(),
+        fullName: z.string().optional(),
+        firstName: z.string().optional(),
+        lastName: z.string().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.hunterToken) return { error: notConnected("Hunter.io") };
+        return hunterAdapter.emailFinder(ctx.hunterToken, args);
+      },
+    }),
+
+    hunter_email_verifier: tool({
+      description:
+        "Verify the deliverability of an email address via Hunter.io. Returns a result (deliverable/risky/undeliverable) and score.",
+      inputSchema: z.object({
+        email: z.string().describe("The email address to verify."),
+      }),
+      execute: async ({ email }) => {
+        if (!ctx.hunterToken) return { error: notConnected("Hunter.io") };
+        return hunterAdapter.emailVerifier(ctx.hunterToken, email);
+      },
+    }),
+
     calyflow_create_document: tool({
       description:
         "Save a Markdown document into the current project (e.g. your final analysis/summary). Returns the new document id.",
@@ -221,5 +282,8 @@ export const ALL_TOOL_NAMES = [
   "ashby_list_jobs",
   "ashby_list_candidates",
   "ashby_search_candidates",
+  "hunter_domain_search",
+  "hunter_email_finder",
+  "hunter_email_verifier",
   "calyflow_create_document",
 ] as const;
