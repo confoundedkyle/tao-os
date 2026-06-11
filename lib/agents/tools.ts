@@ -14,6 +14,7 @@ import { hubspotAdapter } from "../integrations/hubspot";
 import { hunterAdapter } from "../integrations/hunter";
 import { lemlistAdapter } from "../integrations/lemlist";
 import { loxoAdapter } from "../integrations/loxo";
+import { lushaAdapter } from "../integrations/lusha";
 import type { Doc } from "../types";
 
 // Agent tools. Each tool's execute closes over a server-derived ToolContext —
@@ -37,6 +38,7 @@ export interface ToolContext {
   hunterToken: string | null;
   lemlistToken: string | null;
   loxoToken: string | null;
+  lushaToken: string | null;
   /** Documents the agent created this run (mutated by calyflow_create_document). */
   createdDocIds: string[];
 }
@@ -747,6 +749,41 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    lusha_search_person: tool({
+      description:
+        "Look up a person in Lusha's B2B contact database — by LinkedIn URL, email, or firstName+lastName plus companyName/companyDomain. Returns a free preview: who matched, which data points exist, what each reveal costs in credits, and the contact id. Does NOT reveal emails/phones — use lusha_enrich_contacts with the contact id for that.",
+      inputSchema: z.object({
+        linkedinUrl: z.string().optional().describe("LinkedIn profile URL (preferred)."),
+        email: z.string().optional().describe("A known email of theirs."),
+        firstName: z.string().optional(),
+        lastName: z.string().optional(),
+        companyName: z.string().optional(),
+        companyDomain: z.string().optional().describe("e.g. acme.com."),
+      }),
+      execute: async (args) => {
+        if (!ctx.lushaToken) return { error: notConnected("Lusha") };
+        return lushaAdapter.searchPerson(ctx.lushaToken, args);
+      },
+    }),
+
+    lusha_enrich_contacts: tool({
+      description:
+        "Reveal emails and phone numbers for Lusha contacts found via lusha_search_person. COSTS credits per revealed data point (the search preview shows the price) — only enrich people you actually intend to contact, max 10 ids per call.",
+      inputSchema: z.object({
+        ids: z
+          .array(z.string())
+          .describe("Contact ids from lusha_search_person results."),
+        reveal: z
+          .array(z.enum(["emails", "phones"]))
+          .optional()
+          .describe("Data points to reveal (defaults to both)."),
+      }),
+      execute: async (args) => {
+        if (!ctx.lushaToken) return { error: notConnected("Lusha") };
+        return lushaAdapter.enrichContacts(ctx.lushaToken, args);
+      },
+    }),
+
     calyflow_create_document: tool({
       description:
         "Save a Markdown document into the current project (e.g. your final analysis/summary). Returns the new document id.",
@@ -825,5 +862,7 @@ export const ALL_TOOL_NAMES = [
   "loxo_list_jobs",
   "loxo_search_people",
   "loxo_list_job_candidates",
+  "lusha_search_person",
+  "lusha_enrich_contacts",
   "calyflow_create_document",
 ] as const;
