@@ -11,8 +11,10 @@ input_spec:
   inputs: []
   required_doc_types: [jd]
   input_doc_types: []
+  knowledge: [workspace, client]
 output_spec:
   output: document
+  name: Job selling pitch
 prompt_template: |
   ## System prompt
   You are an expert recruiter who makes roles genuinely appealing to top

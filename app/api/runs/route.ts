@@ -49,6 +49,12 @@ export async function POST(request: NextRequest) {
   if (!project || !workflow) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
+  if (workflow.archived_at) {
+    return NextResponse.json(
+      { error: "This workflow is archived. Restore it from Workflows & agents." },
+      { status: 400 },
+    );
+  }
   if (project.status !== "active") {
     return NextResponse.json(
       { error: "This project is archived" },

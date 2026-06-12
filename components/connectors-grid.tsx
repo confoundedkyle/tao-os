@@ -25,6 +25,7 @@ const FILTERS: { value: Filter; label: string }[] = [
   { value: "ats", label: "ATS" },
   { value: "crm", label: "CRM" },
   { value: "data", label: "Data" },
+  { value: "email", label: "Email" },
   { value: "tool", label: "Tools" },
 ];
 
@@ -32,17 +33,37 @@ const BADGE_STYLES: Record<ConnectorCategory, string> = {
   ats: "bg-mint-400/20 text-mint-700",
   crm: "bg-sky-300/25 text-navy-800/75",
   data: "bg-lavender-300/25 text-navy-800/75",
+  email: "bg-coral-400/15 text-coral-400",
   tool: "bg-amber-400/15 text-amber-400",
 };
+
+const FILTER_VALUES = FILTERS.map((f) => f.value);
 
 export function ConnectorsGrid({
   connections = [],
   canManage = false,
+  initialFilter,
 }: {
   connections?: ActiveConnection[];
   canManage?: boolean;
+  /** Category from the URL (?category=ats) — deep links land pre-filtered. */
+  initialFilter?: string;
 }) {
-  const [filter, setFilter] = useState<Filter>("all");
+  const [filter, setFilter] = useState<Filter>(
+    FILTER_VALUES.includes(initialFilter as Filter)
+      ? (initialFilter as Filter)
+      : "all",
+  );
+
+  // Keep the URL shareable: clicking a filter rewrites ?category= in place
+  // without a server round-trip.
+  function selectFilter(value: Filter) {
+    setFilter(value);
+    const url = new URL(window.location.href);
+    if (value === "all") url.searchParams.delete("category");
+    else url.searchParams.set("category", value);
+    window.history.replaceState(null, "", url);
+  }
   const byProvider = useMemo(
     () => new Map(connections.map((c) => [c.provider, c])),
     [connections],
@@ -63,7 +84,7 @@ export function ConnectorsGrid({
           <button
             key={f.value}
             type="button"
-            onClick={() => setFilter(f.value)}
+            onClick={() => selectFilter(f.value)}
             className={[
               "rounded-chip px-4 py-1.5 text-sm font-semibold transition",
               filter === f.value

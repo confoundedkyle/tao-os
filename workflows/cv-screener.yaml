@@ -10,8 +10,10 @@ input_spec:
   inputs: [document]
   required_doc_types: [jd]
   input_doc_types: [cv]
+  knowledge: [workspace, client]
 output_spec:
   output: document
+  name: Screening report
 prompt_template: |
   ## System prompt
   You are an expert technical recruiter performing a structured CV screen.

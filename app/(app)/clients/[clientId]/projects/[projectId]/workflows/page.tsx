@@ -2,7 +2,9 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import {
+  getPrimaryRunModel,
   getProject,
+  listConnections,
   listDocuments,
   listProviders,
   listRuns,
@@ -11,6 +13,7 @@ import {
 import { checkBudgets } from "@/lib/budgets";
 import { env } from "@/lib/env";
 import { preflightWorkflow } from "@/lib/readiness";
+import { deriveWorkflowGraph } from "@/lib/workflow-graph";
 import { DocList } from "@/components/doc-list";
 import { RunPanel, type RunPanelWorkflow } from "@/components/run-panel";
 import { ButtonLink, Card, Chip, Mono } from "@/components/ui";
@@ -26,12 +29,17 @@ export default async function ProjectWorkflowsPage({
   const project = await getProject(session.workspaceId, projectId);
   if (!project || project.client.id !== clientId) notFound();
 
-  const [docs, workflows, runs, providers] = await Promise.all([
-    listDocuments(session.workspaceId, "project", projectId, "file"),
-    listWorkspaceWorkflows(session.workspaceId),
-    listRuns(session.workspaceId, projectId),
-    listProviders(session.workspaceId),
-  ]);
+  const [docs, allWorkflows, runs, providers, model, connections] =
+    await Promise.all([
+      listDocuments(session.workspaceId, "project", projectId, "file"),
+      listWorkspaceWorkflows(session.workspaceId),
+      listRuns(session.workspaceId, projectId),
+      listProviders(session.workspaceId),
+      getPrimaryRunModel(session.workspaceId),
+      listConnections(session.workspaceId),
+    ]);
+  const workflows = allWorkflows.filter((wf) => !wf.archived_at);
+  const activeConnections = connections.filter((c) => c.status !== "error");
 
   const panelWorkflows: RunPanelWorkflow[] = workflows.map((wf) => {
     const preflight = preflightWorkflow(wf.library?.input_spec ?? null, docs);
@@ -42,6 +50,14 @@ export default async function ProjectWorkflowsPage({
       missing: preflight.missing,
       needsInputPicker: preflight.needsInputPicker,
       inputDocTypes: preflight.inputDocTypes,
+      graph: deriveWorkflowGraph({
+        name: wf.name,
+        promptTemplate: wf.prompt_template,
+        inputSpec: wf.library?.input_spec ?? null,
+        outputSpec: wf.library?.output_spec ?? null,
+        model,
+        connections: activeConnections,
+      }),
     };
   });
 

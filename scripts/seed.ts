@@ -75,6 +75,26 @@ async function seedAgents() {
   } catch {
     return; // no agents directory yet — nothing to seed
   }
+
+  // Retire library agents whose YAML was removed from the repo (e.g. the
+  // per-connector agents replaced by category-generic ones). Workspace copies
+  // keep working — they're detached (library_agent_id → null) so the FK
+  // allows the library row to go.
+  const repoSlugs = files.map(
+    (f) => (load(readFileSync(join(dir, f), "utf8")) as AgentYaml).slug,
+  );
+  const { data: existing } = await db.from("library_agents").select("id, slug");
+  const stale = (existing ?? []).filter((a) => !repoSlugs.includes(a.slug));
+  for (const agent of stale) {
+    await db
+      .from("workspace_agents")
+      .update({ library_agent_id: null })
+      .eq("library_agent_id", agent.id);
+    const { error } = await db.from("library_agents").delete().eq("id", agent.id);
+    if (error) throw new Error(`retire ${agent.slug}: ${error.message}`);
+    console.log(`✗ retired agent ${agent.slug}`);
+  }
+
   for (const file of files) {
     const a = load(readFileSync(join(dir, file), "utf8")) as AgentYaml;
     const { error } = await db.from("library_agents").upsert(

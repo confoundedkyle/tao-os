@@ -6,12 +6,16 @@ import { ConnectorsGrid } from "@/components/connectors-grid";
 export default async function ConnectorsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ connected?: string; error?: string }>;
+  searchParams: Promise<{
+    connected?: string;
+    error?: string;
+    category?: string;
+  }>;
 }) {
   const session = await getSession();
   if (!session) redirect("/sign-in");
 
-  const { connected, error } = await searchParams;
+  const { connected, error, category } = await searchParams;
   const connections = (await listConnections(session.workspaceId)).map((c) => ({
     provider: c.provider,
     accountLabel: c.account_label,
@@ -43,6 +47,7 @@ export default async function ConnectorsPage({
       <ConnectorsGrid
         connections={connections}
         canManage={session.role === "admin"}
+        initialFilter={category}
       />
     </>
   );

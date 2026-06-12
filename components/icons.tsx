@@ -172,6 +172,32 @@ export function IconMegaphone(props: IconProps) {
   );
 }
 
+export function IconRobot(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <rect x="5" y="8" width="14" height="10.5" rx="2.5" fill={mint} />
+      <path d="M12 8V5.2" />
+      <circle cx="12" cy="3.9" r="1.2" />
+      <circle cx="9.3" cy="12.6" r="1" fill="currentColor" stroke="none" />
+      <circle cx="14.7" cy="12.6" r="1" fill="currentColor" stroke="none" />
+      <path d="M9.2 15.8h5.6" />
+      <path d="M5 12.5H3.2M20.8 12.5H19" />
+    </Svg>
+  );
+}
+
+export function IconFolder(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path
+        d="M3 6.5A1.5 1.5 0 0 1 4.5 5H9l2 2.5h8.5A1.5 1.5 0 0 1 21 9v9a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18V6.5Z"
+        fill={mint}
+      />
+      <path d="M3 10.5h18" />
+    </Svg>
+  );
+}
+
 export function IconWarning(props: IconProps) {
   return (
     <Svg {...props}>

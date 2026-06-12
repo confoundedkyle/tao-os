@@ -10,8 +10,10 @@ input_spec:
   inputs: [document]
   required_doc_types: [jd]
   input_doc_types: [cv, output]
+  knowledge: [workspace, client]
 output_spec:
   output: document
+  name: Submission pack
 prompt_template: |
   ## System prompt
   You are an expert recruiter preparing a candidate submission for a client.

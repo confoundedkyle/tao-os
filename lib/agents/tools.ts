@@ -17,6 +17,7 @@ import { coresignalAdapter } from "../integrations/coresignal";
 import { crelateAdapter } from "../integrations/crelate";
 import { fathomAdapter } from "../integrations/fathom";
 import { firefliesAdapter } from "../integrations/fireflies";
+import { gmailAdapter } from "../integrations/gmail";
 import { gongAdapter } from "../integrations/gong";
 import { googleSheetsAdapter } from "../integrations/google-sheets";
 import { greenhouseAdapter } from "../integrations/greenhouse";
@@ -31,6 +32,7 @@ import { loxoAdapter } from "../integrations/loxo";
 import { lushaAdapter } from "../integrations/lusha";
 import { manatalAdapter } from "../integrations/manatal";
 import { microsoftExcelAdapter } from "../integrations/microsoft-excel";
+import { microsoftOutlookAdapter } from "../integrations/microsoft-outlook";
 import { mondayAdapter } from "../integrations/monday";
 import { notionAdapter } from "../integrations/notion";
 import { peopledatalabsAdapter } from "../integrations/peopledatalabs";
@@ -75,6 +77,7 @@ export interface ToolContext {
   crelateToken: string | null;
   fathomToken: string | null;
   firefliesToken: string | null;
+  gmailToken: string | null;
   gongToken: string | null;
   googleSheetsToken: string | null;
   greenhouseToken: string | null;
@@ -89,6 +92,7 @@ export interface ToolContext {
   lushaToken: string | null;
   manatalToken: string | null;
   microsoftExcelToken: string | null;
+  microsoftOutlookToken: string | null;
   mondayToken: string | null;
   notionToken: string | null;
   peopledatalabsToken: string | null;
@@ -534,6 +538,22 @@ function buildAll(ctx: ToolContext): ToolSet {
       execute: async ({ callId }) => {
         if (!ctx.gongToken) return { error: notConnected("Gong") };
         return gongAdapter.getTranscript(ctx.gongToken, callId);
+      },
+    }),
+
+    gmail_send_email: tool({
+      description:
+        "Send a plain-text email from the user's connected Gmail address. Use ONLY for outreach the task explicitly asks for, to addresses found in the connected data — never to invented addresses. One recipient per call.",
+      inputSchema: z.object({
+        to: z.string().email().describe("Recipient email address."),
+        subject: z.string().min(1).max(200),
+        body: z.string().min(1).max(10_000).describe("Plain-text message body."),
+        cc: z.string().email().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.gmailToken) return { error: notConnected("Gmail") };
+        const { id } = await gmailAdapter.sendEmail(ctx.gmailToken, args);
+        return { sent: true, to: args.to, messageId: id };
       },
     }),
 
@@ -1524,6 +1544,23 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    outlook_send_email: tool({
+      description:
+        "Send a plain-text email from the user's connected Outlook / Microsoft 365 mailbox. Use ONLY for outreach the task explicitly asks for, to addresses found in the connected data — never to invented addresses. One recipient per call.",
+      inputSchema: z.object({
+        to: z.string().email().describe("Recipient email address."),
+        subject: z.string().min(1).max(200),
+        body: z.string().min(1).max(10_000).describe("Plain-text message body."),
+        cc: z.string().email().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.microsoftOutlookToken)
+          return { error: notConnected("Microsoft Outlook") };
+        await microsoftOutlookAdapter.sendEmail(ctx.microsoftOutlookToken, args);
+        return { sent: true, to: args.to };
+      },
+    }),
+
     monday_list_boards: tool({
       description:
         "List boards in the connected monday.com account (name, workspace, kind, item count, board id), sorted by recent use. Use to find the candidate or client tracker you need; page with page.",
@@ -2354,6 +2391,7 @@ export const ALL_TOOL_NAMES = [
   "fathom_get_transcript",
   "fireflies_list_meetings",
   "fireflies_get_meeting",
+  "gmail_send_email",
   "gong_list_calls",
   "gong_get_summary",
   "gong_get_transcript",
@@ -2392,6 +2430,7 @@ export const ALL_TOOL_NAMES = [
   "excel_list_workbooks",
   "excel_list_worksheets",
   "excel_read_range",
+  "outlook_send_email",
   "monday_list_boards",
   "monday_list_items",
   "notion_search",

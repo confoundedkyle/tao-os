@@ -11,8 +11,10 @@ input_spec:
   inputs: []
   required_doc_types: [jd]
   input_doc_types: []
+  knowledge: [workspace, client]
 output_spec:
   output: document
+  name: Candidate ICP
 prompt_template: |
   ## System prompt
   You are an expert recruiter who turns a job description into a rigorous,
