@@ -62,6 +62,22 @@ export const env = {
   get airtableClientSecret() {
     return process.env.AIRTABLE_CLIENT_SECRET ?? "";
   },
+  /** Bullhorn OAuth app credentials (issued by Bullhorn support / BH Connect).
+   *  Auth and REST-login hosts default to the global swimlane routers; point
+   *  them at a regional cluster (e.g. auth-emea.bullhornstaffing.com) if
+   *  Bullhorn assigns one. */
+  get bullhornClientId() {
+    return process.env.BULLHORN_CLIENT_ID ?? "";
+  },
+  get bullhornClientSecret() {
+    return process.env.BULLHORN_CLIENT_SECRET ?? "";
+  },
+  get bullhornAuthBase() {
+    return (process.env.BULLHORN_AUTH_BASE ?? "https://auth.bullhornstaffing.com").replace(/\/$/, "");
+  },
+  get bullhornRestLoginBase() {
+    return (process.env.BULLHORN_REST_LOGIN_BASE ?? "https://rest.bullhornstaffing.com").replace(/\/$/, "");
+  },
   /** Zoho OAuth app credentials (API console; one client serves CRM + Recruit).
    *  Zoho is region-sharded — a deployment targets ONE data center, set via the
    *  base URLs below (defaults are the US DC; use .eu/.in/... for others). */

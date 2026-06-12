@@ -9,6 +9,7 @@ import { attioAdapter } from "./attio";
 import { bamboohrAdapter } from "./bamboohr";
 import { breezyhrAdapter } from "./breezyhr";
 import { brightdataAdapter } from "./brightdata";
+import { bullhornAdapter } from "./bullhorn";
 import { catsAdapter } from "./cats";
 import { contactoutAdapter } from "./contactout";
 import { coresignalAdapter } from "./coresignal";
@@ -52,6 +53,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   bamboohr: bamboohrAdapter,
   breezyhr: breezyhrAdapter,
   brightdata: brightdataAdapter,
+  bullhorn: bullhornAdapter,
   cats: catsAdapter,
   contactout: contactoutAdapter,
   coresignal: coresignalAdapter,

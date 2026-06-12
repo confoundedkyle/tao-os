@@ -123,6 +123,7 @@ export async function POST(request: NextRequest) {
   let bamboohrToken: string | null = null;
   let breezyhrToken: string | null = null;
   let brightdataToken: string | null = null;
+  let bullhornToken: string | null = null;
   let catsToken: string | null = null;
   let contactoutToken: string | null = null;
   let coresignalToken: string | null = null;
@@ -161,6 +162,7 @@ export async function POST(request: NextRequest) {
       bamboohrToken,
       breezyhrToken,
       brightdataToken,
+      bullhornToken,
       catsToken,
       contactoutToken,
       coresignalToken,
@@ -198,6 +200,7 @@ export async function POST(request: NextRequest) {
       tokenFor("bamboohr_", "bamboohr"),
       tokenFor("breezyhr_", "breezyhr"),
       tokenFor("brightdata_", "brightdata"),
+      tokenFor("bullhorn_", "bullhorn"),
       tokenFor("cats_", "cats"),
       tokenFor("contactout_", "contactout"),
       tokenFor("coresignal_", "coresignal"),
@@ -271,6 +274,7 @@ export async function POST(request: NextRequest) {
     bamboohrToken,
     breezyhrToken,
     brightdataToken,
+    bullhornToken,
     catsToken,
     contactoutToken,
     coresignalToken,
