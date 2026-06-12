@@ -18,6 +18,7 @@ import { leverAdapter } from "../integrations/lever";
 import { loxoAdapter } from "../integrations/loxo";
 import { lushaAdapter } from "../integrations/lusha";
 import { manatalAdapter } from "../integrations/manatal";
+import { peopledatalabsAdapter } from "../integrations/peopledatalabs";
 import { pipedriveAdapter } from "../integrations/pipedrive";
 import { recruiteeAdapter } from "../integrations/recruitee";
 import { recruiterflowAdapter } from "../integrations/recruiterflow";
@@ -52,6 +53,7 @@ export interface ToolContext {
   loxoToken: string | null;
   lushaToken: string | null;
   manatalToken: string | null;
+  peopledatalabsToken: string | null;
   pipedriveToken: string | null;
   recruiteeToken: string | null;
   recruiterflowToken: string | null;
@@ -918,6 +920,59 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    peopledatalabs_enrich_person: tool({
+      description:
+        "Resolve one person via People Data Labs from an email, a LinkedIn profile URL, or a name plus a company or location anchor. Returns title, company, work email, personal emails, phones, LinkedIn, and a 0-10 match likelihood. Costs a credit only when a match is found — enrich selectively, never in bulk.",
+      inputSchema: z.object({
+        email: z.string().optional().describe("A known email address."),
+        profile: z.string().optional().describe("LinkedIn profile URL."),
+        name: z.string().optional().describe("Full name."),
+        company: z.string().optional().describe("Current employer name."),
+        location: z.string().optional().describe("Location anchor."),
+        minLikelihood: z
+          .number()
+          .int()
+          .min(0)
+          .max(10)
+          .optional()
+          .describe("Minimum 0-10 match confidence to accept (default none)."),
+      }),
+      execute: async (args) => {
+        if (!ctx.peopledatalabsToken)
+          return { error: notConnected("People Data Labs") };
+        return peopledatalabsAdapter.enrichPerson(
+          ctx.peopledatalabsToken,
+          args,
+        );
+      },
+    }),
+
+    peopledatalabs_search_people: tool({
+      description:
+        "Search People Data Labs' person dataset with SQL: SELECT * FROM person WHERE job_title = 'recruiter' AND location_country = 'germany'. Useful fields: job_title, job_company_name, location_country, location_locality, skills. EVERY returned record costs a credit — keep size small (default 5) and filter tightly before searching.",
+      inputSchema: z.object({
+        sql: z
+          .string()
+          .describe(
+            "SQL of the form SELECT * FROM person WHERE … (LIMIT is ignored; use size).",
+          ),
+        size: z
+          .number()
+          .int()
+          .positive()
+          .optional()
+          .describe("Records to return (each is billed). Max 25."),
+      }),
+      execute: async (args) => {
+        if (!ctx.peopledatalabsToken)
+          return { error: notConnected("People Data Labs") };
+        return peopledatalabsAdapter.searchPeople(
+          ctx.peopledatalabsToken,
+          args,
+        );
+      },
+    }),
+
     pipedrive_search_persons: tool({
       description:
         "Search persons in the connected Pipedrive CRM by name, email, or phone (term must be 2+ characters). Returns name, email, phone, and organization.",
@@ -1242,6 +1297,8 @@ export const ALL_TOOL_NAMES = [
   "manatal_list_jobs",
   "manatal_search_candidates",
   "manatal_list_job_candidates",
+  "peopledatalabs_enrich_person",
+  "peopledatalabs_search_people",
   "pipedrive_search_persons",
   "pipedrive_search_organizations",
   "pipedrive_search_deals",
