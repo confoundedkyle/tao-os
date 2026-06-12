@@ -15,6 +15,7 @@ import { contactoutAdapter } from "../integrations/contactout";
 import { coresignalAdapter } from "../integrations/coresignal";
 import { fathomAdapter } from "../integrations/fathom";
 import { firefliesAdapter } from "../integrations/fireflies";
+import { gongAdapter } from "../integrations/gong";
 import { greenhouseAdapter } from "../integrations/greenhouse";
 import { hubspotAdapter } from "../integrations/hubspot";
 import { hunterAdapter } from "../integrations/hunter";
@@ -65,6 +66,7 @@ export interface ToolContext {
   coresignalToken: string | null;
   fathomToken: string | null;
   firefliesToken: string | null;
+  gongToken: string | null;
   greenhouseToken: string | null;
   hubspotToken: string | null;
   hunterToken: string | null;
@@ -473,6 +475,51 @@ function buildAll(ctx: ToolContext): ToolSet {
       execute: async ({ recordingId }) => {
         if (!ctx.fathomToken) return { error: notConnected("Fathom") };
         return fathomAdapter.getTranscript(ctx.fathomToken, recordingId);
+      },
+    }),
+
+    gong_list_calls: tool({
+      description:
+        "List recorded calls in the connected Gong account as a Markdown table (title, date, duration, direction, call id). Defaults to the last 30 days; narrow with fromDate/toDate (ISO dates) and page with cursor.",
+      inputSchema: z.object({
+        fromDate: z
+          .string()
+          .optional()
+          .describe("Earliest call date, ISO format (e.g. 2026-05-01)."),
+        toDate: z
+          .string()
+          .optional()
+          .describe("Latest call date, ISO format."),
+        cursor: z.string().optional().describe("Pagination cursor."),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.gongToken) return { error: notConnected("Gong") };
+        return gongAdapter.listCalls(ctx.gongToken, args);
+      },
+    }),
+
+    gong_get_summary: tool({
+      description:
+        "Read one Gong call's AI brief, key points, outline, and participants. Get the callId from gong_list_calls. Briefs require Gong smart features — if absent, fall back to gong_get_transcript.",
+      inputSchema: z.object({
+        callId: z.string().describe("Call id from gong_list_calls."),
+      }),
+      execute: async ({ callId }) => {
+        if (!ctx.gongToken) return { error: notConnected("Gong") };
+        return gongAdapter.getSummary(ctx.gongToken, callId);
+      },
+    }),
+
+    gong_get_transcript: tool({
+      description:
+        "Read the speaker-attributed transcript of one Gong call, truncated if very long. Get the callId from gong_list_calls. Prefer gong_get_summary first; pull the transcript when you need exact quotes or detail.",
+      inputSchema: z.object({
+        callId: z.string().describe("Call id from gong_list_calls."),
+      }),
+      execute: async ({ callId }) => {
+        if (!ctx.gongToken) return { error: notConnected("Gong") };
+        return gongAdapter.getTranscript(ctx.gongToken, callId);
       },
     }),
 
@@ -1943,6 +1990,9 @@ export const ALL_TOOL_NAMES = [
   "fathom_get_transcript",
   "fireflies_list_meetings",
   "fireflies_get_meeting",
+  "gong_list_calls",
+  "gong_get_summary",
+  "gong_get_transcript",
   "greenhouse_list_jobs",
   "greenhouse_list_candidates",
   "greenhouse_search_candidates",

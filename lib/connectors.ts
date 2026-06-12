@@ -65,6 +65,7 @@ export const CONNECTORS: Connector[] = [
   { name: "Coresignal", category: "tool", blurb: "Enrich candidates with fresh public employment data.", provider: "coresignal", live: true, auth: "apikey" },
   { name: "Fathom", category: "tool", blurb: "Read AI summaries and transcripts of your recorded calls.", provider: "fathom", live: true, auth: "apikey" },
   { name: "Fireflies.ai", category: "tool", blurb: "Search interview and client-call transcripts and summaries.", provider: "fireflies", live: true, auth: "apikey" },
+  { name: "Gong", category: "tool", blurb: "Read briefs and transcripts from your recorded sales and intake calls.", provider: "gong", live: true, auth: "apikey", apiKeyPlaceholder: "access-key:secret", apiKeyHint: "A Gong admin creates the access-key pair under company settings → Ecosystem → API; paste both parts separated by a colon." },
   { name: "HireEZ", category: "tool", blurb: "AI outbound sourcing across 800M+ candidate profiles." },
   { name: "Hunter.io", category: "tool", blurb: "Find and verify work email addresses instantly.", provider: "hunter", live: true, auth: "apikey" },
   { name: "Instantly.ai", category: "tool", blurb: "Scale cold email outreach with automated warm-up.", provider: "instantly", live: true, auth: "apikey" },
