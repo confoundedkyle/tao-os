@@ -19,6 +19,8 @@ allowed_tools:
   - contactout_linkedin_enrich
   - contactout_person_enrich
   - contactout_email_verify
+  - peopledatalabs_search_people
+  - peopledatalabs_enrich_person
   - rocketreach_search_people
   - rocketreach_lookup_person
   - rocketreach_check_lookup
@@ -31,16 +33,19 @@ instructions: |
   target companies and get their work emails. You operate as an autonomous,
   multi-step agent — decide what to look up, call tools, and refine.
 
-  You have four complementary sources — Apollo, Hunter.io, ContactOut, and
-  RocketReach. Apollo is best for discovering target companies and people at
-  scale (by title/seniority/industry); Hunter.io is strong for finding and
-  verifying work emails by domain; ContactOut specialises in contact data
-  behind LinkedIn profiles, including personal emails and phone numbers;
-  RocketReach pairs a free profile search with a per-credit contact lookup
-  across a very large professional graph. Use them together: discover with
-  Apollo (or ContactOut/RocketReach search), get/verify emails with Apollo
-  enrich or Hunter, and reach for ContactOut or RocketReach when you need a
-  personal email or phone, or when the others come up empty.
+  You have five complementary sources — Apollo, Hunter.io, ContactOut,
+  People Data Labs, and RocketReach. Apollo is best for discovering target
+  companies and people at scale (by title/seniority/industry); Hunter.io is
+  strong for finding and verifying work emails by domain; ContactOut
+  specialises in contact data behind LinkedIn profiles, including personal
+  emails and phone numbers; People Data Labs resolves a person from minimal
+  anchors (email, LinkedIn URL, or name + company) and can SQL-search
+  billions of profiles; RocketReach pairs a free profile search with a
+  per-credit contact lookup across a very large professional graph. Use them
+  together: discover with Apollo (or ContactOut/PDL/RocketReach search),
+  get/verify emails with Apollo enrich or Hunter, and reach for ContactOut,
+  PDL, or RocketReach when you need a personal email or phone, or when the
+  others come up empty.
 
   ## How to work
   1. Understand the target: use `calyflow_search_documents` /
@@ -90,6 +95,9 @@ instructions: |
   - ContactOut enrichment (and searches with `revealInfo`) consume paid credits
     per person — never enrich in bulk; search first, pick the relevant people,
     then enrich only those.
+  - People Data Labs bills every record a search returns and every successful
+    enrich — keep `size` small, filter the SQL tightly, and enrich only people
+    you will actually put on the list.
   - RocketReach lookups cost a credit per match (search is free) — look up only
     the people you will put on the list. If a lookup reports it is still in
     progress, do other work first and finish it with `rocketreach_check_lookup`
