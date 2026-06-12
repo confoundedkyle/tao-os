@@ -24,6 +24,7 @@ import { leverAdapter } from "./lever";
 import { loxoAdapter } from "./loxo";
 import { lushaAdapter } from "./lusha";
 import { manatalAdapter } from "./manatal";
+import { microsoftExcelAdapter } from "./microsoft-excel";
 import { peopledatalabsAdapter } from "./peopledatalabs";
 import { pinpointAdapter } from "./pinpoint";
 import { pipedriveAdapter } from "./pipedrive";
@@ -67,6 +68,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   loxo: loxoAdapter,
   lusha: lushaAdapter,
   manatal: manatalAdapter,
+  "microsoft-excel": microsoftExcelAdapter,
   peopledatalabs: peopledatalabsAdapter,
   pinpoint: pinpointAdapter,
   pipedrive: pipedriveAdapter,

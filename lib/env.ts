@@ -62,6 +62,16 @@ export const env = {
   get airtableClientSecret() {
     return process.env.AIRTABLE_CLIENT_SECRET ?? "";
   },
+  /** Microsoft OAuth app credentials (Entra app registration; the Excel
+   *  connector). The app must be multi-tenant + personal accounts, with the
+   *  /api/connectors/microsoft-excel/callback redirect URI registered as a
+   *  Web platform URI. */
+  get microsoftClientId() {
+    return process.env.MICROSOFT_CLIENT_ID ?? "";
+  },
+  get microsoftClientSecret() {
+    return process.env.MICROSOFT_CLIENT_SECRET ?? "";
+  },
   /** Zoho OAuth app credentials (API console; one client serves CRM + Recruit).
    *  Zoho is region-sharded — a deployment targets ONE data center, set via the
    *  base URLs below (defaults are the US DC; use .eu/.in/... for others). */
