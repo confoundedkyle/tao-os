@@ -28,6 +28,7 @@ import { recruiterflowAdapter } from "./recruiterflow";
 import { rocketreachAdapter } from "./rocketreach";
 import { smartrecruitersAdapter } from "./smartrecruiters";
 import { teamtailorAdapter } from "./teamtailor";
+import { tldvAdapter } from "./tldv";
 import { workableAdapter } from "./workable";
 import { zohoCrmAdapter } from "./zoho-crm";
 import { zohoRecruitAdapter } from "./zoho-recruit";
@@ -64,6 +65,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   rocketreach: rocketreachAdapter,
   smartrecruiters: smartrecruitersAdapter,
   teamtailor: teamtailorAdapter,
+  tldv: tldvAdapter,
   workable: workableAdapter,
   "zoho-crm": zohoCrmAdapter,
   "zoho-recruit": zohoRecruitAdapter,
