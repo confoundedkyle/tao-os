@@ -19,6 +19,7 @@ import { loxoAdapter } from "../integrations/loxo";
 import { lushaAdapter } from "../integrations/lusha";
 import { manatalAdapter } from "../integrations/manatal";
 import { pipedriveAdapter } from "../integrations/pipedrive";
+import { recruiterflowAdapter } from "../integrations/recruiterflow";
 import { teamtailorAdapter } from "../integrations/teamtailor";
 import { workableAdapter } from "../integrations/workable";
 import type { Doc } from "../types";
@@ -49,6 +50,7 @@ export interface ToolContext {
   lushaToken: string | null;
   manatalToken: string | null;
   pipedriveToken: string | null;
+  recruiterflowToken: string | null;
   teamtailorToken: string | null;
   workableToken: string | null;
   /** Documents the agent created this run (mutated by calyflow_create_document). */
@@ -949,6 +951,35 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    recruiterflow_list_jobs: tool({
+      description:
+        "List jobs in the connected Recruiterflow ATS (name, status, client company, location, job id). Set openOnly for live roles; paginate with page.",
+      inputSchema: z.object({
+        openOnly: z.boolean().optional().describe("Only open jobs."),
+        page: z.number().int().positive().optional(),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.recruiterflowToken)
+          return { error: notConnected("Recruiterflow") };
+        return recruiterflowAdapter.listJobs(ctx.recruiterflowToken, args);
+      },
+    }),
+
+    recruiterflow_list_candidates: tool({
+      description:
+        "List candidates in the connected Recruiterflow ATS as a Markdown table (name, email, phone, title, company). No server-side search — paginate with page and scan; be economical.",
+      inputSchema: z.object({
+        page: z.number().int().positive().optional(),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.recruiterflowToken)
+          return { error: notConnected("Recruiterflow") };
+        return recruiterflowAdapter.listCandidates(ctx.recruiterflowToken, args);
+      },
+    }),
+
     teamtailor_list_jobs: tool({
       description:
         "List jobs in the connected Teamtailor ATS (title, status, remote status, job id). Filter by status: published, draft, archived, scheduled, internal.",
@@ -1112,6 +1143,8 @@ export const ALL_TOOL_NAMES = [
   "pipedrive_search_persons",
   "pipedrive_search_organizations",
   "pipedrive_search_deals",
+  "recruiterflow_list_jobs",
+  "recruiterflow_list_candidates",
   "teamtailor_list_jobs",
   "teamtailor_list_candidates",
   "teamtailor_list_job_candidates",
