@@ -9,6 +9,7 @@ import { attioAdapter } from "./attio";
 import { bamboohrAdapter } from "./bamboohr";
 import { breezyhrAdapter } from "./breezyhr";
 import { brightdataAdapter } from "./brightdata";
+import { bullhornAdapter } from "./bullhorn";
 import { catsAdapter } from "./cats";
 import { contactoutAdapter } from "./contactout";
 import { coresignalAdapter } from "./coresignal";
@@ -22,11 +23,13 @@ import { hubspotAdapter } from "./hubspot";
 import { hunterAdapter } from "./hunter";
 import { instantlyAdapter } from "./instantly";
 import { jazzhrAdapter } from "./jazzhr";
+import { jobadderAdapter } from "./jobadder";
 import { lemlistAdapter } from "./lemlist";
 import { leverAdapter } from "./lever";
 import { loxoAdapter } from "./loxo";
 import { lushaAdapter } from "./lusha";
 import { manatalAdapter } from "./manatal";
+import { microsoftExcelAdapter } from "./microsoft-excel";
 import { mondayAdapter } from "./monday";
 import { notionAdapter } from "./notion";
 import { peopledatalabsAdapter } from "./peopledatalabs";
@@ -59,6 +62,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   bamboohr: bamboohrAdapter,
   breezyhr: breezyhrAdapter,
   brightdata: brightdataAdapter,
+  bullhorn: bullhornAdapter,
   cats: catsAdapter,
   contactout: contactoutAdapter,
   coresignal: coresignalAdapter,
@@ -72,11 +76,13 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   hunter: hunterAdapter,
   instantly: instantlyAdapter,
   jazzhr: jazzhrAdapter,
+  jobadder: jobadderAdapter,
   lemlist: lemlistAdapter,
   lever: leverAdapter,
   loxo: loxoAdapter,
   lusha: lushaAdapter,
   manatal: manatalAdapter,
+  "microsoft-excel": microsoftExcelAdapter,
   monday: mondayAdapter,
   notion: notionAdapter,
   peopledatalabs: peopledatalabsAdapter,

@@ -62,6 +62,22 @@ export const env = {
   get airtableClientSecret() {
     return process.env.AIRTABLE_CLIENT_SECRET ?? "";
   },
+  /** Bullhorn OAuth app credentials (issued by Bullhorn support / BH Connect).
+   *  Auth and REST-login hosts default to the global swimlane routers; point
+   *  them at a regional cluster (e.g. auth-emea.bullhornstaffing.com) if
+   *  Bullhorn assigns one. */
+  get bullhornClientId() {
+    return process.env.BULLHORN_CLIENT_ID ?? "";
+  },
+  get bullhornClientSecret() {
+    return process.env.BULLHORN_CLIENT_SECRET ?? "";
+  },
+  get bullhornAuthBase() {
+    return (process.env.BULLHORN_AUTH_BASE ?? "https://auth.bullhornstaffing.com").replace(/\/$/, "");
+  },
+  get bullhornRestLoginBase() {
+    return (process.env.BULLHORN_REST_LOGIN_BASE ?? "https://rest.bullhornstaffing.com").replace(/\/$/, "");
+  },
   /** Google OAuth app credentials (Cloud console; the Sheets connector).
    *  The OAuth client must be a Web application with the
    *  /api/connectors/google-sheets/callback redirect URI registered. */
@@ -70,6 +86,25 @@ export const env = {
   },
   get googleClientSecret() {
     return process.env.GOOGLE_CLIENT_SECRET ?? "";
+  },
+  /** JobAdder OAuth app credentials (developers.jobadder.com; the connector
+   *  must request read + offline_access and register the
+   *  /api/connectors/jobadder/callback redirect URI). */
+  get jobadderClientId() {
+    return process.env.JOBADDER_CLIENT_ID ?? "";
+  },
+  get jobadderClientSecret() {
+    return process.env.JOBADDER_CLIENT_SECRET ?? "";
+  },
+  /** Microsoft OAuth app credentials (Entra app registration; the Excel
+   *  connector). The app must be multi-tenant + personal accounts, with the
+   *  /api/connectors/microsoft-excel/callback redirect URI registered as a
+   *  Web platform URI. */
+  get microsoftClientId() {
+    return process.env.MICROSOFT_CLIENT_ID ?? "";
+  },
+  get microsoftClientSecret() {
+    return process.env.MICROSOFT_CLIENT_SECRET ?? "";
   },
   /** Notion public OAuth integration credentials (notion.so/my-integrations;
    *  the integration must be public with the

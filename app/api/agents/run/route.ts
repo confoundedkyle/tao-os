@@ -123,6 +123,7 @@ export async function POST(request: NextRequest) {
   let bamboohrToken: string | null = null;
   let breezyhrToken: string | null = null;
   let brightdataToken: string | null = null;
+  let bullhornToken: string | null = null;
   let catsToken: string | null = null;
   let contactoutToken: string | null = null;
   let coresignalToken: string | null = null;
@@ -136,11 +137,13 @@ export async function POST(request: NextRequest) {
   let hunterToken: string | null = null;
   let instantlyToken: string | null = null;
   let jazzhrToken: string | null = null;
+  let jobadderToken: string | null = null;
   let lemlistToken: string | null = null;
   let leverToken: string | null = null;
   let loxoToken: string | null = null;
   let lushaToken: string | null = null;
   let manatalToken: string | null = null;
+  let microsoftExcelToken: string | null = null;
   let mondayToken: string | null = null;
   let notionToken: string | null = null;
   let peopledatalabsToken: string | null = null;
@@ -168,6 +171,7 @@ export async function POST(request: NextRequest) {
       bamboohrToken,
       breezyhrToken,
       brightdataToken,
+      bullhornToken,
       catsToken,
       contactoutToken,
       coresignalToken,
@@ -181,11 +185,13 @@ export async function POST(request: NextRequest) {
       hunterToken,
       instantlyToken,
       jazzhrToken,
+      jobadderToken,
       lemlistToken,
       leverToken,
       loxoToken,
       lushaToken,
       manatalToken,
+      microsoftExcelToken,
       mondayToken,
       notionToken,
       peopledatalabsToken,
@@ -212,6 +218,7 @@ export async function POST(request: NextRequest) {
       tokenFor("bamboohr_", "bamboohr"),
       tokenFor("breezyhr_", "breezyhr"),
       tokenFor("brightdata_", "brightdata"),
+      tokenFor("bullhorn_", "bullhorn"),
       tokenFor("cats_", "cats"),
       tokenFor("contactout_", "contactout"),
       tokenFor("coresignal_", "coresignal"),
@@ -225,11 +232,13 @@ export async function POST(request: NextRequest) {
       tokenFor("hunter_", "hunter"),
       tokenFor("instantly_", "instantly"),
       tokenFor("jazzhr_", "jazzhr"),
+      tokenFor("jobadder_", "jobadder"),
       tokenFor("lemlist_", "lemlist"),
       tokenFor("lever_", "lever"),
       tokenFor("loxo_", "loxo"),
       tokenFor("lusha_", "lusha"),
       tokenFor("manatal_", "manatal"),
+      tokenFor("excel_", "microsoft-excel"),
       tokenFor("monday_", "monday"),
       tokenFor("notion_", "notion"),
       tokenFor("peopledatalabs_", "peopledatalabs"),
@@ -292,6 +301,7 @@ export async function POST(request: NextRequest) {
     bamboohrToken,
     breezyhrToken,
     brightdataToken,
+    bullhornToken,
     catsToken,
     contactoutToken,
     coresignalToken,
@@ -305,11 +315,13 @@ export async function POST(request: NextRequest) {
     hunterToken,
     instantlyToken,
     jazzhrToken,
+    jobadderToken,
     lemlistToken,
     leverToken,
     loxoToken,
     lushaToken,
     manatalToken,
+    microsoftExcelToken,
     mondayToken,
     notionToken,
     peopledatalabsToken,

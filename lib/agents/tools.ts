@@ -10,6 +10,7 @@ import { attioAdapter } from "../integrations/attio";
 import { bamboohrAdapter } from "../integrations/bamboohr";
 import { breezyhrAdapter } from "../integrations/breezyhr";
 import { brightdataAdapter } from "../integrations/brightdata";
+import { bullhornAdapter } from "../integrations/bullhorn";
 import { catsAdapter } from "../integrations/cats";
 import { contactoutAdapter } from "../integrations/contactout";
 import { coresignalAdapter } from "../integrations/coresignal";
@@ -23,11 +24,13 @@ import { hubspotAdapter } from "../integrations/hubspot";
 import { hunterAdapter } from "../integrations/hunter";
 import { instantlyAdapter } from "../integrations/instantly";
 import { jazzhrAdapter } from "../integrations/jazzhr";
+import { jobadderAdapter } from "../integrations/jobadder";
 import { lemlistAdapter } from "../integrations/lemlist";
 import { leverAdapter } from "../integrations/lever";
 import { loxoAdapter } from "../integrations/loxo";
 import { lushaAdapter } from "../integrations/lusha";
 import { manatalAdapter } from "../integrations/manatal";
+import { microsoftExcelAdapter } from "../integrations/microsoft-excel";
 import { mondayAdapter } from "../integrations/monday";
 import { notionAdapter } from "../integrations/notion";
 import { peopledatalabsAdapter } from "../integrations/peopledatalabs";
@@ -65,6 +68,7 @@ export interface ToolContext {
   bamboohrToken: string | null;
   breezyhrToken: string | null;
   brightdataToken: string | null;
+  bullhornToken: string | null;
   catsToken: string | null;
   contactoutToken: string | null;
   coresignalToken: string | null;
@@ -78,11 +82,13 @@ export interface ToolContext {
   hunterToken: string | null;
   instantlyToken: string | null;
   jazzhrToken: string | null;
+  jobadderToken: string | null;
   lemlistToken: string | null;
   leverToken: string | null;
   loxoToken: string | null;
   lushaToken: string | null;
   manatalToken: string | null;
+  microsoftExcelToken: string | null;
   mondayToken: string | null;
   notionToken: string | null;
   peopledatalabsToken: string | null;
@@ -857,6 +863,55 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    bullhorn_list_jobs: tool({
+      description:
+        "List jobs in the connected Bullhorn ATS (title, client, status, type, job id), newest first. Pass title to filter by job title; set openOnly for open roles; page with start.",
+      inputSchema: z.object({
+        title: z.string().optional().describe("Filter by job title."),
+        openOnly: z.boolean().optional().describe("Only return open jobs."),
+        start: z.number().int().nonnegative().optional(),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.bullhornToken) return { error: notConnected("Bullhorn") };
+        return bullhornAdapter.listJobs(ctx.bullhornToken, args);
+      },
+    }),
+
+    bullhorn_search_candidates: tool({
+      description:
+        "Search candidates in the connected Bullhorn ATS as a Markdown table (name, email, phone, title, company, location, status), newest first. Filters combine: name, email, or query (a raw Lucene fragment, e.g. occupation:\"engineer\" AND address.city:\"Berlin\"); page with start.",
+      inputSchema: z.object({
+        name: z.string().optional().describe("Search by candidate name."),
+        email: z.string().optional().describe("Find a candidate by email."),
+        query: z
+          .string()
+          .optional()
+          .describe(
+            'Raw Lucene fragment over candidate fields, e.g. occupation:"engineer".',
+          ),
+        start: z.number().int().nonnegative().optional(),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.bullhornToken) return { error: notConnected("Bullhorn") };
+        return bullhornAdapter.searchCandidates(ctx.bullhornToken, args);
+      },
+    }),
+
+    bullhorn_list_job_submissions: tool({
+      description:
+        "List one Bullhorn job's submissions (the pipeline) with each candidate's details and stage, newest first. Get the jobId from bullhorn_list_jobs.",
+      inputSchema: z.object({
+        jobId: z.number().int().describe("Job id from bullhorn_list_jobs."),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.bullhornToken) return { error: notConnected("Bullhorn") };
+        return bullhornAdapter.listJobSubmissions(ctx.bullhornToken, args);
+      },
+    }),
+
     cats_list_jobs: tool({
       description:
         "List jobs in the connected CATS ATS (title, location, created date, job id). Paginate with page. Use to find the role you are sourcing for.",
@@ -1182,6 +1237,60 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    jobadder_list_jobs: tool({
+      description:
+        "List jobs in the connected JobAdder ATS (title, company, contact, status, job id). Pass title to filter by job title; set activeOnly for open roles; page with offset.",
+      inputSchema: z.object({
+        title: z.string().optional().describe("Filter by job title."),
+        activeOnly: z
+          .boolean()
+          .optional()
+          .describe("Only return active jobs."),
+        offset: z.number().int().nonnegative().optional(),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.jobadderToken) return { error: notConnected("JobAdder") };
+        return jobadderAdapter.listJobs(ctx.jobadderToken, args);
+      },
+    }),
+
+    jobadder_search_candidates: tool({
+      description:
+        "Search candidates in the connected JobAdder ATS as a Markdown table (name, email, phone, location, status). Filters combine: name, email, or keywords (skills/CV text); page with offset.",
+      inputSchema: z.object({
+        name: z.string().optional().describe("Search by candidate name."),
+        email: z.string().optional().describe("Find a candidate by email."),
+        keywords: z
+          .string()
+          .optional()
+          .describe("Keyword search across candidate records."),
+        offset: z.number().int().nonnegative().optional(),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.jobadderToken) return { error: notConnected("JobAdder") };
+        return jobadderAdapter.searchCandidates(ctx.jobadderToken, args);
+      },
+    }),
+
+    jobadder_list_job_applications: tool({
+      description:
+        "List one JobAdder job's applications with each candidate's details and stage. Get the jobId from jobadder_list_jobs; set activeOnly to skip rejected/withdrawn applications.",
+      inputSchema: z.object({
+        jobId: z.number().int().describe("Job id from jobadder_list_jobs."),
+        activeOnly: z
+          .boolean()
+          .optional()
+          .describe("Only return active applications."),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.jobadderToken) return { error: notConnected("JobAdder") };
+        return jobadderAdapter.listJobApplications(ctx.jobadderToken, args);
+      },
+    }),
+
     lever_list_postings: tool({
       description:
         "List job postings in the connected Lever ATS (title, state, team, location, posting id). Filter by state, e.g. published. Use to find the role you are sourcing for.",
@@ -1361,6 +1470,57 @@ function buildAll(ctx: ToolContext): ToolSet {
       execute: async (args) => {
         if (!ctx.manatalToken) return { error: notConnected("Manatal") };
         return manatalAdapter.listJobCandidates(ctx.manatalToken, args);
+      },
+    }),
+
+    excel_list_workbooks: tool({
+      description:
+        "List the Excel workbooks (.xlsx/.xlsm) the connected Microsoft account can reach in OneDrive/SharePoint (name, folder, modified, item id). Pass query to search by file name.",
+      inputSchema: z.object({
+        query: z
+          .string()
+          .optional()
+          .describe("Search workbooks by name; omit to list recent .xlsx files."),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.microsoftExcelToken)
+          return { error: notConnected("Microsoft Excel") };
+        return microsoftExcelAdapter.listWorkbooks(ctx.microsoftExcelToken, args);
+      },
+    }),
+
+    excel_list_worksheets: tool({
+      description:
+        "List the worksheet tabs of one Excel workbook. Get the itemId from excel_list_workbooks.",
+      inputSchema: z.object({
+        itemId: z.string().describe("Drive item id from excel_list_workbooks."),
+      }),
+      execute: async ({ itemId }) => {
+        if (!ctx.microsoftExcelToken)
+          return { error: notConnected("Microsoft Excel") };
+        return microsoftExcelAdapter.listWorksheets(ctx.microsoftExcelToken, itemId);
+      },
+    }),
+
+    excel_read_range: tool({
+      description:
+        "Read rows from an Excel worksheet as a Markdown table (the first row is treated as the header). Omit address to read the sheet's used range; pass an A1 block like A1:F50 to read part of a large sheet.",
+      inputSchema: z.object({
+        itemId: z.string().describe("Drive item id from excel_list_workbooks."),
+        worksheet: z
+          .string()
+          .describe("Worksheet name from excel_list_worksheets."),
+        address: z
+          .string()
+          .optional()
+          .describe("A1 block, e.g. A1:F50; omit for the used range."),
+        maxRows: z.number().int().positive().optional().describe("Max 200."),
+      }),
+      execute: async (args) => {
+        if (!ctx.microsoftExcelToken)
+          return { error: notConnected("Microsoft Excel") };
+        return microsoftExcelAdapter.readRange(ctx.microsoftExcelToken, args);
       },
     }),
 
@@ -2175,6 +2335,9 @@ export const ALL_TOOL_NAMES = [
   "brightdata_scrape_linkedin_profiles",
   "brightdata_scrape_linkedin_companies",
   "brightdata_get_snapshot",
+  "bullhorn_list_jobs",
+  "bullhorn_search_candidates",
+  "bullhorn_list_job_submissions",
   "cats_list_jobs",
   "cats_list_candidates",
   "crelate_list_jobs",
@@ -2210,6 +2373,9 @@ export const ALL_TOOL_NAMES = [
   "jazzhr_list_jobs",
   "jazzhr_list_applicants",
   "jazzhr_get_applicant",
+  "jobadder_list_jobs",
+  "jobadder_search_candidates",
+  "jobadder_list_job_applications",
   "lever_list_postings",
   "lever_list_opportunities",
   "lemlist_list_campaigns",
@@ -2223,6 +2389,9 @@ export const ALL_TOOL_NAMES = [
   "manatal_list_jobs",
   "manatal_search_candidates",
   "manatal_list_job_candidates",
+  "excel_list_workbooks",
+  "excel_list_worksheets",
+  "excel_read_range",
   "monday_list_boards",
   "monday_list_items",
   "notion_search",
