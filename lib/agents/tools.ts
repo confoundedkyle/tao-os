@@ -28,6 +28,7 @@ import { pipedriveAdapter } from "../integrations/pipedrive";
 import { recruiteeAdapter } from "../integrations/recruitee";
 import { recruiterflowAdapter } from "../integrations/recruiterflow";
 import { rocketreachAdapter } from "../integrations/rocketreach";
+import { smartleadAdapter } from "../integrations/smartlead";
 import { smartrecruitersAdapter } from "../integrations/smartrecruiters";
 import { snovAdapter } from "../integrations/snov";
 import { teamtailorAdapter } from "../integrations/teamtailor";
@@ -72,6 +73,7 @@ export interface ToolContext {
   recruiteeToken: string | null;
   recruiterflowToken: string | null;
   rocketreachToken: string | null;
+  smartleadToken: string | null;
   smartrecruitersToken: string | null;
   snovToken: string | null;
   teamtailorToken: string | null;
@@ -1338,6 +1340,48 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    smartlead_list_campaigns: tool({
+      description:
+        "List cold-email campaigns in the connected Smartlead account (name, status, created date, campaign id). Statuses: DRAFTED, ACTIVE, PAUSED, STOPPED, ARCHIVED.",
+      inputSchema: z.object({
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.smartleadToken) return { error: notConnected("Smartlead") };
+        return smartleadAdapter.listCampaigns(ctx.smartleadToken, args);
+      },
+    }),
+
+    smartlead_list_leads: tool({
+      description:
+        "List leads in one Smartlead campaign as a Markdown table (name, email, company, status, opens, replies). Get the campaignId from smartlead_list_campaigns; page with offset.",
+      inputSchema: z.object({
+        campaignId: z
+          .string()
+          .describe("Campaign id from smartlead_list_campaigns."),
+        offset: z.number().int().nonnegative().optional(),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.smartleadToken) return { error: notConnected("Smartlead") };
+        return smartleadAdapter.listLeads(ctx.smartleadToken, args);
+      },
+    }),
+
+    smartlead_campaign_analytics: tool({
+      description:
+        "Aggregate performance metrics for one Smartlead campaign (sent, opens, clicks, replies, bounces, unsubscribes). Get the campaignId from smartlead_list_campaigns.",
+      inputSchema: z.object({
+        campaignId: z
+          .string()
+          .describe("Campaign id from smartlead_list_campaigns."),
+      }),
+      execute: async (args) => {
+        if (!ctx.smartleadToken) return { error: notConnected("Smartlead") };
+        return smartleadAdapter.campaignAnalytics(ctx.smartleadToken, args);
+      },
+    }),
+
     rocketreach_search_people: tool({
       description:
         "Search RocketReach profiles by name, titles, employers, or locations. Returns name, title, company, LinkedIn, and profile id — no contact details and no credit cost. Treat results as candidates for rocketreach_lookup_person.",
@@ -1717,6 +1761,9 @@ export const ALL_TOOL_NAMES = [
   "rocketreach_search_people",
   "rocketreach_lookup_person",
   "rocketreach_check_lookup",
+  "smartlead_list_campaigns",
+  "smartlead_list_leads",
+  "smartlead_campaign_analytics",
   "smartrecruiters_list_jobs",
   "smartrecruiters_list_candidates",
   "snov_find_email",

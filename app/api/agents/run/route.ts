@@ -141,6 +141,7 @@ export async function POST(request: NextRequest) {
   let recruiteeToken: string | null = null;
   let recruiterflowToken: string | null = null;
   let rocketreachToken: string | null = null;
+  let smartleadToken: string | null = null;
   let smartrecruitersToken: string | null = null;
   let snovToken: string | null = null;
   let teamtailorToken: string | null = null;
@@ -175,6 +176,7 @@ export async function POST(request: NextRequest) {
       recruiteeToken,
       recruiterflowToken,
       rocketreachToken,
+      smartleadToken,
       smartrecruitersToken,
       snovToken,
       teamtailorToken,
@@ -208,6 +210,7 @@ export async function POST(request: NextRequest) {
       tokenFor("recruitee_", "recruitee"),
       tokenFor("recruiterflow_", "recruiterflow"),
       tokenFor("rocketreach_", "rocketreach"),
+      tokenFor("smartlead_", "smartlead"),
       tokenFor("smartrecruiters_", "smartrecruiters"),
       tokenFor("snov_", "snov"),
       tokenFor("teamtailor_", "teamtailor"),
@@ -277,6 +280,7 @@ export async function POST(request: NextRequest) {
     recruiteeToken,
     recruiterflowToken,
     rocketreachToken,
+    smartleadToken,
     smartrecruitersToken,
     snovToken,
     teamtailorToken,
