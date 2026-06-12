@@ -5,22 +5,28 @@ import type { Connection } from "../types";
 import { airtableAdapter } from "./airtable";
 import { apolloAdapter } from "./apollo";
 import { ashbyAdapter } from "./ashby";
+import { bamboohrAdapter } from "./bamboohr";
 import { breezyhrAdapter } from "./breezyhr";
 import { brightdataAdapter } from "./brightdata";
+import { catsAdapter } from "./cats";
 import { contactoutAdapter } from "./contactout";
 import { coresignalAdapter } from "./coresignal";
+import { fathomAdapter } from "./fathom";
 import { greenhouseAdapter } from "./greenhouse";
 import { hubspotAdapter } from "./hubspot";
 import { hunterAdapter } from "./hunter";
+import { instantlyAdapter } from "./instantly";
 import { lemlistAdapter } from "./lemlist";
 import { leverAdapter } from "./lever";
 import { loxoAdapter } from "./loxo";
 import { lushaAdapter } from "./lusha";
 import { manatalAdapter } from "./manatal";
+import { peopledatalabsAdapter } from "./peopledatalabs";
 import { pipedriveAdapter } from "./pipedrive";
 import { recruiteeAdapter } from "./recruitee";
 import { recruiterflowAdapter } from "./recruiterflow";
 import { smartleadAdapter } from "./smartlead";
+import { smartrecruitersAdapter } from "./smartrecruiters";
 import { teamtailorAdapter } from "./teamtailor";
 import { workableAdapter } from "./workable";
 import { zohoCrmAdapter } from "./zoho-crm";
@@ -35,22 +41,28 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   airtable: airtableAdapter,
   apollo: apolloAdapter,
   ashby: ashbyAdapter,
+  bamboohr: bamboohrAdapter,
   breezyhr: breezyhrAdapter,
   brightdata: brightdataAdapter,
+  cats: catsAdapter,
   contactout: contactoutAdapter,
   coresignal: coresignalAdapter,
+  fathom: fathomAdapter,
   greenhouse: greenhouseAdapter,
   hubspot: hubspotAdapter,
   hunter: hunterAdapter,
+  instantly: instantlyAdapter,
   lemlist: lemlistAdapter,
   lever: leverAdapter,
   loxo: loxoAdapter,
   lusha: lushaAdapter,
   manatal: manatalAdapter,
+  peopledatalabs: peopledatalabsAdapter,
   pipedrive: pipedriveAdapter,
   recruitee: recruiteeAdapter,
   recruiterflow: recruiterflowAdapter,
   smartlead: smartleadAdapter,
+  smartrecruiters: smartrecruitersAdapter,
   teamtailor: teamtailorAdapter,
   workable: workableAdapter,
   "zoho-crm": zohoCrmAdapter,

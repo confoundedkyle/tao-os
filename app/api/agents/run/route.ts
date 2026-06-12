@@ -119,22 +119,28 @@ export async function POST(request: NextRequest) {
   let airtableToken: string | null = null;
   let apolloToken: string | null = null;
   let ashbyToken: string | null = null;
+  let bamboohrToken: string | null = null;
   let breezyhrToken: string | null = null;
   let brightdataToken: string | null = null;
+  let catsToken: string | null = null;
   let contactoutToken: string | null = null;
   let coresignalToken: string | null = null;
+  let fathomToken: string | null = null;
   let greenhouseToken: string | null = null;
   let hubspotToken: string | null = null;
   let hunterToken: string | null = null;
+  let instantlyToken: string | null = null;
   let lemlistToken: string | null = null;
   let leverToken: string | null = null;
   let loxoToken: string | null = null;
   let lushaToken: string | null = null;
   let manatalToken: string | null = null;
+  let peopledatalabsToken: string | null = null;
   let pipedriveToken: string | null = null;
   let recruiteeToken: string | null = null;
   let recruiterflowToken: string | null = null;
   let smartleadToken: string | null = null;
+  let smartrecruitersToken: string | null = null;
   let teamtailorToken: string | null = null;
   let workableToken: string | null = null;
   let zohoCrmToken: string | null = null;
@@ -144,22 +150,28 @@ export async function POST(request: NextRequest) {
       airtableToken,
       apolloToken,
       ashbyToken,
+      bamboohrToken,
       breezyhrToken,
       brightdataToken,
+      catsToken,
       contactoutToken,
       coresignalToken,
+      fathomToken,
       greenhouseToken,
       hubspotToken,
       hunterToken,
+      instantlyToken,
       lemlistToken,
       leverToken,
       loxoToken,
       lushaToken,
       manatalToken,
+      peopledatalabsToken,
       pipedriveToken,
       recruiteeToken,
       recruiterflowToken,
       smartleadToken,
+      smartrecruitersToken,
       teamtailorToken,
       workableToken,
       zohoCrmToken,
@@ -168,22 +180,28 @@ export async function POST(request: NextRequest) {
       tokenFor("airtable_", "airtable"),
       tokenFor("apollo_", "apollo"),
       tokenFor("ashby_", "ashby"),
+      tokenFor("bamboohr_", "bamboohr"),
       tokenFor("breezyhr_", "breezyhr"),
       tokenFor("brightdata_", "brightdata"),
+      tokenFor("cats_", "cats"),
       tokenFor("contactout_", "contactout"),
       tokenFor("coresignal_", "coresignal"),
+      tokenFor("fathom_", "fathom"),
       tokenFor("greenhouse_", "greenhouse"),
       tokenFor("hubspot_", "hubspot"),
       tokenFor("hunter_", "hunter"),
+      tokenFor("instantly_", "instantly"),
       tokenFor("lemlist_", "lemlist"),
       tokenFor("lever_", "lever"),
       tokenFor("loxo_", "loxo"),
       tokenFor("lusha_", "lusha"),
       tokenFor("manatal_", "manatal"),
+      tokenFor("peopledatalabs_", "peopledatalabs"),
       tokenFor("pipedrive_", "pipedrive"),
       tokenFor("recruitee_", "recruitee"),
       tokenFor("recruiterflow_", "recruiterflow"),
       tokenFor("smartlead_", "smartlead"),
+      tokenFor("smartrecruiters_", "smartrecruiters"),
       tokenFor("teamtailor_", "teamtailor"),
       tokenFor("workable_", "workable"),
       tokenFor("zohocrm_", "zoho-crm"),
@@ -228,22 +246,28 @@ export async function POST(request: NextRequest) {
     airtableToken,
     apolloToken,
     ashbyToken,
+    bamboohrToken,
     breezyhrToken,
     brightdataToken,
+    catsToken,
     contactoutToken,
     coresignalToken,
+    fathomToken,
     greenhouseToken,
     hubspotToken,
     hunterToken,
+    instantlyToken,
     lemlistToken,
     leverToken,
     loxoToken,
     lushaToken,
     manatalToken,
+    peopledatalabsToken,
     pipedriveToken,
     recruiteeToken,
     recruiterflowToken,
     smartleadToken,
+    smartrecruitersToken,
     teamtailorToken,
     workableToken,
     zohoCrmToken,
