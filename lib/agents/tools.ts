@@ -13,6 +13,7 @@ import { catsAdapter } from "../integrations/cats";
 import { contactoutAdapter } from "../integrations/contactout";
 import { coresignalAdapter } from "../integrations/coresignal";
 import { fathomAdapter } from "../integrations/fathom";
+import { firefliesAdapter } from "../integrations/fireflies";
 import { greenhouseAdapter } from "../integrations/greenhouse";
 import { hubspotAdapter } from "../integrations/hubspot";
 import { hunterAdapter } from "../integrations/hunter";
@@ -30,6 +31,7 @@ import { rocketreachAdapter } from "../integrations/rocketreach";
 import { smartleadAdapter } from "../integrations/smartlead";
 import { smartrecruitersAdapter } from "../integrations/smartrecruiters";
 import { teamtailorAdapter } from "../integrations/teamtailor";
+import { tldvAdapter } from "../integrations/tldv";
 import { workableAdapter } from "../integrations/workable";
 import { zohoCrmAdapter } from "../integrations/zoho-crm";
 import { zohoRecruitAdapter } from "../integrations/zoho-recruit";
@@ -55,6 +57,7 @@ export interface ToolContext {
   contactoutToken: string | null;
   coresignalToken: string | null;
   fathomToken: string | null;
+  firefliesToken: string | null;
   greenhouseToken: string | null;
   hubspotToken: string | null;
   hunterToken: string | null;
@@ -72,6 +75,7 @@ export interface ToolContext {
   smartleadToken: string | null;
   smartrecruitersToken: string | null;
   teamtailorToken: string | null;
+  tldvToken: string | null;
   workableToken: string | null;
   zohoCrmToken: string | null;
   zohoRecruitToken: string | null;
@@ -347,6 +351,42 @@ function buildAll(ctx: ToolContext): ToolSet {
       execute: async ({ idOrShorthand }) => {
         if (!ctx.coresignalToken) return { error: notConnected("Coresignal") };
         return coresignalAdapter.collectEmployee(ctx.coresignalToken, idOrShorthand);
+      },
+    }),
+
+    fireflies_list_meetings: tool({
+      description:
+        "List meetings recorded by the connected Fireflies.ai notetaker (title, date, duration, organizer, participants, meeting id). Filters combine: keyword searches titles and spoken content, participantEmail scopes to one person's meetings, fromDate/toDate (ISO 8601) bound the range.",
+      inputSchema: z.object({
+        keyword: z
+          .string()
+          .optional()
+          .describe("Search meeting titles and spoken content."),
+        participantEmail: z
+          .string()
+          .optional()
+          .describe("Only meetings this email attended."),
+        fromDate: z.string().optional().describe("ISO 8601 start of range."),
+        toDate: z.string().optional().describe("ISO 8601 end of range."),
+        limit: z.number().int().positive().optional().describe("Max 50."),
+      }),
+      execute: async (args) => {
+        if (!ctx.firefliesToken) return { error: notConnected("Fireflies.ai") };
+        return firefliesAdapter.listMeetings(ctx.firefliesToken, args);
+      },
+    }),
+
+    fireflies_get_meeting: tool({
+      description:
+        "Read one Fireflies.ai meeting in full: AI summary (overview, action items, keywords) plus the speaker-attributed transcript, truncated if very long. Get the meetingId from fireflies_list_meetings.",
+      inputSchema: z.object({
+        meetingId: z
+          .string()
+          .describe("Meeting id from fireflies_list_meetings."),
+      }),
+      execute: async (args) => {
+        if (!ctx.firefliesToken) return { error: notConnected("Fireflies.ai") };
+        return firefliesAdapter.getMeeting(ctx.firefliesToken, args);
       },
     }),
 
@@ -1418,6 +1458,44 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    tldv_list_meetings: tool({
+      description:
+        "List meetings recorded by the connected tl;dv notetaker (name, date, duration, organizer, invitees, meeting id). query searches meeting names; paginate with page.",
+      inputSchema: z.object({
+        query: z.string().optional().describe("Search meeting names."),
+        page: z.number().int().positive().optional(),
+        limit: z.number().int().positive().optional().describe("Max 50."),
+      }),
+      execute: async (args) => {
+        if (!ctx.tldvToken) return { error: notConnected("tl;dv") };
+        return tldvAdapter.listMeetings(ctx.tldvToken, args);
+      },
+    }),
+
+    tldv_get_notes: tool({
+      description:
+        "Read the AI notes of one tl;dv meeting (markdown with per-topic summaries). Get the meetingId from tldv_list_meetings. Prefer this before the transcript.",
+      inputSchema: z.object({
+        meetingId: z.string().describe("Meeting id from tldv_list_meetings."),
+      }),
+      execute: async ({ meetingId }) => {
+        if (!ctx.tldvToken) return { error: notConnected("tl;dv") };
+        return tldvAdapter.getNotes(ctx.tldvToken, meetingId);
+      },
+    }),
+
+    tldv_get_transcript: tool({
+      description:
+        "Read the speaker-attributed transcript of one tl;dv meeting, truncated if very long. Get the meetingId from tldv_list_meetings. Pull this when you need exact quotes or detail beyond the notes.",
+      inputSchema: z.object({
+        meetingId: z.string().describe("Meeting id from tldv_list_meetings."),
+      }),
+      execute: async ({ meetingId }) => {
+        if (!ctx.tldvToken) return { error: notConnected("tl;dv") };
+        return tldvAdapter.getTranscript(ctx.tldvToken, meetingId);
+      },
+    }),
+
     workable_list_jobs: tool({
       description:
         "List jobs in the connected Workable ATS (title, state, department, location, shortcode). Filter by state: draft, published, closed, archived. Use to find the role you are sourcing for — the shortcode scopes candidate lookups.",
@@ -1594,6 +1672,8 @@ export const ALL_TOOL_NAMES = [
   "fathom_list_meetings",
   "fathom_get_summary",
   "fathom_get_transcript",
+  "fireflies_list_meetings",
+  "fireflies_get_meeting",
   "greenhouse_list_jobs",
   "greenhouse_list_candidates",
   "greenhouse_search_candidates",
@@ -1636,6 +1716,9 @@ export const ALL_TOOL_NAMES = [
   "teamtailor_list_jobs",
   "teamtailor_list_candidates",
   "teamtailor_list_job_candidates",
+  "tldv_list_meetings",
+  "tldv_get_notes",
+  "tldv_get_transcript",
   "workable_list_jobs",
   "workable_list_candidates",
   "zohocrm_search_contacts",
