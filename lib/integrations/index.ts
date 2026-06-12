@@ -11,6 +11,7 @@ import { brightdataAdapter } from "./brightdata";
 import { catsAdapter } from "./cats";
 import { contactoutAdapter } from "./contactout";
 import { coresignalAdapter } from "./coresignal";
+import { fathomAdapter } from "./fathom";
 import { greenhouseAdapter } from "./greenhouse";
 import { hubspotAdapter } from "./hubspot";
 import { hunterAdapter } from "./hunter";
@@ -45,6 +46,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   cats: catsAdapter,
   contactout: contactoutAdapter,
   coresignal: coresignalAdapter,
+  fathom: fathomAdapter,
   greenhouse: greenhouseAdapter,
   hubspot: hubspotAdapter,
   hunter: hunterAdapter,

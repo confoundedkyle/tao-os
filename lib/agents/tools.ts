@@ -12,6 +12,7 @@ import { brightdataAdapter } from "../integrations/brightdata";
 import { catsAdapter } from "../integrations/cats";
 import { contactoutAdapter } from "../integrations/contactout";
 import { coresignalAdapter } from "../integrations/coresignal";
+import { fathomAdapter } from "../integrations/fathom";
 import { greenhouseAdapter } from "../integrations/greenhouse";
 import { hubspotAdapter } from "../integrations/hubspot";
 import { hunterAdapter } from "../integrations/hunter";
@@ -51,6 +52,7 @@ export interface ToolContext {
   catsToken: string | null;
   contactoutToken: string | null;
   coresignalToken: string | null;
+  fathomToken: string | null;
   greenhouseToken: string | null;
   hubspotToken: string | null;
   hunterToken: string | null;
@@ -341,6 +343,54 @@ function buildAll(ctx: ToolContext): ToolSet {
       execute: async ({ idOrShorthand }) => {
         if (!ctx.coresignalToken) return { error: notConnected("Coresignal") };
         return coresignalAdapter.collectEmployee(ctx.coresignalToken, idOrShorthand);
+      },
+    }),
+
+    fathom_list_meetings: tool({
+      description:
+        "List calls recorded by the connected Fathom notetaker (title, date, invitees, recording id, share link). Filters combine: inviteeDomain (attendee company domain, exact match), recordedBy (recorder's email), createdAfter/createdBefore (ISO 8601); paginate with the cursor from the previous page.",
+      inputSchema: z.object({
+        inviteeDomain: z
+          .string()
+          .optional()
+          .describe("Attendee company domain, e.g. acme.com."),
+        recordedBy: z.string().optional().describe("Recorder's email."),
+        createdAfter: z.string().optional().describe("ISO 8601 start of range."),
+        createdBefore: z.string().optional().describe("ISO 8601 end of range."),
+        cursor: z.string().optional().describe("Cursor from the previous page."),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.fathomToken) return { error: notConnected("Fathom") };
+        return fathomAdapter.listMeetings(ctx.fathomToken, args);
+      },
+    }),
+
+    fathom_get_summary: tool({
+      description:
+        "Read the AI summary (markdown) of one Fathom recording. Get the recordingId from fathom_list_meetings.",
+      inputSchema: z.object({
+        recordingId: z
+          .string()
+          .describe("Recording id from fathom_list_meetings."),
+      }),
+      execute: async ({ recordingId }) => {
+        if (!ctx.fathomToken) return { error: notConnected("Fathom") };
+        return fathomAdapter.getSummary(ctx.fathomToken, recordingId);
+      },
+    }),
+
+    fathom_get_transcript: tool({
+      description:
+        "Read the speaker-attributed transcript of one Fathom recording, truncated if very long. Get the recordingId from fathom_list_meetings. Prefer fathom_get_summary first; pull the transcript when you need exact quotes or detail.",
+      inputSchema: z.object({
+        recordingId: z
+          .string()
+          .describe("Recording id from fathom_list_meetings."),
+      }),
+      execute: async ({ recordingId }) => {
+        if (!ctx.fathomToken) return { error: notConnected("Fathom") };
+        return fathomAdapter.getTranscript(ctx.fathomToken, recordingId);
       },
     }),
 
@@ -1440,6 +1490,9 @@ export const ALL_TOOL_NAMES = [
   "contactout_email_verify",
   "coresignal_search_employees",
   "coresignal_collect_employee",
+  "fathom_list_meetings",
+  "fathom_get_summary",
+  "fathom_get_transcript",
   "greenhouse_list_jobs",
   "greenhouse_list_candidates",
   "greenhouse_search_candidates",
