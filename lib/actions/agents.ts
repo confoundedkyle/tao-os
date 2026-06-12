@@ -29,3 +29,27 @@ export async function importAgentAction(libraryAgentId: string) {
   if (error) throw error;
   revalidatePath("/");
 }
+
+/** Soft-archive: the agent leaves lists/pickers but its run history stays
+ *  intact (agent_runs reference workspace_agents without a cascade). */
+export async function archiveAgentAction(agentId: string) {
+  const session = await requireSession();
+  const { error } = await db()
+    .from("workspace_agents")
+    .update({ archived_at: new Date().toISOString() })
+    .eq("id", agentId)
+    .eq("workspace_id", session.workspaceId);
+  if (error) throw error;
+  revalidatePath("/workflows");
+}
+
+export async function restoreAgentAction(agentId: string) {
+  const session = await requireSession();
+  const { error } = await db()
+    .from("workspace_agents")
+    .update({ archived_at: null })
+    .eq("id", agentId)
+    .eq("workspace_id", session.workspaceId);
+  if (error) throw error;
+  revalidatePath("/workflows");
+}
