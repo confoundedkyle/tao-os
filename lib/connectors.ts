@@ -72,6 +72,7 @@ export const CONNECTORS: Connector[] = [
   { name: "Lusha", category: "tool", blurb: "B2B contact data to reach candidates and clients.", provider: "lusha", live: true, auth: "apikey" },
   { name: "People Data Labs", category: "tool", blurb: "Enrich and search billions of person profiles at scale.", provider: "peopledatalabs", live: true, auth: "apikey" },
   { name: "RocketReach", category: "tool", blurb: "Find emails and phones across 700M+ professional profiles.", provider: "rocketreach", live: true, auth: "apikey" },
+  { name: "SignalHire", category: "tool", blurb: "Reveal candidate emails and phones with the recruiter-built contact finder.", provider: "signalhire", live: true, auth: "apikey", apiKeyHint: "Create the key in SignalHire under Integrations & API; the same credit pool is shared with the web app and extension." },
   { name: "Smartlead", category: "tool", blurb: "Track cold-email campaigns, leads, and reply analytics.", provider: "smartlead", live: true, auth: "apikey" },
   { name: "Snov.io", category: "tool", blurb: "Find and verify work emails for outreach-ready lists.", provider: "snov", live: true, auth: "apikey", apiKeyPlaceholder: "client-id:client-secret", apiKeyHint: "Both are shown in Snov.io under your account settings → API." },
   { name: "tl;dv", category: "tool", blurb: "Read AI notes and transcripts from your recorded meetings.", provider: "tldv", live: true, auth: "apikey", apiKeyHint: "Create the key under personal settings → API Keys; API access requires the tl;dv Business plan." },
