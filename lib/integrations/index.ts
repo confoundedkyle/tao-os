@@ -39,6 +39,7 @@ import { smartrecruitersAdapter } from "./smartrecruiters";
 import { snovAdapter } from "./snov";
 import { teamtailorAdapter } from "./teamtailor";
 import { tldvAdapter } from "./tldv";
+import { woodpeckerAdapter } from "./woodpecker";
 import { workableAdapter } from "./workable";
 import { zohoCrmAdapter } from "./zoho-crm";
 import { zohoRecruitAdapter } from "./zoho-recruit";
@@ -86,6 +87,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   snov: snovAdapter,
   teamtailor: teamtailorAdapter,
   tldv: tldvAdapter,
+  woodpecker: woodpeckerAdapter,
   workable: workableAdapter,
   "zoho-crm": zohoCrmAdapter,
   "zoho-recruit": zohoRecruitAdapter,

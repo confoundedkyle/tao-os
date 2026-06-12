@@ -153,6 +153,7 @@ export async function POST(request: NextRequest) {
   let snovToken: string | null = null;
   let teamtailorToken: string | null = null;
   let tldvToken: string | null = null;
+  let woodpeckerToken: string | null = null;
   let workableToken: string | null = null;
   let zohoCrmToken: string | null = null;
   let zohoRecruitToken: string | null = null;
@@ -195,6 +196,7 @@ export async function POST(request: NextRequest) {
       snovToken,
       teamtailorToken,
       tldvToken,
+      woodpeckerToken,
       workableToken,
       zohoCrmToken,
       zohoRecruitToken,
@@ -236,6 +238,7 @@ export async function POST(request: NextRequest) {
       tokenFor("snov_", "snov"),
       tokenFor("teamtailor_", "teamtailor"),
       tokenFor("tldv_", "tldv"),
+      tokenFor("woodpecker_", "woodpecker"),
       tokenFor("workable_", "workable"),
       tokenFor("zohocrm_", "zoho-crm"),
       tokenFor("zohorecruit_", "zoho-recruit"),
@@ -313,6 +316,7 @@ export async function POST(request: NextRequest) {
     snovToken,
     teamtailorToken,
     tldvToken,
+    woodpeckerToken,
     workableToken,
     zohoCrmToken,
     zohoRecruitToken,

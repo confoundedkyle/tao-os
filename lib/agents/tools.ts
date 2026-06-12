@@ -40,6 +40,7 @@ import { smartrecruitersAdapter } from "../integrations/smartrecruiters";
 import { snovAdapter } from "../integrations/snov";
 import { teamtailorAdapter } from "../integrations/teamtailor";
 import { tldvAdapter } from "../integrations/tldv";
+import { woodpeckerAdapter } from "../integrations/woodpecker";
 import { workableAdapter } from "../integrations/workable";
 import { zohoCrmAdapter } from "../integrations/zoho-crm";
 import { zohoRecruitAdapter } from "../integrations/zoho-recruit";
@@ -92,6 +93,7 @@ export interface ToolContext {
   snovToken: string | null;
   teamtailorToken: string | null;
   tldvToken: string | null;
+  woodpeckerToken: string | null;
   workableToken: string | null;
   zohoCrmToken: string | null;
   zohoRecruitToken: string | null;
@@ -1896,6 +1898,65 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    woodpecker_list_campaigns: tool({
+      description:
+        "List campaigns in the connected Woodpecker account (name, status, created, folder, daily limit, campaign id). Optionally filter by comma-separated statuses: RUNNING, DRAFT, EDITED, PAUSED, STOPPED, COMPLETED.",
+      inputSchema: z.object({
+        status: z
+          .string()
+          .optional()
+          .describe("Comma-separated status filter, e.g. RUNNING,PAUSED."),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.woodpeckerToken) return { error: notConnected("Woodpecker") };
+        return woodpeckerAdapter.listCampaigns(ctx.woodpeckerToken, args);
+      },
+    }),
+
+    woodpecker_list_prospects: tool({
+      description:
+        "List prospects in the connected Woodpecker account as a Markdown table (name, email, company, title, status, last contacted/replied). Filters combine: email or company (find specific prospects), campaignId (one campaign's prospects), status (ACTIVE, BOUNCED, REPLIED, BLACKLIST, INVALID), interested (INTERESTED, MAYBE-LATER, NOT-INTERESTED, NOT-MARKED). Page with page.",
+      inputSchema: z.object({
+        email: z.string().optional().describe("Find a prospect by email."),
+        company: z.string().optional().describe("Filter by company name."),
+        status: z
+          .string()
+          .optional()
+          .describe("Global status filter, e.g. REPLIED."),
+        campaignId: z
+          .number()
+          .int()
+          .optional()
+          .describe("Campaign id from woodpecker_list_campaigns."),
+        interested: z
+          .string()
+          .optional()
+          .describe("Interest filter, e.g. INTERESTED."),
+        page: z.number().int().positive().optional(),
+        limit: z.number().int().positive().optional().describe("Max 200."),
+      }),
+      execute: async (args) => {
+        if (!ctx.woodpeckerToken) return { error: notConnected("Woodpecker") };
+        return woodpeckerAdapter.listProspects(ctx.woodpeckerToken, args);
+      },
+    }),
+
+    woodpecker_campaign_stats: tool({
+      description:
+        "Aggregate performance statistics for one Woodpecker campaign (sent, opens, replies, bounces). Get the campaignId from woodpecker_list_campaigns.",
+      inputSchema: z.object({
+        campaignId: z
+          .number()
+          .int()
+          .describe("Campaign id from woodpecker_list_campaigns."),
+      }),
+      execute: async (args) => {
+        if (!ctx.woodpeckerToken) return { error: notConnected("Woodpecker") };
+        return woodpeckerAdapter.campaignStats(ctx.woodpeckerToken, args);
+      },
+    }),
+
     zohocrm_search_contacts: tool({
       description:
         "Search contacts in the connected Zoho CRM by name, email, or other text (2+ characters). Returns name, email, phone, account, and title.",
@@ -2108,6 +2169,9 @@ export const ALL_TOOL_NAMES = [
   "tldv_list_meetings",
   "tldv_get_notes",
   "tldv_get_transcript",
+  "woodpecker_list_campaigns",
+  "woodpecker_list_prospects",
+  "woodpecker_campaign_stats",
   "workable_list_jobs",
   "workable_list_candidates",
   "zohocrm_search_contacts",
