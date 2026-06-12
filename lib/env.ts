@@ -62,6 +62,15 @@ export const env = {
   get airtableClientSecret() {
     return process.env.AIRTABLE_CLIENT_SECRET ?? "";
   },
+  /** Google OAuth app credentials (Cloud console; the Sheets connector).
+   *  The OAuth client must be a Web application with the
+   *  /api/connectors/google-sheets/callback redirect URI registered. */
+  get googleClientId() {
+    return process.env.GOOGLE_CLIENT_ID ?? "";
+  },
+  get googleClientSecret() {
+    return process.env.GOOGLE_CLIENT_SECRET ?? "";
+  },
   /** Notion public OAuth integration credentials (notion.so/my-integrations;
    *  the integration must be public with the
    *  /api/connectors/notion/callback redirect URI registered). */

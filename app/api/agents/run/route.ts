@@ -130,6 +130,7 @@ export async function POST(request: NextRequest) {
   let fathomToken: string | null = null;
   let firefliesToken: string | null = null;
   let gongToken: string | null = null;
+  let googleSheetsToken: string | null = null;
   let greenhouseToken: string | null = null;
   let hubspotToken: string | null = null;
   let hunterToken: string | null = null;
@@ -174,6 +175,7 @@ export async function POST(request: NextRequest) {
       fathomToken,
       firefliesToken,
       gongToken,
+      googleSheetsToken,
       greenhouseToken,
       hubspotToken,
       hunterToken,
@@ -217,6 +219,7 @@ export async function POST(request: NextRequest) {
       tokenFor("fathom_", "fathom"),
       tokenFor("fireflies_", "fireflies"),
       tokenFor("gong_", "gong"),
+      tokenFor("googlesheets_", "google-sheets"),
       tokenFor("greenhouse_", "greenhouse"),
       tokenFor("hubspot_", "hubspot"),
       tokenFor("hunter_", "hunter"),
@@ -296,6 +299,7 @@ export async function POST(request: NextRequest) {
     fathomToken,
     firefliesToken,
     gongToken,
+    googleSheetsToken,
     greenhouseToken,
     hubspotToken,
     hunterToken,

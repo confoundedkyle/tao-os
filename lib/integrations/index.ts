@@ -16,6 +16,7 @@ import { crelateAdapter } from "./crelate";
 import { fathomAdapter } from "./fathom";
 import { firefliesAdapter } from "./fireflies";
 import { gongAdapter } from "./gong";
+import { googleSheetsAdapter } from "./google-sheets";
 import { greenhouseAdapter } from "./greenhouse";
 import { hubspotAdapter } from "./hubspot";
 import { hunterAdapter } from "./hunter";
@@ -65,6 +66,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   fathom: fathomAdapter,
   fireflies: firefliesAdapter,
   gong: gongAdapter,
+  "google-sheets": googleSheetsAdapter,
   greenhouse: greenhouseAdapter,
   hubspot: hubspotAdapter,
   hunter: hunterAdapter,
