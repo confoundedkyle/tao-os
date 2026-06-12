@@ -12,8 +12,10 @@ import { brightdataAdapter } from "./brightdata";
 import { catsAdapter } from "./cats";
 import { contactoutAdapter } from "./contactout";
 import { coresignalAdapter } from "./coresignal";
+import { crelateAdapter } from "./crelate";
 import { fathomAdapter } from "./fathom";
 import { firefliesAdapter } from "./fireflies";
+import { gongAdapter } from "./gong";
 import { greenhouseAdapter } from "./greenhouse";
 import { hubspotAdapter } from "./hubspot";
 import { hunterAdapter } from "./hunter";
@@ -25,17 +27,20 @@ import { loxoAdapter } from "./loxo";
 import { lushaAdapter } from "./lusha";
 import { manatalAdapter } from "./manatal";
 import { mondayAdapter } from "./monday";
+import { notionAdapter } from "./notion";
 import { peopledatalabsAdapter } from "./peopledatalabs";
 import { pinpointAdapter } from "./pinpoint";
 import { pipedriveAdapter } from "./pipedrive";
 import { recruiteeAdapter } from "./recruitee";
 import { recruiterflowAdapter } from "./recruiterflow";
 import { rocketreachAdapter } from "./rocketreach";
+import { signalhireAdapter } from "./signalhire";
 import { smartleadAdapter } from "./smartlead";
 import { smartrecruitersAdapter } from "./smartrecruiters";
 import { snovAdapter } from "./snov";
 import { teamtailorAdapter } from "./teamtailor";
 import { tldvAdapter } from "./tldv";
+import { woodpeckerAdapter } from "./woodpecker";
 import { workableAdapter } from "./workable";
 import { zohoCrmAdapter } from "./zoho-crm";
 import { zohoRecruitAdapter } from "./zoho-recruit";
@@ -56,8 +61,10 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   cats: catsAdapter,
   contactout: contactoutAdapter,
   coresignal: coresignalAdapter,
+  crelate: crelateAdapter,
   fathom: fathomAdapter,
   fireflies: firefliesAdapter,
+  gong: gongAdapter,
   greenhouse: greenhouseAdapter,
   hubspot: hubspotAdapter,
   hunter: hunterAdapter,
@@ -69,17 +76,20 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   lusha: lushaAdapter,
   manatal: manatalAdapter,
   monday: mondayAdapter,
+  notion: notionAdapter,
   peopledatalabs: peopledatalabsAdapter,
   pinpoint: pinpointAdapter,
   pipedrive: pipedriveAdapter,
   recruitee: recruiteeAdapter,
   recruiterflow: recruiterflowAdapter,
   rocketreach: rocketreachAdapter,
+  signalhire: signalhireAdapter,
   smartlead: smartleadAdapter,
   smartrecruiters: smartrecruitersAdapter,
   snov: snovAdapter,
   teamtailor: teamtailorAdapter,
   tldv: tldvAdapter,
+  woodpecker: woodpeckerAdapter,
   workable: workableAdapter,
   "zoho-crm": zohoCrmAdapter,
   "zoho-recruit": zohoRecruitAdapter,
