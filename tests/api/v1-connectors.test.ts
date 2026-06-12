@@ -22,7 +22,9 @@ describe("GET /api/v1/connectors", () => {
     const items = await getItems();
     for (const item of items) {
       expect(Object.keys(item).sort()).toEqual(["category", "name", "status"]);
-      expect(["ai", "ats", "crm", "data", "tool"]).toContain(item.category);
+      expect(["ai", "ats", "crm", "data", "email", "tool"]).toContain(
+        item.category,
+      );
       expect(["available", "coming_soon"]).toContain(item.status);
     }
   });

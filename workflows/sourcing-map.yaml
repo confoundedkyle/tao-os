@@ -10,8 +10,10 @@ input_spec:
   inputs: []
   required_doc_types: [jd]
   input_doc_types: []
+  knowledge: [workspace, client]
 output_spec:
   output: document
+  name: Sourcing map
 prompt_template: |
   ## System prompt
   You are an expert sourcer. You build precise, immediately usable search

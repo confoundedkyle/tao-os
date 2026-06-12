@@ -1,7 +1,7 @@
 // Connector catalog — mirrors aiwithmichal.com/store/skills. Activation is
 // not built yet; cards render with disabled buttons until each connector ships.
 
-export type ConnectorCategory = "ats" | "crm" | "data" | "tool";
+export type ConnectorCategory = "ats" | "crm" | "data" | "email" | "tool";
 
 export interface Connector {
   name: string;
@@ -24,6 +24,7 @@ export const CONNECTOR_CATEGORY_LABELS: Record<ConnectorCategory, string> = {
   ats: "ATS",
   crm: "CRM",
   data: "Data",
+  email: "Email",
   tool: "Tool",
 };
 
@@ -62,6 +63,10 @@ export const CONNECTORS: Connector[] = [
   { name: "Google Sheets", category: "data", blurb: "Read candidate and client trackers straight from your Google Sheets.", provider: "google-sheets", live: true, auth: "oauth" },
   { name: "Microsoft Excel", category: "data", blurb: "Pull pipelines and lists from Excel workbooks in OneDrive and SharePoint.", provider: "microsoft-excel", live: true, auth: "oauth" },
 
+  // --- Email (sending on the user's behalf, e.g. agent outreach) ---
+  { name: "Gmail", category: "email", blurb: "Send candidate outreach from your own Gmail address.", provider: "gmail", live: true, auth: "oauth" },
+  { name: "Microsoft Outlook", category: "email", blurb: "Send candidate outreach from your Outlook / Microsoft 365 mailbox.", provider: "microsoft-outlook", live: true, auth: "oauth" },
+
   // Tools (sourcing & outreach)
   { name: "Apollo", category: "tool", blurb: "Source contact data from the 270M-profile B2B database.", provider: "apollo", live: true, auth: "apikey" },
   { name: "Bright Data", category: "tool", blurb: "Enrich profiles with large-scale public web data.", provider: "brightdata", live: true, auth: "apikey" },
@@ -83,3 +88,100 @@ export const CONNECTORS: Connector[] = [
   { name: "tl;dv", category: "tool", blurb: "Read AI notes and transcripts from your recorded meetings.", provider: "tldv", live: true, auth: "apikey", apiKeyHint: "Create the key under personal settings → API Keys; API access requires the tl;dv Business plan." },
   { name: "Woodpecker", category: "tool", blurb: "Track cold-email campaigns and prospect replies, EU-style.", provider: "woodpecker", live: true, auth: "apikey", apiKeyHint: "Create the key in Woodpecker under Add-ons → API & Integrations → API keys." },
 ];
+
+// --- Agent connector requirements -----------------------------------------
+// Category-generic agents don't bind to one provider. Their allowed_tools
+// carry "connector:<category>" placeholders; the user picks a connected
+// provider of that category before each run, and the placeholder expands to
+// that provider's tools.
+
+export const CONNECTOR_REQUIREMENT_PREFIX = "connector:";
+
+/** Connector categories an agent needs, derived from its allowed_tools. */
+export function requiredConnectorCategories(
+  allowedTools: string[],
+): ConnectorCategory[] {
+  const known = Object.keys(CONNECTOR_CATEGORY_LABELS);
+  return allowedTools
+    .filter((t) => t.startsWith(CONNECTOR_REQUIREMENT_PREFIX))
+    .map((t) => t.slice(CONNECTOR_REQUIREMENT_PREFIX.length))
+    .filter((c): c is ConnectorCategory => known.includes(c));
+}
+
+/** Live connectors of a category (the ones a user could pick for a run). */
+export function connectorsForCategory(
+  category: ConnectorCategory,
+): Connector[] {
+  return CONNECTORS.filter((c) => c.category === category && c.live);
+}
+
+/** Display name for a provider slug, from the catalog. */
+export function connectorLabel(provider: string): string {
+  return CONNECTORS.find((c) => c.provider === provider)?.name ?? provider;
+}
+
+/** Provider slug → the prefix its agent tools use (lib/agents/tools.ts).
+ *  Most providers use "<slug>_"; the exceptions drop dashes or abbreviate. */
+export function providerToolPrefix(provider: string): string {
+  const exceptions: Record<string, string> = {
+    "google-sheets": "googlesheets_",
+    "microsoft-excel": "excel_",
+    "microsoft-outlook": "outlook_",
+    "zoho-crm": "zohocrm_",
+    "zoho-recruit": "zohorecruit_",
+  };
+  return exceptions[provider] ?? `${provider}_`;
+}
+
+/** Provider slug → primary web domain, used to render brand logos via a
+ *  favicon service (no logo assets to maintain across the catalog). */
+export const CONNECTOR_DOMAINS: Record<string, string> = {
+  ashby: "ashbyhq.com",
+  bamboohr: "bamboohr.com",
+  breezyhr: "breezy.hr",
+  bullhorn: "bullhorn.com",
+  cats: "catsone.com",
+  crelate: "crelate.com",
+  greenhouse: "greenhouse.io",
+  jazzhr: "jazzhr.com",
+  jobadder: "jobadder.com",
+  lever: "lever.co",
+  loxo: "loxo.co",
+  manatal: "manatal.com",
+  pinpoint: "pinpointhq.com",
+  recruitee: "recruitee.com",
+  recruiterflow: "recruiterflow.com",
+  smartrecruiters: "smartrecruiters.com",
+  teamtailor: "teamtailor.com",
+  workable: "workable.com",
+  "zoho-recruit": "zoho.com",
+  attio: "attio.com",
+  hubspot: "hubspot.com",
+  monday: "monday.com",
+  notion: "notion.so",
+  pipedrive: "pipedrive.com",
+  "zoho-crm": "zoho.com",
+  airtable: "airtable.com",
+  "google-sheets": "sheets.google.com",
+  "microsoft-excel": "microsoft.com",
+  gmail: "mail.google.com",
+  "microsoft-outlook": "outlook.com",
+  apollo: "apollo.io",
+  brightdata: "brightdata.com",
+  contactout: "contactout.com",
+  coresignal: "coresignal.com",
+  fathom: "fathom.video",
+  fireflies: "fireflies.ai",
+  gong: "gong.io",
+  hunter: "hunter.io",
+  instantly: "instantly.ai",
+  lemlist: "lemlist.com",
+  lusha: "lusha.com",
+  peopledatalabs: "peopledatalabs.com",
+  rocketreach: "rocketreach.co",
+  signalhire: "signalhire.com",
+  smartlead: "smartlead.ai",
+  snov: "snov.io",
+  tldv: "tldv.io",
+  woodpecker: "woodpecker.co",
+};

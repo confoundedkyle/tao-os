@@ -16,6 +16,7 @@ import { coresignalAdapter } from "./coresignal";
 import { crelateAdapter } from "./crelate";
 import { fathomAdapter } from "./fathom";
 import { firefliesAdapter } from "./fireflies";
+import { gmailAdapter } from "./gmail";
 import { gongAdapter } from "./gong";
 import { googleSheetsAdapter } from "./google-sheets";
 import { greenhouseAdapter } from "./greenhouse";
@@ -30,6 +31,7 @@ import { loxoAdapter } from "./loxo";
 import { lushaAdapter } from "./lusha";
 import { manatalAdapter } from "./manatal";
 import { microsoftExcelAdapter } from "./microsoft-excel";
+import { microsoftOutlookAdapter } from "./microsoft-outlook";
 import { mondayAdapter } from "./monday";
 import { notionAdapter } from "./notion";
 import { peopledatalabsAdapter } from "./peopledatalabs";
@@ -69,6 +71,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   crelate: crelateAdapter,
   fathom: fathomAdapter,
   fireflies: firefliesAdapter,
+  gmail: gmailAdapter,
   gong: gongAdapter,
   "google-sheets": googleSheetsAdapter,
   greenhouse: greenhouseAdapter,
@@ -83,6 +86,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   lusha: lushaAdapter,
   manatal: manatalAdapter,
   "microsoft-excel": microsoftExcelAdapter,
+  "microsoft-outlook": microsoftOutlookAdapter,
   monday: mondayAdapter,
   notion: notionAdapter,
   peopledatalabs: peopledatalabsAdapter,

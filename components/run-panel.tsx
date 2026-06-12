@@ -7,8 +7,10 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { uploadInputForRunAction } from "@/lib/actions/documents";
 import { previewRunPromptAction } from "@/lib/actions/runs";
+import type { WorkflowGraph } from "@/lib/workflow-graph";
 import { DownloadButtons } from "./download-buttons";
 import { Button } from "./ui";
+import { WorkflowCanvas } from "./workflow-canvas";
 
 const DOC_TYPE_LABELS: Record<string, string> = {
   cv: "CV",
@@ -36,6 +38,7 @@ export interface RunPanelWorkflow {
   missing: string[];
   needsInputPicker: boolean;
   inputDocTypes: string[];
+  graph: WorkflowGraph;
 }
 
 export interface RunPanelDoc {
@@ -71,6 +74,7 @@ export function RunPanel({
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewPrompt, setPreviewPrompt] = useState("");
   const [previewError, setPreviewError] = useState<string | null>(null);
+  const [diagramOpen, setDiagramOpen] = useState(true);
   const fileRef = useRef<HTMLInputElement>(null);
   const outputRef = useRef<HTMLDivElement>(null);
 
@@ -251,12 +255,37 @@ export function RunPanel({
         disabled={busy}
       />
 
+      {workflow && (
+        <div className="mt-4">
+          <button
+            type="button"
+            onClick={() => setDiagramOpen((open) => !open)}
+            aria-expanded={diagramOpen}
+            className="flex items-center gap-1.5 text-sm font-semibold text-navy-800/60 transition hover:text-navy-800"
+          >
+            <span
+              aria-hidden
+              className={`inline-block text-[11px] transition-transform ${diagramOpen ? "rotate-90" : ""}`}
+            >
+              ▶
+            </span>
+            How this works
+          </button>
+          {diagramOpen && (
+            <WorkflowCanvas graph={workflow.graph} className="mt-3" />
+          )}
+        </div>
+      )}
+
       {setupBlocked ? (
         <div className="mt-4">{blockNode}</div>
       ) : (
-        <div className="mt-5">
+        <div className="mt-5 rounded-panel border border-mint-400/40 bg-mint-400/8 p-4">
+          <p className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-mint-700">
+            <span aria-hidden>▶</span> Your input for this run
+          </p>
           {/* Composer: type context, attach files, run — any combination. */}
-          <div className="rounded-card border border-navy-800/15 bg-white transition focus-within:border-mint-700">
+          <div className="rounded-card border-[1.5px] border-navy-800/15 bg-white shadow-[0_4px_18px_rgba(19,31,56,0.07)] transition focus-within:border-mint-700">
             <textarea
               value={text}
               onChange={(e) => setText(e.target.value)}

@@ -88,6 +88,32 @@ export async function upgradeWorkflowAction(workflowId: string) {
   revalidatePath(`/workflows/${workflowId}`);
 }
 
+/** Soft-archive: the workflow leaves lists/pickers but its run history stays
+ *  intact (workflow_runs reference workspace_workflows without a cascade). */
+export async function archiveWorkflowAction(workflowId: string) {
+  const session = await requireSession();
+  const { error } = await db()
+    .from("workspace_workflows")
+    .update({ archived_at: new Date().toISOString() })
+    .eq("id", workflowId)
+    .eq("workspace_id", session.workspaceId);
+  if (error) throw error;
+  revalidatePath("/workflows");
+  revalidatePath(`/workflows/${workflowId}`);
+}
+
+export async function restoreWorkflowAction(workflowId: string) {
+  const session = await requireSession();
+  const { error } = await db()
+    .from("workspace_workflows")
+    .update({ archived_at: null })
+    .eq("id", workflowId)
+    .eq("workspace_id", session.workspaceId);
+  if (error) throw error;
+  revalidatePath("/workflows");
+  revalidatePath(`/workflows/${workflowId}`);
+}
+
 export async function deleteWorkflowAction(workflowId: string) {
   const session = await requireSession();
   const workflow = await getWorkspaceWorkflow(session.workspaceId, workflowId);
@@ -97,7 +123,7 @@ export async function deleteWorkflowAction(workflowId: string) {
     .select("id", { count: "exact", head: true })
     .eq("workspace_workflow_id", workflowId);
   if (count && count > 0) {
-    throw new Error("This workflow has runs and can't be deleted");
+    throw new Error("This workflow has runs — archive it instead");
   }
   const { error } = await db()
     .from("workspace_workflows")

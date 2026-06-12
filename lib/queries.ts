@@ -1,6 +1,8 @@
 import "server-only";
 import { cache } from "react";
+import { providerLabel } from "./ai-catalog";
 import { db } from "./db";
+import { env } from "./env";
 import type {
   AgentRun,
   AiProvider,
@@ -189,6 +191,29 @@ export async function listProviders(
   return data as AiProvider[];
 }
 
+/** Provider + model a run would use right now (first usable row by priority).
+ *  Display-only — unlike resolveRunProviders it never decrypts API keys. */
+export async function getPrimaryRunModel(
+  workspaceId: string,
+): Promise<{ providerLabel: string; modelId: string } | null> {
+  const providers = await listProviders(workspaceId);
+  for (const row of providers) {
+    if (row.provider === "calyflow") {
+      if (!env.platformProviderEnabled) continue;
+      return {
+        providerLabel: providerLabel(env.platformProvider),
+        modelId: env.platformModel,
+      };
+    }
+    if (!row.api_key_cipher || !row.default_model) continue;
+    return {
+      providerLabel: providerLabel(row.provider),
+      modelId: row.default_model,
+    };
+  }
+  return null;
+}
+
 export async function listCatalogModels(
   provider?: string,
 ): Promise<CatalogModel[]> {
@@ -304,14 +329,14 @@ export async function listLibraryAgents(): Promise<LibraryAgent[]> {
 
 export async function listWorkspaceAgents(
   workspaceId: string,
-): Promise<WorkspaceAgent[]> {
+): Promise<(WorkspaceAgent & { library: LibraryAgent | null })[]> {
   const { data, error } = await db()
     .from("workspace_agents")
-    .select("*")
+    .select("*, library:library_agents(*)")
     .eq("workspace_id", workspaceId)
     .order("created_at");
   if (error) throw error;
-  return data as WorkspaceAgent[];
+  return data as (WorkspaceAgent & { library: LibraryAgent | null })[];
 }
 
 export async function getWorkspaceAgent(

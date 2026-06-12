@@ -54,6 +54,15 @@ export interface InputSpec {
   required_doc_types?: string[];
   /** doc_types the user picks as run inputs (e.g. ['cv']). Empty = no picker. */
   input_doc_types?: string[];
+  /** Knowledge bases the prompt injects ('workspace', 'client') — drives the
+   *  Knowledge group on the workflow canvas. */
+  knowledge?: string[];
+}
+
+export interface OutputSpec {
+  output: string;
+  /** Display name of the produced document (workflow canvas output node). */
+  name?: string;
 }
 
 export interface LibraryWorkflow {
@@ -64,7 +73,7 @@ export interface LibraryWorkflow {
   category: string;
   prompt_template: string;
   input_spec: InputSpec;
-  output_spec: { output: string };
+  output_spec: OutputSpec;
   version: number;
 }
 
@@ -75,6 +84,8 @@ export interface WorkspaceWorkflow {
   name: string;
   prompt_template: string;
   imported_version: number | null;
+  /** Soft-delete: archived workflows keep their run history but leave the UI. */
+  archived_at: string | null;
   created_at: string;
 }
 
@@ -282,6 +293,8 @@ export interface WorkspaceAgent {
   model: string | null;
   max_steps: number;
   imported_version: number | null;
+  /** Soft-delete: archived agents keep their run history but leave the UI. */
+  archived_at: string | null;
   created_at: string;
 }
 

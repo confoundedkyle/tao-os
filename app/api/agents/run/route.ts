@@ -11,8 +11,16 @@ import {
 } from "@/lib/providers";
 import { getConnection, getProject, getWorkspaceAgent } from "@/lib/queries";
 import { getValidAccessToken } from "@/lib/integrations";
+import {
+  CONNECTOR_CATEGORY_LABELS,
+  CONNECTOR_REQUIREMENT_PREFIX,
+  connectorLabel,
+  connectorsForCategory,
+  providerToolPrefix,
+  requiredConnectorCategories,
+} from "@/lib/connectors";
 import { assembleContext, type AssembledContext } from "@/lib/context";
-import { buildTools, type ToolContext } from "@/lib/agents/tools";
+import { ALL_TOOL_NAMES, buildTools, type ToolContext } from "@/lib/agents/tools";
 import type { AgentRunStep } from "@/lib/types";
 
 export const maxDuration = 600; // multi-step tool loops can run long
@@ -69,6 +77,12 @@ export async function POST(request: NextRequest) {
   if (!project || !agent) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
+  if (agent.archived_at) {
+    return NextResponse.json(
+      { error: "This agent is archived. Restore it from Workflows & agents." },
+      { status: 400 },
+    );
+  }
   if (project.status !== "active") {
     return NextResponse.json(
       { error: "This project is archived" },
@@ -99,9 +113,49 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: platformGate.message }, { status: 402 });
   }
 
-  const allowed: string[] = Array.isArray(agent.allowed_tools)
+  // Category-generic agents carry "connector:<category>" placeholders in
+  // allowed_tools. The caller picks one connected provider per category; the
+  // placeholder expands to that provider's concrete tools.
+  const connectorChoices: Record<string, string> =
+    body?.connectors && typeof body.connectors === "object"
+      ? body.connectors
+      : {};
+  const baseAllowed: string[] = Array.isArray(agent.allowed_tools)
     ? agent.allowed_tools
     : [];
+  const allowed: string[] = baseAllowed.filter(
+    (t) => !t.startsWith(CONNECTOR_REQUIREMENT_PREFIX),
+  );
+  const chosenSources: { label: string; provider: string; prefix: string }[] =
+    [];
+  for (const category of requiredConnectorCategories(baseAllowed)) {
+    const label = CONNECTOR_CATEGORY_LABELS[category];
+    const provider = connectorChoices[category];
+    if (!provider) {
+      return NextResponse.json(
+        { error: `Select a ${label} connector for this run.` },
+        { status: 400 },
+      );
+    }
+    if (!connectorsForCategory(category).some((c) => c.provider === provider)) {
+      return NextResponse.json(
+        { error: `${connectorLabel(provider)} is not a ${label} connector.` },
+        { status: 400 },
+      );
+    }
+    const connection = await getConnection(session.workspaceId, provider);
+    if (!connection) {
+      return NextResponse.json(
+        {
+          error: `${connectorLabel(provider)} is not connected. Set it up in Settings → Connectors.`,
+        },
+        { status: 400 },
+      );
+    }
+    const prefix = providerToolPrefix(provider);
+    allowed.push(...ALL_TOOL_NAMES.filter((t) => t.startsWith(prefix)));
+    chosenSources.push({ label, provider, prefix });
+  }
 
   // Resolve a valid token for each connector the agent uses, up front
   // (refreshing if needed). A configured-but-broken connection fails the run
@@ -130,6 +184,7 @@ export async function POST(request: NextRequest) {
   let crelateToken: string | null = null;
   let fathomToken: string | null = null;
   let firefliesToken: string | null = null;
+  let gmailToken: string | null = null;
   let gongToken: string | null = null;
   let googleSheetsToken: string | null = null;
   let greenhouseToken: string | null = null;
@@ -144,6 +199,7 @@ export async function POST(request: NextRequest) {
   let lushaToken: string | null = null;
   let manatalToken: string | null = null;
   let microsoftExcelToken: string | null = null;
+  let microsoftOutlookToken: string | null = null;
   let mondayToken: string | null = null;
   let notionToken: string | null = null;
   let peopledatalabsToken: string | null = null;
@@ -178,6 +234,7 @@ export async function POST(request: NextRequest) {
       crelateToken,
       fathomToken,
       firefliesToken,
+      gmailToken,
       gongToken,
       googleSheetsToken,
       greenhouseToken,
@@ -192,6 +249,7 @@ export async function POST(request: NextRequest) {
       lushaToken,
       manatalToken,
       microsoftExcelToken,
+      microsoftOutlookToken,
       mondayToken,
       notionToken,
       peopledatalabsToken,
@@ -225,6 +283,7 @@ export async function POST(request: NextRequest) {
       tokenFor("crelate_", "crelate"),
       tokenFor("fathom_", "fathom"),
       tokenFor("fireflies_", "fireflies"),
+      tokenFor("gmail_", "gmail"),
       tokenFor("gong_", "gong"),
       tokenFor("googlesheets_", "google-sheets"),
       tokenFor("greenhouse_", "greenhouse"),
@@ -239,6 +298,7 @@ export async function POST(request: NextRequest) {
       tokenFor("lusha_", "lusha"),
       tokenFor("manatal_", "manatal"),
       tokenFor("excel_", "microsoft-excel"),
+      tokenFor("outlook_", "microsoft-outlook"),
       tokenFor("monday_", "monday"),
       tokenFor("notion_", "notion"),
       tokenFor("peopledatalabs_", "peopledatalabs"),
@@ -308,6 +368,7 @@ export async function POST(request: NextRequest) {
     crelateToken,
     fathomToken,
     firefliesToken,
+    gmailToken,
     gongToken,
     googleSheetsToken,
     greenhouseToken,
@@ -322,6 +383,7 @@ export async function POST(request: NextRequest) {
     lushaToken,
     manatalToken,
     microsoftExcelToken,
+    microsoftOutlookToken,
     mondayToken,
     notionToken,
     peopledatalabsToken,
@@ -347,10 +409,22 @@ export async function POST(request: NextRequest) {
     ? task.trim()
     : "Carry out your standard task for this project.";
 
+  // Tell a category-generic agent which provider the user picked, so its
+  // generic instructions resolve to concrete tool names.
+  let systemPrompt = agent.instructions;
+  if (chosenSources.length > 0) {
+    const lines = chosenSources.map(
+      (s) =>
+        `- ${s.label}: ${connectorLabel(s.provider)} — its tools start with \`${s.prefix}\`.`,
+    );
+    systemPrompt +=
+      `\n\n## Connected sources for this run\n${lines.join("\n")}\n` +
+      "Use only these sources for their category; other providers' tools are not available in this run.";
+  }
+
   // Pre-load project + KB context (the JD, scorecards, notes) into the system
   // prompt so the agent has full context up front — same assembly the workflow
   // runs use. Failure here must not abort the run; the read tools still work.
-  let systemPrompt = agent.instructions;
   try {
     const assembled = await assembleContext(
       session.workspaceId,
@@ -359,7 +433,7 @@ export async function POST(request: NextRequest) {
       "",
     );
     const block = contextBlock(assembled);
-    if (block) systemPrompt = `${agent.instructions}\n\n${block}`;
+    if (block) systemPrompt = `${systemPrompt}\n\n${block}`;
   } catch (err) {
     console.warn("Agent context assembly failed:", err);
   }

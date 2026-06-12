@@ -14,7 +14,7 @@ const CORS_HEADERS = {
 
 export interface PublicCatalogItem {
   name: string;
-  category: "ai" | "ats" | "crm" | "data" | "tool";
+  category: "ai" | "ats" | "crm" | "data" | "email" | "tool";
   status: "available" | "coming_soon";
 }
 

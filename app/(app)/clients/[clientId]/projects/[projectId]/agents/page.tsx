@@ -2,36 +2,36 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import {
+  getPrimaryRunModel,
   getProject,
   listAgentRuns,
   listConnections,
-  listLibraryAgents,
   listWorkspaceAgents,
 } from "@/lib/queries";
-import { importAgentAction } from "@/lib/actions/agents";
-import { AgentRunPanel } from "@/components/agent-run-panel";
-import { Button, ButtonLink, Card, Chip, Mono } from "@/components/ui";
-import type { LibraryAgent } from "@/lib/types";
+import {
+  CONNECTOR_CATEGORY_LABELS,
+  connectorsForCategory,
+  requiredConnectorCategories,
+} from "@/lib/connectors";
+import {
+  AgentRunPanel,
+  type AgentConnectorRequirement,
+} from "@/components/agent-run-panel";
+import { ButtonLink, Card, Chip, Mono } from "@/components/ui";
 
-// Maps a tool name prefix to the connector it needs.
-const TOOL_CONNECTOR_PREFIXES: Record<string, string> = {
-  airtable_: "airtable",
-  ashby_: "ashby",
-  hunter_: "hunter",
-};
-
-const CONNECTOR_LABELS: Record<string, string> = {
-  airtable: "Airtable",
-  ashby: "Ashby",
-  hunter: "Hunter.io",
-};
-
-function requiredConnectorsFor(tools: string[]): string[] {
-  const needed = new Set<string>();
-  for (const t of tools)
-    for (const [prefix, provider] of Object.entries(TOOL_CONNECTOR_PREFIXES))
-      if (t.startsWith(prefix)) needed.add(provider);
-  return [...needed];
+/** The agent's required categories, each with the workspace's connected
+ *  options of that category (the run panel's connector pickers). */
+function requirementsFor(
+  tools: string[],
+  connectedProviders: Set<string>,
+): AgentConnectorRequirement[] {
+  return requiredConnectorCategories(tools).map((category) => ({
+    category,
+    label: CONNECTOR_CATEGORY_LABELS[category],
+    options: connectorsForCategory(category)
+      .filter((c) => c.provider && connectedProviders.has(c.provider))
+      .map((c) => ({ provider: c.provider!, label: c.name })),
+  }));
 }
 
 export default async function ProjectAgentsPage({
@@ -45,17 +45,14 @@ export default async function ProjectAgentsPage({
   const project = await getProject(session.workspaceId, projectId);
   if (!project || project.client.id !== clientId) notFound();
 
-  const [agents, libraryAgents, runs, connections] = await Promise.all([
+  const [allAgents, runs, connections, model] = await Promise.all([
     listWorkspaceAgents(session.workspaceId),
-    listLibraryAgents(),
     listAgentRuns(session.workspaceId, projectId),
     listConnections(session.workspaceId),
+    getPrimaryRunModel(session.workspaceId),
   ]);
+  const agents = allAgents.filter((a) => !a.archived_at);
 
-  const importedSlugIds = new Set(
-    agents.map((a) => a.library_agent_id).filter(Boolean),
-  );
-  const importable = libraryAgents.filter((la) => !importedSlugIds.has(la.id));
   const connectedProviders = new Set(
     connections.filter((c) => c.status === "active").map((c) => c.provider),
   );
@@ -74,67 +71,31 @@ export default async function ProjectAgentsPage({
             agents={agents.map((a) => ({
               id: a.id,
               name: a.name,
-              requiredConnectors: requiredConnectorsFor(a.allowed_tools ?? []),
+              requirements: requirementsFor(
+                a.allowed_tools ?? [],
+                connectedProviders,
+              ),
             }))}
-            connectedProviders={[...connectedProviders]}
+            model={model}
             connectorsHref="/settings/connectors"
             archived={project.status !== "active"}
           />
         ) : (
           <div className="space-y-5">
             <HowItWorks />
-            {importable.length > 0 ? (
-              <div>
-                <p className="mb-2 text-sm font-semibold text-navy-800/70">
-                  Pick an agent to import into this workspace
-                </p>
-                <ul className="space-y-2">
-                  {importable.map((la) => (
-                    <AgentImportCard
-                      key={la.id}
-                      agent={la}
-                      connectedProviders={connectedProviders}
-                    />
-                  ))}
-                </ul>
-              </div>
-            ) : (
-              <div className="rounded-card border border-navy-800/12 bg-cream-100/60 p-4">
-                <p className="text-sm font-medium text-navy-800/70">
-                  No agents are available in your library yet.
-                </p>
-                <p className="mt-1 text-sm text-navy-800/55">
-                  Agents are published to the library by your Calyflow admin.
-                  Once one is available it&apos;ll show up here to import. In the
-                  meantime you can{" "}
-                  <Link
-                    href="/settings/connectors"
-                    className="font-semibold text-mint-700 hover:underline"
-                  >
-                    connect a data source
-                  </Link>{" "}
-                  so agents have something to read from.
-                </p>
-              </div>
-            )}
+            <p className="text-sm text-navy-800/55">
+              No agents imported yet.{" "}
+              <ButtonLink
+                href="/library?tab=agents"
+                variant="small"
+                className="ml-2"
+              >
+                Browse the library
+              </ButtonLink>
+            </p>
           </div>
         )}
       </Card>
-
-      {agents.length > 0 && importable.length > 0 && (
-        <Card>
-          <h2 className="mb-3 text-lg font-semibold">Import more agents</h2>
-          <ul className="space-y-2">
-            {importable.map((la) => (
-              <AgentImportCard
-                key={la.id}
-                agent={la}
-                connectedProviders={connectedProviders}
-              />
-            ))}
-          </ul>
-        </Card>
-      )}
 
       <Card>
         <h2 className="mb-4 text-xl font-semibold">Agent run history</h2>
@@ -216,7 +177,7 @@ function HowItWorks() {
     {
       n: "2",
       title: "Import an agent",
-      body: "Add a ready-made agent below — it comes preconfigured with the tools it needs.",
+      body: "Add a ready-made agent from the Library — it comes preconfigured with the tools it needs.",
     },
     {
       n: "3",
@@ -239,51 +200,5 @@ function HowItWorks() {
         </li>
       ))}
     </ol>
-  );
-}
-
-function AgentImportCard({
-  agent,
-  connectedProviders,
-}: {
-  agent: LibraryAgent;
-  connectedProviders: Set<string>;
-}) {
-  const required = requiredConnectorsFor(agent.allowed_tools ?? []);
-  return (
-    <li className="flex flex-col gap-3 rounded-card border border-navy-800/12 bg-white p-4 sm:flex-row sm:items-start sm:justify-between">
-      <div className="min-w-0">
-        <p className="font-semibold">{agent.name}</p>
-        <p className="text-sm text-navy-800/55">{agent.description}</p>
-        {required.length > 0 && (
-          <div className="mt-2 flex flex-wrap items-center gap-1.5">
-            <span className="text-xs text-navy-800/40">Needs:</span>
-            {required.map((p) => {
-              const connected = connectedProviders.has(p);
-              return (
-                <span
-                  key={p}
-                  className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${
-                    connected
-                      ? "bg-mint-400/20 text-mint-700"
-                      : "bg-amber-400/15 text-navy-800/65"
-                  }`}
-                >
-                  {connected ? "✓" : "○"} {CONNECTOR_LABELS[p] ?? p}
-                </span>
-              );
-            })}
-          </div>
-        )}
-      </div>
-      <form
-        action={importAgentAction.bind(null, agent.id)}
-        className="shrink-0"
-      >
-        <Button variant="small" type="submit">
-          Import
-        </Button>
-      </form>
-    </li>
   );
 }
