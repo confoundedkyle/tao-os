@@ -5,6 +5,7 @@ import type { Connection } from "../types";
 import { airtableAdapter } from "./airtable";
 import { apolloAdapter } from "./apollo";
 import { ashbyAdapter } from "./ashby";
+import { bamboohrAdapter } from "./bamboohr";
 import { breezyhrAdapter } from "./breezyhr";
 import { brightdataAdapter } from "./brightdata";
 import { contactoutAdapter } from "./contactout";
@@ -34,6 +35,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   airtable: airtableAdapter,
   apollo: apolloAdapter,
   ashby: ashbyAdapter,
+  bamboohr: bamboohrAdapter,
   breezyhr: breezyhrAdapter,
   brightdata: brightdataAdapter,
   contactout: contactoutAdapter,
