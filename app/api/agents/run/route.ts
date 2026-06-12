@@ -119,6 +119,7 @@ export async function POST(request: NextRequest) {
   let airtableToken: string | null = null;
   let apolloToken: string | null = null;
   let ashbyToken: string | null = null;
+  let attioToken: string | null = null;
   let bamboohrToken: string | null = null;
   let breezyhrToken: string | null = null;
   let brightdataToken: string | null = null;
@@ -143,7 +144,9 @@ export async function POST(request: NextRequest) {
   let recruiteeToken: string | null = null;
   let recruiterflowToken: string | null = null;
   let rocketreachToken: string | null = null;
+  let smartleadToken: string | null = null;
   let smartrecruitersToken: string | null = null;
+  let snovToken: string | null = null;
   let teamtailorToken: string | null = null;
   let tldvToken: string | null = null;
   let workableToken: string | null = null;
@@ -154,6 +157,7 @@ export async function POST(request: NextRequest) {
       airtableToken,
       apolloToken,
       ashbyToken,
+      attioToken,
       bamboohrToken,
       breezyhrToken,
       brightdataToken,
@@ -178,7 +182,9 @@ export async function POST(request: NextRequest) {
       recruiteeToken,
       recruiterflowToken,
       rocketreachToken,
+      smartleadToken,
       smartrecruitersToken,
+      snovToken,
       teamtailorToken,
       tldvToken,
       workableToken,
@@ -188,6 +194,7 @@ export async function POST(request: NextRequest) {
       tokenFor("airtable_", "airtable"),
       tokenFor("apollo_", "apollo"),
       tokenFor("ashby_", "ashby"),
+      tokenFor("attio_", "attio"),
       tokenFor("bamboohr_", "bamboohr"),
       tokenFor("breezyhr_", "breezyhr"),
       tokenFor("brightdata_", "brightdata"),
@@ -212,7 +219,9 @@ export async function POST(request: NextRequest) {
       tokenFor("recruitee_", "recruitee"),
       tokenFor("recruiterflow_", "recruiterflow"),
       tokenFor("rocketreach_", "rocketreach"),
+      tokenFor("smartlead_", "smartlead"),
       tokenFor("smartrecruiters_", "smartrecruiters"),
+      tokenFor("snov_", "snov"),
       tokenFor("teamtailor_", "teamtailor"),
       tokenFor("tldv_", "tldv"),
       tokenFor("workable_", "workable"),
@@ -258,6 +267,7 @@ export async function POST(request: NextRequest) {
     airtableToken,
     apolloToken,
     ashbyToken,
+    attioToken,
     bamboohrToken,
     breezyhrToken,
     brightdataToken,
@@ -282,7 +292,9 @@ export async function POST(request: NextRequest) {
     recruiteeToken,
     recruiterflowToken,
     rocketreachToken,
+    smartleadToken,
     smartrecruitersToken,
+    snovToken,
     teamtailorToken,
     tldvToken,
     workableToken,

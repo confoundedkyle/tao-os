@@ -43,6 +43,7 @@ export const CONNECTORS: Connector[] = [
   { name: "Zoho Recruit", category: "ats", blurb: "Import candidates from Zoho's staffing-ready ATS.", provider: "zoho-recruit", live: true, auth: "oauth" },
 
   // CRM
+  { name: "Attio", category: "crm", blurb: "Query people, companies, and deals from the modern CRM.", provider: "attio", live: true, auth: "apikey" },
   { name: "HubSpot", category: "crm", blurb: "Sync client companies, deals, and contacts effortlessly.", provider: "hubspot", live: true, auth: "apikey" },
   { name: "Pipedrive", category: "crm", blurb: "Pull your BD pipeline and client deals into Calyflow.", provider: "pipedrive", live: true, auth: "apikey" },
   { name: "Zoho CRM", category: "crm", blurb: "Sync clients and deals from Zoho's sales suite.", provider: "zoho-crm", live: true, auth: "oauth" },
@@ -66,5 +67,7 @@ export const CONNECTORS: Connector[] = [
   { name: "Lusha", category: "tool", blurb: "B2B contact data to reach candidates and clients.", provider: "lusha", live: true, auth: "apikey" },
   { name: "People Data Labs", category: "tool", blurb: "Enrich and search billions of person profiles at scale.", provider: "peopledatalabs", live: true, auth: "apikey" },
   { name: "RocketReach", category: "tool", blurb: "Find emails and phones across 700M+ professional profiles.", provider: "rocketreach", live: true, auth: "apikey" },
+  { name: "Smartlead", category: "tool", blurb: "Track cold-email campaigns, leads, and reply analytics.", provider: "smartlead", live: true, auth: "apikey" },
+  { name: "Snov.io", category: "tool", blurb: "Find and verify work emails for outreach-ready lists.", provider: "snov", live: true, auth: "apikey" },
   { name: "tl;dv", category: "tool", blurb: "Read AI notes and transcripts from your recorded meetings.", provider: "tldv", live: true, auth: "apikey" },
 ];

@@ -6,6 +6,7 @@ import { listDocuments, getDocument } from "../queries";
 import { airtableAdapter } from "../integrations/airtable";
 import { apolloAdapter } from "../integrations/apollo";
 import { ashbyAdapter } from "../integrations/ashby";
+import { attioAdapter } from "../integrations/attio";
 import { bamboohrAdapter } from "../integrations/bamboohr";
 import { breezyhrAdapter } from "../integrations/breezyhr";
 import { brightdataAdapter } from "../integrations/brightdata";
@@ -30,7 +31,9 @@ import { pipedriveAdapter } from "../integrations/pipedrive";
 import { recruiteeAdapter } from "../integrations/recruitee";
 import { recruiterflowAdapter } from "../integrations/recruiterflow";
 import { rocketreachAdapter } from "../integrations/rocketreach";
+import { smartleadAdapter } from "../integrations/smartlead";
 import { smartrecruitersAdapter } from "../integrations/smartrecruiters";
+import { snovAdapter } from "../integrations/snov";
 import { teamtailorAdapter } from "../integrations/teamtailor";
 import { tldvAdapter } from "../integrations/tldv";
 import { workableAdapter } from "../integrations/workable";
@@ -51,6 +54,7 @@ export interface ToolContext {
   airtableToken: string | null;
   apolloToken: string | null;
   ashbyToken: string | null;
+  attioToken: string | null;
   bamboohrToken: string | null;
   breezyhrToken: string | null;
   brightdataToken: string | null;
@@ -75,7 +79,9 @@ export interface ToolContext {
   recruiteeToken: string | null;
   recruiterflowToken: string | null;
   rocketreachToken: string | null;
+  smartleadToken: string | null;
   smartrecruitersToken: string | null;
+  snovToken: string | null;
   teamtailorToken: string | null;
   tldvToken: string | null;
   workableToken: string | null;
@@ -230,6 +236,32 @@ function buildAll(ctx: ToolContext): ToolSet {
       execute: async ({ query }) => {
         if (!ctx.ashbyToken) return { error: notConnected("Ashby") };
         return ashbyAdapter.searchCandidates(ctx.ashbyToken, { query });
+      },
+    }),
+
+    attio_list_objects: tool({
+      description:
+        "List the record objects in the connected Attio CRM (people, companies, deals, plus any custom objects) with the slug each one is queried by.",
+      inputSchema: z.object({}),
+      execute: async () => {
+        if (!ctx.attioToken) return { error: notConnected("Attio") };
+        return attioAdapter.listObjects(ctx.attioToken);
+      },
+    }),
+
+    attio_query_records: tool({
+      description:
+        "List records of one Attio object as a Markdown table (record name plus its first few attribute values and record id). Get the object slug from attio_list_objects (e.g. people, companies); page with offset. No server-side search — scan pages and be economical.",
+      inputSchema: z.object({
+        object: z
+          .string()
+          .describe("Object slug from attio_list_objects, e.g. people."),
+        offset: z.number().int().nonnegative().optional(),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.attioToken) return { error: notConnected("Attio") };
+        return attioAdapter.queryRecords(ctx.attioToken, args);
       },
     }),
 
@@ -1383,6 +1415,99 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    snov_find_email: tool({
+      description:
+        "Find a person's work email via Snov.io from their first name, last name, and company domain. Costs a credit. May return a pending task — finish it with snov_get_task_result.",
+      inputSchema: z.object({
+        firstName: z.string().describe("First name."),
+        lastName: z.string().describe("Last name."),
+        domain: z.string().describe("Company domain, e.g. acme.com."),
+      }),
+      execute: async (args) => {
+        if (!ctx.snovToken) return { error: notConnected("Snov.io") };
+        return snovAdapter.findEmail(ctx.snovToken, args);
+      },
+    }),
+
+    snov_verify_email: tool({
+      description:
+        "Verify one email's deliverability via Snov.io (SMTP status, disposability). May return a pending task — finish it with snov_get_task_result.",
+      inputSchema: z.object({
+        email: z.string().describe("The email address to verify."),
+      }),
+      execute: async (args) => {
+        if (!ctx.snovToken) return { error: notConnected("Snov.io") };
+        return snovAdapter.verifyEmail(ctx.snovToken, args);
+      },
+    }),
+
+    snov_get_task_result: tool({
+      description:
+        "Fetch the finished result of a pending Snov.io finder or verifier task (use the task hash the starting tool returned). Free to call.",
+      inputSchema: z.object({
+        type: z.enum(["finder", "verifier"]).describe("Which task type."),
+        taskHash: z.string().describe("Task hash from the starting tool."),
+      }),
+      execute: async (args) => {
+        if (!ctx.snovToken) return { error: notConnected("Snov.io") };
+        return snovAdapter.getTaskResult(ctx.snovToken, args);
+      },
+    }),
+
+    snov_get_profile: tool({
+      description:
+        "Look up the public profile behind an email via Snov.io (name, current position, social links). Useful to qualify an address before outreach.",
+      inputSchema: z.object({
+        email: z.string().describe("The email address to profile."),
+      }),
+      execute: async (args) => {
+        if (!ctx.snovToken) return { error: notConnected("Snov.io") };
+        return snovAdapter.getProfileByEmail(ctx.snovToken, args);
+      },
+    }),
+
+    smartlead_list_campaigns: tool({
+      description:
+        "List cold-email campaigns in the connected Smartlead account (name, status, created date, campaign id). Statuses: DRAFTED, ACTIVE, PAUSED, STOPPED, ARCHIVED.",
+      inputSchema: z.object({
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.smartleadToken) return { error: notConnected("Smartlead") };
+        return smartleadAdapter.listCampaigns(ctx.smartleadToken, args);
+      },
+    }),
+
+    smartlead_list_leads: tool({
+      description:
+        "List leads in one Smartlead campaign as a Markdown table (name, email, company, status, opens, replies). Get the campaignId from smartlead_list_campaigns; page with offset.",
+      inputSchema: z.object({
+        campaignId: z
+          .string()
+          .describe("Campaign id from smartlead_list_campaigns."),
+        offset: z.number().int().nonnegative().optional(),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.smartleadToken) return { error: notConnected("Smartlead") };
+        return smartleadAdapter.listLeads(ctx.smartleadToken, args);
+      },
+    }),
+
+    smartlead_campaign_analytics: tool({
+      description:
+        "Aggregate performance metrics for one Smartlead campaign (sent, opens, clicks, replies, bounces, unsubscribes). Get the campaignId from smartlead_list_campaigns.",
+      inputSchema: z.object({
+        campaignId: z
+          .string()
+          .describe("Campaign id from smartlead_list_campaigns."),
+      }),
+      execute: async (args) => {
+        if (!ctx.smartleadToken) return { error: notConnected("Smartlead") };
+        return smartleadAdapter.campaignAnalytics(ctx.smartleadToken, args);
+      },
+    }),
+
     rocketreach_search_people: tool({
       description:
         "Search RocketReach profiles by name, titles, employers, or locations. Returns name, title, company, LinkedIn, and profile id — no contact details and no credit cost. Treat results as candidates for rocketreach_lookup_person.",
@@ -1701,6 +1826,8 @@ export const ALL_TOOL_NAMES = [
   "ashby_list_jobs",
   "ashby_list_candidates",
   "ashby_search_candidates",
+  "attio_list_objects",
+  "attio_query_records",
   "bamboohr_list_jobs",
   "bamboohr_list_applications",
   "breezyhr_list_positions",
@@ -1768,8 +1895,15 @@ export const ALL_TOOL_NAMES = [
   "rocketreach_search_people",
   "rocketreach_lookup_person",
   "rocketreach_check_lookup",
+  "smartlead_list_campaigns",
+  "smartlead_list_leads",
+  "smartlead_campaign_analytics",
   "smartrecruiters_list_jobs",
   "smartrecruiters_list_candidates",
+  "snov_find_email",
+  "snov_verify_email",
+  "snov_get_task_result",
+  "snov_get_profile",
   "teamtailor_list_jobs",
   "teamtailor_list_candidates",
   "teamtailor_list_job_candidates",
