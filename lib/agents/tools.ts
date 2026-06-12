@@ -26,6 +26,7 @@ import { peopledatalabsAdapter } from "../integrations/peopledatalabs";
 import { pipedriveAdapter } from "../integrations/pipedrive";
 import { recruiteeAdapter } from "../integrations/recruitee";
 import { recruiterflowAdapter } from "../integrations/recruiterflow";
+import { rocketreachAdapter } from "../integrations/rocketreach";
 import { smartrecruitersAdapter } from "../integrations/smartrecruiters";
 import { teamtailorAdapter } from "../integrations/teamtailor";
 import { tldvAdapter } from "../integrations/tldv";
@@ -67,6 +68,7 @@ export interface ToolContext {
   pipedriveToken: string | null;
   recruiteeToken: string | null;
   recruiterflowToken: string | null;
+  rocketreachToken: string | null;
   smartrecruitersToken: string | null;
   teamtailorToken: string | null;
   tldvToken: string | null;
@@ -1245,6 +1247,61 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    rocketreach_search_people: tool({
+      description:
+        "Search RocketReach profiles by name, titles, employers, or locations. Returns name, title, company, LinkedIn, and profile id — no contact details and no credit cost. Treat results as candidates for rocketreach_lookup_person.",
+      inputSchema: z.object({
+        name: z.string().optional().describe("Person name."),
+        titles: z.array(z.string()).optional().describe("Job titles."),
+        employers: z.array(z.string()).optional().describe("Company names."),
+        locations: z.array(z.string()).optional().describe("Locations."),
+        page: z.number().int().positive().optional(),
+        limit: z.number().int().positive().optional().describe("Max 25."),
+      }),
+      execute: async (args) => {
+        if (!ctx.rocketreachToken) return { error: notConnected("RocketReach") };
+        return rocketreachAdapter.searchPeople(ctx.rocketreachToken, args);
+      },
+    }),
+
+    rocketreach_lookup_person: tool({
+      description:
+        "Reveal a person's emails and phones via RocketReach from a profileId (from rocketreach_search_people), an email, a LinkedIn URL, or a name plus currentEmployer. Costs a credit per match — look up selectively, never in bulk. May return an in-progress status; finish with rocketreach_check_lookup.",
+      inputSchema: z.object({
+        profileId: z
+          .number()
+          .int()
+          .optional()
+          .describe("Profile id from rocketreach_search_people."),
+        name: z.string().optional().describe("Full name."),
+        currentEmployer: z
+          .string()
+          .optional()
+          .describe("Current employer (required with name)."),
+        email: z.string().optional().describe("A known email address."),
+        linkedinUrl: z.string().optional().describe("LinkedIn profile URL."),
+      }),
+      execute: async (args) => {
+        if (!ctx.rocketreachToken) return { error: notConnected("RocketReach") };
+        return rocketreachAdapter.lookupPerson(ctx.rocketreachToken, args);
+      },
+    }),
+
+    rocketreach_check_lookup: tool({
+      description:
+        "Fetch the finished result of a RocketReach lookup that was still in progress (use the profile id rocketreach_lookup_person returned). Free to call.",
+      inputSchema: z.object({
+        profileId: z
+          .number()
+          .int()
+          .describe("Profile id from the in-progress lookup."),
+      }),
+      execute: async ({ profileId }) => {
+        if (!ctx.rocketreachToken) return { error: notConnected("RocketReach") };
+        return rocketreachAdapter.checkLookup(ctx.rocketreachToken, profileId);
+      },
+    }),
+
     smartrecruiters_list_jobs: tool({
       description:
         "List jobs in the connected SmartRecruiters ATS (title, status, department, location, job id). Optionally filter by status (e.g. SOURCING, OFFER, FILLED). Use to find the role you are sourcing for — the job id scopes candidate lookups.",
@@ -1564,6 +1621,9 @@ export const ALL_TOOL_NAMES = [
   "recruitee_list_candidates",
   "recruiterflow_list_jobs",
   "recruiterflow_list_candidates",
+  "rocketreach_search_people",
+  "rocketreach_lookup_person",
+  "rocketreach_check_lookup",
   "smartrecruiters_list_jobs",
   "smartrecruiters_list_candidates",
   "teamtailor_list_jobs",
