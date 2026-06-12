@@ -62,6 +62,15 @@ export const env = {
   get airtableClientSecret() {
     return process.env.AIRTABLE_CLIENT_SECRET ?? "";
   },
+  /** Google OAuth app credentials (Cloud console; the Sheets connector).
+   *  The OAuth client must be a Web application with the
+   *  /api/connectors/google-sheets/callback redirect URI registered. */
+  get googleClientId() {
+    return process.env.GOOGLE_CLIENT_ID ?? "";
+  },
+  get googleClientSecret() {
+    return process.env.GOOGLE_CLIENT_SECRET ?? "";
+  },
   /** Zoho OAuth app credentials (API console; one client serves CRM + Recruit).
    *  Zoho is region-sharded — a deployment targets ONE data center, set via the
    *  base URLs below (defaults are the US DC; use .eu/.in/... for others). */

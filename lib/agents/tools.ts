@@ -15,6 +15,7 @@ import { contactoutAdapter } from "../integrations/contactout";
 import { coresignalAdapter } from "../integrations/coresignal";
 import { fathomAdapter } from "../integrations/fathom";
 import { firefliesAdapter } from "../integrations/fireflies";
+import { googleSheetsAdapter } from "../integrations/google-sheets";
 import { greenhouseAdapter } from "../integrations/greenhouse";
 import { hubspotAdapter } from "../integrations/hubspot";
 import { hunterAdapter } from "../integrations/hunter";
@@ -63,6 +64,7 @@ export interface ToolContext {
   coresignalToken: string | null;
   fathomToken: string | null;
   firefliesToken: string | null;
+  googleSheetsToken: string | null;
   greenhouseToken: string | null;
   hubspotToken: string | null;
   hunterToken: string | null;
@@ -469,6 +471,57 @@ function buildAll(ctx: ToolContext): ToolSet {
       execute: async ({ recordingId }) => {
         if (!ctx.fathomToken) return { error: notConnected("Fathom") };
         return fathomAdapter.getTranscript(ctx.fathomToken, recordingId);
+      },
+    }),
+
+    googlesheets_list_spreadsheets: tool({
+      description:
+        "List the Google Sheets spreadsheets the connection can access (name, last modified, spreadsheet id), newest first. Pass query to filter by name.",
+      inputSchema: z.object({
+        query: z
+          .string()
+          .optional()
+          .describe("Filter spreadsheets by name (contains match)."),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.googleSheetsToken)
+          return { error: notConnected("Google Sheets") };
+        return googleSheetsAdapter.listSpreadsheets(ctx.googleSheetsToken, args);
+      },
+    }),
+
+    googlesheets_list_sheets: tool({
+      description:
+        "List the sheet tabs of one Google Sheets spreadsheet (title, rows, columns). Get the spreadsheetId from googlesheets_list_spreadsheets.",
+      inputSchema: z.object({
+        spreadsheetId: z
+          .string()
+          .describe("Spreadsheet id from googlesheets_list_spreadsheets."),
+      }),
+      execute: async ({ spreadsheetId }) => {
+        if (!ctx.googleSheetsToken)
+          return { error: notConnected("Google Sheets") };
+        return googleSheetsAdapter.listSheets(ctx.googleSheetsToken, spreadsheetId);
+      },
+    }),
+
+    googlesheets_read_range: tool({
+      description:
+        "Read rows from a Google Sheets range as a Markdown table (the first row is treated as the header). range uses A1 notation: a sheet name like 'Candidates' reads the whole tab; 'Candidates!A1:F50' reads a block. Start with a whole tab, then narrow.",
+      inputSchema: z.object({
+        spreadsheetId: z
+          .string()
+          .describe("Spreadsheet id from googlesheets_list_spreadsheets."),
+        range: z
+          .string()
+          .describe("A1 notation, e.g. Candidates or Candidates!A1:F50."),
+        maxRows: z.number().int().positive().optional().describe("Max 200."),
+      }),
+      execute: async (args) => {
+        if (!ctx.googleSheetsToken)
+          return { error: notConnected("Google Sheets") };
+        return googleSheetsAdapter.readRange(ctx.googleSheetsToken, args);
       },
     }),
 
@@ -1855,6 +1908,9 @@ export const ALL_TOOL_NAMES = [
   "fathom_get_transcript",
   "fireflies_list_meetings",
   "fireflies_get_meeting",
+  "googlesheets_list_spreadsheets",
+  "googlesheets_list_sheets",
+  "googlesheets_read_range",
   "greenhouse_list_jobs",
   "greenhouse_list_candidates",
   "greenhouse_search_candidates",
