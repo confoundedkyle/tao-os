@@ -3,32 +3,46 @@ import type { ConnectorAdapter } from "./types";
 
 // Instantly.ai (cold-email outreach). Auth is an API v2 key (Instantly:
 // Settings → Integrations → API keys; needs campaigns:read + leads:create or
-// broader scopes) sent as a Bearer header. Campaign status is a numeric enum
-// rendered to names. Adding a lead is an outward-facing write — an Active
-// campaign starts emailing the person — so the tool layer warns, and
-// skip_if_in_workspace defaults to true so already-contacted emails are never
-// re-enrolled. Lists paginate with limit/starting_after (one page per call).
+// broader scopes) sent as a Bearer header. Lists use cursor paging: pass
+// starting_after, read next_starting_after from the { items } envelope.
+// Listing leads is a POST by API design (complex filters). Campaign and lead
+// statuses arrive as numeric codes — known ones are mapped, unknown ones
+// surface raw. Adding a lead is an outward-facing write: in an active
+// campaign Instantly queues real outreach emails to that person, so the tool
+// layer must make that explicit, and skip_if_in_workspace defaults to true so
+// already-contacted emails are never re-enrolled.
 const API = "https://api.instantly.ai/api/v2";
 
 const DEFAULT_LIMIT = 20;
-const HARD_LIMIT = 100;
+const HARD_LIMIT = 100; // Instantly page max
 const CHAR_CAP = 12_000;
 
-const STATUS_NAMES: Record<number, string> = {
-  0: "Draft",
-  1: "Active",
-  2: "Paused",
-  3: "Completed",
-  4: "Running Subsequences",
-  [-1]: "Accounts Unhealthy",
-  [-2]: "Bounce Protect",
-  [-99]: "Account Suspended",
+const CAMPAIGN_STATUS: Record<number, string> = {
+  0: "draft",
+  1: "active",
+  2: "paused",
+  3: "completed",
+  4: "running subsequences",
+  [-99]: "account suspended",
+  [-1]: "accounts unhealthy",
+  [-2]: "bounce protect",
 };
 
 export interface InstantlyCampaign {
   id?: string;
   name?: string | null;
   status?: number | null;
+}
+
+export interface InstantlyLead {
+  id?: string;
+  email?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+  company_name?: string | null;
+  campaign?: string | null;
+  status?: number | string | null;
+  email_reply_count?: number | null;
 }
 
 export interface InstantlyAnalytics {
@@ -49,7 +63,16 @@ export interface InstantlyAnalytics {
 export interface InstantlyAdapter extends ConnectorAdapter {
   listCampaigns(
     apiKey: string,
-    args?: { search?: string; status?: number; limit?: number },
+    args?: { search?: string; startingAfter?: string; limit?: number },
+  ): Promise<{ text: string; count: number; truncated: boolean }>;
+  listLeads(
+    apiKey: string,
+    args?: {
+      campaignId?: string;
+      search?: string;
+      startingAfter?: string;
+      limit?: number;
+    },
   ): Promise<{ text: string; count: number; truncated: boolean }>;
   campaignAnalytics(
     apiKey: string,
@@ -70,47 +93,50 @@ export interface InstantlyAdapter extends ConnectorAdapter {
   ): Promise<{ text: string; added: boolean }>;
 }
 
-async function call<T>(
-  apiKey: string,
-  path: string,
-  opts?: {
-    method?: string;
-    params?: Record<string, string | number | undefined>;
-    body?: Record<string, unknown>;
-  },
-): Promise<T> {
-  const sp = new URLSearchParams();
-  for (const [k, v] of Object.entries(opts?.params ?? {}))
-    if (v !== undefined && v !== "") sp.set(k, String(v));
-  const qs = sp.toString();
-  const res = await fetch(`${API}${path}${qs ? `?${qs}` : ""}`, {
-    method: opts?.method ?? "GET",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      Accept: "application/json",
-      ...(opts?.body ? { "Content-Type": "application/json" } : {}),
-    },
-    body: opts?.body ? JSON.stringify(opts.body) : undefined,
-  });
-  const json = await res.json().catch(() => null);
-  if (!res.ok) {
-    const detail =
-      (json as { message?: string } | null)?.message ??
-      (json as { error?: string } | null)?.error ??
-      res.statusText;
-    throw new Error(`Instantly error (${res.status}): ${detail}`);
-  }
-  return json as T;
+function headers(apiKey: string): Record<string, string> {
+  return { Authorization: `Bearer ${apiKey}`, Accept: "application/json" };
 }
 
-function statusName(status: number | null | undefined): string {
-  if (status == null) return "";
-  return STATUS_NAMES[status] ?? String(status);
+function fail(res: Response, json: unknown): never {
+  const detail =
+    (json as { message?: string } | null)?.message ??
+    (json as { error?: string } | null)?.error ??
+    res.statusText;
+  throw new Error(`Instantly error (${res.status}): ${detail}`);
+}
+
+async function request<T>(
+  apiKey: string,
+  method: "GET" | "POST",
+  path: string,
+  payload?: Record<string, unknown>,
+): Promise<T> {
+  let url = `${API}${path}`;
+  const init: RequestInit = { method, headers: headers(apiKey) };
+  if (method === "GET" && payload) {
+    const sp = new URLSearchParams();
+    for (const [k, v] of Object.entries(payload))
+      if (v !== undefined && v !== "") sp.set(k, String(v));
+    const qs = sp.toString();
+    if (qs) url += `?${qs}`;
+  } else if (payload) {
+    init.headers = { ...headers(apiKey), "Content-Type": "application/json" };
+    init.body = JSON.stringify(payload);
+  }
+  const res = await fetch(url, init);
+  const json = await res.json().catch(() => null);
+  if (!res.ok) fail(res, json);
+  return json as T;
 }
 
 function cell(s: unknown): string {
   if (s == null) return "";
   return String(s).replace(/\|/g, "\\|").replace(/\n/g, " ");
+}
+
+function campaignStatus(status?: number | null): string {
+  if (status == null) return "";
+  return CAMPAIGN_STATUS[status] ?? String(status);
 }
 
 export const instantlyAdapter: InstantlyAdapter = {
@@ -119,8 +145,20 @@ export const instantlyAdapter: InstantlyAdapter = {
 
   async validateApiKey(apiKey) {
     try {
-      await call<unknown>(apiKey, "/campaigns", { params: { limit: 1 } });
-      return { ok: true, accountLabel: "Instantly workspace" };
+      await request<unknown>(apiKey, "GET", "/campaigns", { limit: 1 });
+      // The workspace name makes a friendlier label; never fail over it.
+      let label = "Instantly";
+      try {
+        const ws = await request<{ name?: string }>(
+          apiKey,
+          "GET",
+          "/workspaces/current",
+        );
+        if (ws.name) label = `Instantly (${ws.name})`;
+      } catch {
+        // keep generic label
+      }
+      return { ok: true, accountLabel: label };
     } catch (error) {
       return {
         ok: false,
@@ -131,11 +169,13 @@ export const instantlyAdapter: InstantlyAdapter = {
 
   async listCampaigns(apiKey, args) {
     const limit = Math.min(args?.limit ?? DEFAULT_LIMIT, HARD_LIMIT);
-    const json = await call<{
+    const json = await request<{
       items?: InstantlyCampaign[];
-      next_starting_after?: string;
-    }>(apiKey, "/campaigns", {
-      params: { limit, search: args?.search, status: args?.status },
+      next_starting_after?: string | null;
+    }>(apiKey, "GET", "/campaigns", {
+      limit,
+      search: args?.search,
+      starting_after: args?.startingAfter,
     });
     const campaigns = json.items ?? [];
     const lines = [
@@ -145,28 +185,74 @@ export const instantlyAdapter: InstantlyAdapter = {
     let truncated = false;
     for (const c of campaigns) {
       lines.push(
-        `| ${cell(c.name)} | ${cell(statusName(c.status))} | ${cell(c.id)} |`,
+        `| ${cell(c.name)} | ${cell(campaignStatus(c.status))} | ${cell(c.id)} |`,
       );
       if (lines.join("\n").length > CHAR_CAP) {
         truncated = true;
         break;
       }
     }
+    const more = !!json.next_starting_after;
     return {
-      text: campaigns.length ? lines.join("\n") : "_No campaigns._",
+      text: campaigns.length
+        ? `${lines.join("\n")}${more ? `\n\n_More available — pass startingAfter: ${json.next_starting_after}_` : ""}`
+        : "_No campaigns._",
       count: campaigns.length,
-      truncated: truncated || !!json.next_starting_after,
+      truncated: truncated || more,
+    };
+  },
+
+  async listLeads(apiKey, args) {
+    const limit = Math.min(args?.limit ?? DEFAULT_LIMIT, HARD_LIMIT);
+    // POST by API design: the leads list takes a filter body, not a query string.
+    const json = await request<{
+      items?: InstantlyLead[];
+      next_starting_after?: string | null;
+    }>(apiKey, "POST", "/leads/list", {
+      limit,
+      campaign: args?.campaignId || undefined,
+      search: args?.search || undefined,
+      starting_after: args?.startingAfter || undefined,
+    });
+    const leads = json.items ?? [];
+    const lines = [
+      "| Name | Email | Company | Status | Replies | Lead ID |",
+      "| --- | --- | --- | --- | --- | --- |",
+    ];
+    let truncated = false;
+    for (const l of leads) {
+      const name = [l.first_name, l.last_name].filter(Boolean).join(" ");
+      lines.push(
+        `| ${cell(name)} | ${cell(l.email)} | ${cell(l.company_name)} | ${cell(
+          l.status,
+        )} | ${l.email_reply_count ?? ""} | ${cell(l.id)} |`,
+      );
+      if (lines.join("\n").length > CHAR_CAP) {
+        truncated = true;
+        break;
+      }
+    }
+    const more = !!json.next_starting_after;
+    return {
+      text: leads.length
+        ? `${lines.join("\n")}${more ? `\n\n_More available — pass startingAfter: ${json.next_starting_after}_` : ""}`
+        : "_No leads._",
+      count: leads.length,
+      truncated: truncated || more,
     };
   },
 
   async campaignAnalytics(apiKey, args) {
-    const stats = await call<InstantlyAnalytics[]>(apiKey, "/campaigns/analytics", {
-      params: {
+    const stats = await request<InstantlyAnalytics[]>(
+      apiKey,
+      "GET",
+      "/campaigns/analytics",
+      {
         id: args?.campaignId,
         start_date: args?.startDate,
         end_date: args?.endDate,
       },
-    });
+    );
     const list = Array.isArray(stats) ? stats : [];
     if (list.length === 0) return { text: "_No analytics._", count: 0 };
     const lines = [
@@ -175,7 +261,7 @@ export const instantlyAdapter: InstantlyAdapter = {
     ];
     for (const s of list) {
       lines.push(
-        `| ${cell(s.campaign_name)} | ${cell(statusName(s.campaign_status))} | ${
+        `| ${cell(s.campaign_name)} | ${cell(campaignStatus(s.campaign_status))} | ${
           s.leads_count ?? ""
         } | ${s.contacted_count ?? ""} | ${s.emails_sent_count ?? ""} | ${
           s.open_count_unique ?? ""
@@ -207,10 +293,11 @@ export const instantlyAdapter: InstantlyAdapter = {
     if (args.jobTitle) body.job_title = args.jobTitle;
     if (args.personalization) body.personalization = args.personalization;
 
-    const lead = await call<{ id?: string; status?: string }>(
+    const lead = await request<{ id?: string; status?: string }>(
       apiKey,
+      "POST",
       "/leads",
-      { method: "POST", body },
+      body,
     );
     return {
       text: `Added ${args.email} to campaign ${args.campaignId}${

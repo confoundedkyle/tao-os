@@ -119,10 +119,14 @@ export async function POST(request: NextRequest) {
   let airtableToken: string | null = null;
   let apolloToken: string | null = null;
   let ashbyToken: string | null = null;
+  let bamboohrToken: string | null = null;
   let breezyhrToken: string | null = null;
   let brightdataToken: string | null = null;
+  let catsToken: string | null = null;
   let contactoutToken: string | null = null;
   let coresignalToken: string | null = null;
+  let fathomToken: string | null = null;
+  let firefliesToken: string | null = null;
   let greenhouseToken: string | null = null;
   let hubspotToken: string | null = null;
   let hunterToken: string | null = null;
@@ -133,11 +137,15 @@ export async function POST(request: NextRequest) {
   let loxoToken: string | null = null;
   let lushaToken: string | null = null;
   let manatalToken: string | null = null;
+  let peopledatalabsToken: string | null = null;
   let pinpointToken: string | null = null;
   let pipedriveToken: string | null = null;
   let recruiteeToken: string | null = null;
   let recruiterflowToken: string | null = null;
+  let rocketreachToken: string | null = null;
+  let smartrecruitersToken: string | null = null;
   let teamtailorToken: string | null = null;
+  let tldvToken: string | null = null;
   let workableToken: string | null = null;
   let zohoCrmToken: string | null = null;
   let zohoRecruitToken: string | null = null;
@@ -146,10 +154,14 @@ export async function POST(request: NextRequest) {
       airtableToken,
       apolloToken,
       ashbyToken,
+      bamboohrToken,
       breezyhrToken,
       brightdataToken,
+      catsToken,
       contactoutToken,
       coresignalToken,
+      fathomToken,
+      firefliesToken,
       greenhouseToken,
       hubspotToken,
       hunterToken,
@@ -160,11 +172,15 @@ export async function POST(request: NextRequest) {
       loxoToken,
       lushaToken,
       manatalToken,
+      peopledatalabsToken,
       pinpointToken,
       pipedriveToken,
       recruiteeToken,
       recruiterflowToken,
+      rocketreachToken,
+      smartrecruitersToken,
       teamtailorToken,
+      tldvToken,
       workableToken,
       zohoCrmToken,
       zohoRecruitToken,
@@ -172,10 +188,14 @@ export async function POST(request: NextRequest) {
       tokenFor("airtable_", "airtable"),
       tokenFor("apollo_", "apollo"),
       tokenFor("ashby_", "ashby"),
+      tokenFor("bamboohr_", "bamboohr"),
       tokenFor("breezyhr_", "breezyhr"),
       tokenFor("brightdata_", "brightdata"),
+      tokenFor("cats_", "cats"),
       tokenFor("contactout_", "contactout"),
       tokenFor("coresignal_", "coresignal"),
+      tokenFor("fathom_", "fathom"),
+      tokenFor("fireflies_", "fireflies"),
       tokenFor("greenhouse_", "greenhouse"),
       tokenFor("hubspot_", "hubspot"),
       tokenFor("hunter_", "hunter"),
@@ -186,11 +206,15 @@ export async function POST(request: NextRequest) {
       tokenFor("loxo_", "loxo"),
       tokenFor("lusha_", "lusha"),
       tokenFor("manatal_", "manatal"),
+      tokenFor("peopledatalabs_", "peopledatalabs"),
       tokenFor("pinpoint_", "pinpoint"),
       tokenFor("pipedrive_", "pipedrive"),
       tokenFor("recruitee_", "recruitee"),
       tokenFor("recruiterflow_", "recruiterflow"),
+      tokenFor("rocketreach_", "rocketreach"),
+      tokenFor("smartrecruiters_", "smartrecruiters"),
       tokenFor("teamtailor_", "teamtailor"),
+      tokenFor("tldv_", "tldv"),
       tokenFor("workable_", "workable"),
       tokenFor("zohocrm_", "zoho-crm"),
       tokenFor("zohorecruit_", "zoho-recruit"),
@@ -234,10 +258,14 @@ export async function POST(request: NextRequest) {
     airtableToken,
     apolloToken,
     ashbyToken,
+    bamboohrToken,
     breezyhrToken,
     brightdataToken,
+    catsToken,
     contactoutToken,
     coresignalToken,
+    fathomToken,
+    firefliesToken,
     greenhouseToken,
     hubspotToken,
     hunterToken,
@@ -248,11 +276,15 @@ export async function POST(request: NextRequest) {
     loxoToken,
     lushaToken,
     manatalToken,
+    peopledatalabsToken,
     pinpointToken,
     pipedriveToken,
     recruiteeToken,
     recruiterflowToken,
+    rocketreachToken,
+    smartrecruitersToken,
     teamtailorToken,
+    tldvToken,
     workableToken,
     zohoCrmToken,
     zohoRecruitToken,

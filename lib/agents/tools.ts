@@ -6,10 +6,14 @@ import { listDocuments, getDocument } from "../queries";
 import { airtableAdapter } from "../integrations/airtable";
 import { apolloAdapter } from "../integrations/apollo";
 import { ashbyAdapter } from "../integrations/ashby";
+import { bamboohrAdapter } from "../integrations/bamboohr";
 import { breezyhrAdapter } from "../integrations/breezyhr";
 import { brightdataAdapter } from "../integrations/brightdata";
+import { catsAdapter } from "../integrations/cats";
 import { contactoutAdapter } from "../integrations/contactout";
 import { coresignalAdapter } from "../integrations/coresignal";
+import { fathomAdapter } from "../integrations/fathom";
+import { firefliesAdapter } from "../integrations/fireflies";
 import { greenhouseAdapter } from "../integrations/greenhouse";
 import { hubspotAdapter } from "../integrations/hubspot";
 import { hunterAdapter } from "../integrations/hunter";
@@ -20,11 +24,15 @@ import { leverAdapter } from "../integrations/lever";
 import { loxoAdapter } from "../integrations/loxo";
 import { lushaAdapter } from "../integrations/lusha";
 import { manatalAdapter } from "../integrations/manatal";
+import { peopledatalabsAdapter } from "../integrations/peopledatalabs";
 import { pinpointAdapter } from "../integrations/pinpoint";
 import { pipedriveAdapter } from "../integrations/pipedrive";
 import { recruiteeAdapter } from "../integrations/recruitee";
 import { recruiterflowAdapter } from "../integrations/recruiterflow";
+import { rocketreachAdapter } from "../integrations/rocketreach";
+import { smartrecruitersAdapter } from "../integrations/smartrecruiters";
 import { teamtailorAdapter } from "../integrations/teamtailor";
+import { tldvAdapter } from "../integrations/tldv";
 import { workableAdapter } from "../integrations/workable";
 import { zohoCrmAdapter } from "../integrations/zoho-crm";
 import { zohoRecruitAdapter } from "../integrations/zoho-recruit";
@@ -43,10 +51,14 @@ export interface ToolContext {
   airtableToken: string | null;
   apolloToken: string | null;
   ashbyToken: string | null;
+  bamboohrToken: string | null;
   breezyhrToken: string | null;
   brightdataToken: string | null;
+  catsToken: string | null;
   contactoutToken: string | null;
   coresignalToken: string | null;
+  fathomToken: string | null;
+  firefliesToken: string | null;
   greenhouseToken: string | null;
   hubspotToken: string | null;
   hunterToken: string | null;
@@ -57,11 +69,15 @@ export interface ToolContext {
   loxoToken: string | null;
   lushaToken: string | null;
   manatalToken: string | null;
+  peopledatalabsToken: string | null;
   pinpointToken: string | null;
   pipedriveToken: string | null;
   recruiteeToken: string | null;
   recruiterflowToken: string | null;
+  rocketreachToken: string | null;
+  smartrecruitersToken: string | null;
   teamtailorToken: string | null;
+  tldvToken: string | null;
   workableToken: string | null;
   zohoCrmToken: string | null;
   zohoRecruitToken: string | null;
@@ -217,6 +233,38 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    bamboohr_list_jobs: tool({
+      description:
+        "List job openings in the connected BambooHR ATS (title, status, department, location, job id). Use to find the role you are sourcing for — the job id scopes application lookups.",
+      inputSchema: z.object({
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.bamboohrToken) return { error: notConnected("BambooHR") };
+        return bamboohrAdapter.listJobs(ctx.bamboohrToken, args);
+      },
+    }),
+
+    bamboohr_list_applications: tool({
+      description:
+        "List job applications in the connected BambooHR ATS as a Markdown table (name, email, phone, status, applied date, job). Filters combine: searchString searches by applicant name, jobId scopes to one job's pipeline (from bamboohr_list_jobs).",
+      inputSchema: z.object({
+        searchString: z
+          .string()
+          .optional()
+          .describe("Search by applicant name."),
+        jobId: z
+          .string()
+          .optional()
+          .describe("Job id to scope to one role's pipeline."),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.bamboohrToken) return { error: notConnected("BambooHR") };
+        return bamboohrAdapter.listApplications(ctx.bamboohrToken, args);
+      },
+    }),
+
     breezyhr_list_positions: tool({
       description:
         "List positions/requisitions in the connected BreezyHR ATS (name, state, department, location, position id). Use to find the role you are sourcing for. Operates on the account's first company unless companyId is given.",
@@ -305,6 +353,90 @@ function buildAll(ctx: ToolContext): ToolSet {
       execute: async ({ idOrShorthand }) => {
         if (!ctx.coresignalToken) return { error: notConnected("Coresignal") };
         return coresignalAdapter.collectEmployee(ctx.coresignalToken, idOrShorthand);
+      },
+    }),
+
+    fireflies_list_meetings: tool({
+      description:
+        "List meetings recorded by the connected Fireflies.ai notetaker (title, date, duration, organizer, participants, meeting id). Filters combine: keyword searches titles and spoken content, participantEmail scopes to one person's meetings, fromDate/toDate (ISO 8601) bound the range.",
+      inputSchema: z.object({
+        keyword: z
+          .string()
+          .optional()
+          .describe("Search meeting titles and spoken content."),
+        participantEmail: z
+          .string()
+          .optional()
+          .describe("Only meetings this email attended."),
+        fromDate: z.string().optional().describe("ISO 8601 start of range."),
+        toDate: z.string().optional().describe("ISO 8601 end of range."),
+        limit: z.number().int().positive().optional().describe("Max 50."),
+      }),
+      execute: async (args) => {
+        if (!ctx.firefliesToken) return { error: notConnected("Fireflies.ai") };
+        return firefliesAdapter.listMeetings(ctx.firefliesToken, args);
+      },
+    }),
+
+    fireflies_get_meeting: tool({
+      description:
+        "Read one Fireflies.ai meeting in full: AI summary (overview, action items, keywords) plus the speaker-attributed transcript, truncated if very long. Get the meetingId from fireflies_list_meetings.",
+      inputSchema: z.object({
+        meetingId: z
+          .string()
+          .describe("Meeting id from fireflies_list_meetings."),
+      }),
+      execute: async (args) => {
+        if (!ctx.firefliesToken) return { error: notConnected("Fireflies.ai") };
+        return firefliesAdapter.getMeeting(ctx.firefliesToken, args);
+      },
+    }),
+
+    fathom_list_meetings: tool({
+      description:
+        "List calls recorded by the connected Fathom notetaker (title, date, invitees, recording id, share link). Filters combine: inviteeDomain (attendee company domain, exact match), recordedBy (recorder's email), createdAfter/createdBefore (ISO 8601); paginate with the cursor from the previous page.",
+      inputSchema: z.object({
+        inviteeDomain: z
+          .string()
+          .optional()
+          .describe("Attendee company domain, e.g. acme.com."),
+        recordedBy: z.string().optional().describe("Recorder's email."),
+        createdAfter: z.string().optional().describe("ISO 8601 start of range."),
+        createdBefore: z.string().optional().describe("ISO 8601 end of range."),
+        cursor: z.string().optional().describe("Cursor from the previous page."),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.fathomToken) return { error: notConnected("Fathom") };
+        return fathomAdapter.listMeetings(ctx.fathomToken, args);
+      },
+    }),
+
+    fathom_get_summary: tool({
+      description:
+        "Read the AI summary (markdown) of one Fathom recording. Get the recordingId from fathom_list_meetings.",
+      inputSchema: z.object({
+        recordingId: z
+          .string()
+          .describe("Recording id from fathom_list_meetings."),
+      }),
+      execute: async ({ recordingId }) => {
+        if (!ctx.fathomToken) return { error: notConnected("Fathom") };
+        return fathomAdapter.getSummary(ctx.fathomToken, recordingId);
+      },
+    }),
+
+    fathom_get_transcript: tool({
+      description:
+        "Read the speaker-attributed transcript of one Fathom recording, truncated if very long. Get the recordingId from fathom_list_meetings. Prefer fathom_get_summary first; pull the transcript when you need exact quotes or detail.",
+      inputSchema: z.object({
+        recordingId: z
+          .string()
+          .describe("Recording id from fathom_list_meetings."),
+      }),
+      execute: async ({ recordingId }) => {
+        if (!ctx.fathomToken) return { error: notConnected("Fathom") };
+        return fathomAdapter.getTranscript(ctx.fathomToken, recordingId);
       },
     }),
 
@@ -583,6 +715,33 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    cats_list_jobs: tool({
+      description:
+        "List jobs in the connected CATS ATS (title, location, created date, job id). Paginate with page. Use to find the role you are sourcing for.",
+      inputSchema: z.object({
+        page: z.number().int().positive().optional(),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.catsToken) return { error: notConnected("CATS") };
+        return catsAdapter.listJobs(ctx.catsToken, args);
+      },
+    }),
+
+    cats_list_candidates: tool({
+      description:
+        "List candidates in the connected CATS ATS as a Markdown table (name, email, phone, title). Pass query to search by name or email; omit it to list recent candidates. Paginate with page.",
+      inputSchema: z.object({
+        query: z.string().optional().describe("Search by name or email."),
+        page: z.number().int().positive().optional(),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.catsToken) return { error: notConnected("CATS") };
+        return catsAdapter.listCandidates(ctx.catsToken, args);
+      },
+    }),
+
     contactout_people_search: tool({
       description:
         "Search ContactOut's database of LinkedIn profiles by name, job title, company, location, seniority, or skills. Returns name, title, company, location, and the LinkedIn URL per person as a Markdown table. Contact details are NOT revealed by default (search is free); set revealInfo only when you need contacts for every row — it consumes email and phone credits PER PROFILE. Prefer searching first, then enriching only the selected people with contactout_linkedin_enrich.",
@@ -745,24 +904,6 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
-    instantly_list_campaigns: tool({
-      description:
-        "List cold-email campaigns in the connected Instantly.ai workspace (name, status, campaign id). Filter by name search or status code (0 Draft, 1 Active, 2 Paused, 3 Completed).",
-      inputSchema: z.object({
-        search: z.string().optional().describe("Filter by campaign name."),
-        status: z
-          .number()
-          .int()
-          .optional()
-          .describe("Status filter: 0 Draft, 1 Active, 2 Paused, 3 Completed."),
-        limit: z.number().int().positive().optional(),
-      }),
-      execute: async (args) => {
-        if (!ctx.instantlyToken) return { error: notConnected("Instantly.ai") };
-        return instantlyAdapter.listCampaigns(ctx.instantlyToken, args);
-      },
-    }),
-
     instantly_campaign_analytics: tool({
       description:
         "Get outreach performance for Instantly.ai campaigns — leads, contacted, emails sent, unique opens/replies, bounces, unsubscribes, opportunities. Scope to one campaign with campaignId and/or a date range.",
@@ -879,6 +1020,44 @@ function buildAll(ctx: ToolContext): ToolSet {
       execute: async (args) => {
         if (!ctx.leverToken) return { error: notConnected("Lever") };
         return leverAdapter.listOpportunities(ctx.leverToken, args);
+      },
+    }),
+
+    instantly_list_campaigns: tool({
+      description:
+        "List cold-email campaigns in the connected Instantly.ai workspace (name, status, campaign id). search filters by name; paginate by passing the startingAfter cursor from the previous page.",
+      inputSchema: z.object({
+        search: z.string().optional().describe("Filter campaigns by name."),
+        startingAfter: z
+          .string()
+          .optional()
+          .describe("Cursor from the previous page."),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.instantlyToken) return { error: notConnected("Instantly.ai") };
+        return instantlyAdapter.listCampaigns(ctx.instantlyToken, args);
+      },
+    }),
+
+    instantly_list_leads: tool({
+      description:
+        "List leads in the connected Instantly.ai workspace as a Markdown table (name, email, company, status, reply count). Filters combine: campaignId scopes to one campaign (from instantly_list_campaigns), search matches name/email; paginate with the startingAfter cursor.",
+      inputSchema: z.object({
+        campaignId: z
+          .string()
+          .optional()
+          .describe("Campaign id to scope to one campaign."),
+        search: z.string().optional().describe("Search by name or email."),
+        startingAfter: z
+          .string()
+          .optional()
+          .describe("Cursor from the previous page."),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.instantlyToken) return { error: notConnected("Instantly.ai") };
+        return instantlyAdapter.listLeads(ctx.instantlyToken, args);
       },
     }),
 
@@ -1054,6 +1233,59 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    peopledatalabs_enrich_person: tool({
+      description:
+        "Resolve one person via People Data Labs from an email, a LinkedIn profile URL, or a name plus a company or location anchor. Returns title, company, work email, personal emails, phones, LinkedIn, and a 0-10 match likelihood. Costs a credit only when a match is found — enrich selectively, never in bulk.",
+      inputSchema: z.object({
+        email: z.string().optional().describe("A known email address."),
+        profile: z.string().optional().describe("LinkedIn profile URL."),
+        name: z.string().optional().describe("Full name."),
+        company: z.string().optional().describe("Current employer name."),
+        location: z.string().optional().describe("Location anchor."),
+        minLikelihood: z
+          .number()
+          .int()
+          .min(0)
+          .max(10)
+          .optional()
+          .describe("Minimum 0-10 match confidence to accept (default none)."),
+      }),
+      execute: async (args) => {
+        if (!ctx.peopledatalabsToken)
+          return { error: notConnected("People Data Labs") };
+        return peopledatalabsAdapter.enrichPerson(
+          ctx.peopledatalabsToken,
+          args,
+        );
+      },
+    }),
+
+    peopledatalabs_search_people: tool({
+      description:
+        "Search People Data Labs' person dataset with SQL: SELECT * FROM person WHERE job_title = 'recruiter' AND location_country = 'germany'. Useful fields: job_title, job_company_name, location_country, location_locality, skills. EVERY returned record costs a credit — keep size small (default 5) and filter tightly before searching.",
+      inputSchema: z.object({
+        sql: z
+          .string()
+          .describe(
+            "SQL of the form SELECT * FROM person WHERE … (LIMIT is ignored; use size).",
+          ),
+        size: z
+          .number()
+          .int()
+          .positive()
+          .optional()
+          .describe("Records to return (each is billed). Max 25."),
+      }),
+      execute: async (args) => {
+        if (!ctx.peopledatalabsToken)
+          return { error: notConnected("People Data Labs") };
+        return peopledatalabsAdapter.searchPeople(
+          ctx.peopledatalabsToken,
+          args,
+        );
+      },
+    }),
+
     pipedrive_search_persons: tool({
       description:
         "Search persons in the connected Pipedrive CRM by name, email, or phone (term must be 2+ characters). Returns name, email, phone, and organization.",
@@ -1151,6 +1383,96 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    rocketreach_search_people: tool({
+      description:
+        "Search RocketReach profiles by name, titles, employers, or locations. Returns name, title, company, LinkedIn, and profile id — no contact details and no credit cost. Treat results as candidates for rocketreach_lookup_person.",
+      inputSchema: z.object({
+        name: z.string().optional().describe("Person name."),
+        titles: z.array(z.string()).optional().describe("Job titles."),
+        employers: z.array(z.string()).optional().describe("Company names."),
+        locations: z.array(z.string()).optional().describe("Locations."),
+        page: z.number().int().positive().optional(),
+        limit: z.number().int().positive().optional().describe("Max 25."),
+      }),
+      execute: async (args) => {
+        if (!ctx.rocketreachToken) return { error: notConnected("RocketReach") };
+        return rocketreachAdapter.searchPeople(ctx.rocketreachToken, args);
+      },
+    }),
+
+    rocketreach_lookup_person: tool({
+      description:
+        "Reveal a person's emails and phones via RocketReach from a profileId (from rocketreach_search_people), an email, a LinkedIn URL, or a name plus currentEmployer. Costs a credit per match — look up selectively, never in bulk. May return an in-progress status; finish with rocketreach_check_lookup.",
+      inputSchema: z.object({
+        profileId: z
+          .number()
+          .int()
+          .optional()
+          .describe("Profile id from rocketreach_search_people."),
+        name: z.string().optional().describe("Full name."),
+        currentEmployer: z
+          .string()
+          .optional()
+          .describe("Current employer (required with name)."),
+        email: z.string().optional().describe("A known email address."),
+        linkedinUrl: z.string().optional().describe("LinkedIn profile URL."),
+      }),
+      execute: async (args) => {
+        if (!ctx.rocketreachToken) return { error: notConnected("RocketReach") };
+        return rocketreachAdapter.lookupPerson(ctx.rocketreachToken, args);
+      },
+    }),
+
+    rocketreach_check_lookup: tool({
+      description:
+        "Fetch the finished result of a RocketReach lookup that was still in progress (use the profile id rocketreach_lookup_person returned). Free to call.",
+      inputSchema: z.object({
+        profileId: z
+          .number()
+          .int()
+          .describe("Profile id from the in-progress lookup."),
+      }),
+      execute: async ({ profileId }) => {
+        if (!ctx.rocketreachToken) return { error: notConnected("RocketReach") };
+        return rocketreachAdapter.checkLookup(ctx.rocketreachToken, profileId);
+      },
+    }),
+
+    smartrecruiters_list_jobs: tool({
+      description:
+        "List jobs in the connected SmartRecruiters ATS (title, status, department, location, job id). Optionally filter by status (e.g. SOURCING, OFFER, FILLED). Use to find the role you are sourcing for — the job id scopes candidate lookups.",
+      inputSchema: z.object({
+        status: z.string().optional().describe("Job status filter."),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.smartrecruitersToken)
+          return { error: notConnected("SmartRecruiters") };
+        return smartrecruitersAdapter.listJobs(ctx.smartrecruitersToken, args);
+      },
+    }),
+
+    smartrecruiters_list_candidates: tool({
+      description:
+        "List candidates in the connected SmartRecruiters ATS as a Markdown table (name, email, phone, location, stage, job). Filters combine: query searches by name/email, jobId scopes to one job's pipeline (from smartrecruiters_list_jobs).",
+      inputSchema: z.object({
+        query: z.string().optional().describe("Search by name or email."),
+        jobId: z
+          .string()
+          .optional()
+          .describe("Job id to scope to one role's pipeline."),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.smartrecruitersToken)
+          return { error: notConnected("SmartRecruiters") };
+        return smartrecruitersAdapter.listCandidates(
+          ctx.smartrecruitersToken,
+          args,
+        );
+      },
+    }),
+
     teamtailor_list_jobs: tool({
       description:
         "List jobs in the connected Teamtailor ATS (title, status, remote status, job id). Filter by status: published, draft, archived, scheduled, internal.",
@@ -1187,6 +1509,44 @@ function buildAll(ctx: ToolContext): ToolSet {
       execute: async (args) => {
         if (!ctx.teamtailorToken) return { error: notConnected("Teamtailor") };
         return teamtailorAdapter.listJobApplications(ctx.teamtailorToken, args);
+      },
+    }),
+
+    tldv_list_meetings: tool({
+      description:
+        "List meetings recorded by the connected tl;dv notetaker (name, date, duration, organizer, invitees, meeting id). query searches meeting names; paginate with page.",
+      inputSchema: z.object({
+        query: z.string().optional().describe("Search meeting names."),
+        page: z.number().int().positive().optional(),
+        limit: z.number().int().positive().optional().describe("Max 50."),
+      }),
+      execute: async (args) => {
+        if (!ctx.tldvToken) return { error: notConnected("tl;dv") };
+        return tldvAdapter.listMeetings(ctx.tldvToken, args);
+      },
+    }),
+
+    tldv_get_notes: tool({
+      description:
+        "Read the AI notes of one tl;dv meeting (markdown with per-topic summaries). Get the meetingId from tldv_list_meetings. Prefer this before the transcript.",
+      inputSchema: z.object({
+        meetingId: z.string().describe("Meeting id from tldv_list_meetings."),
+      }),
+      execute: async ({ meetingId }) => {
+        if (!ctx.tldvToken) return { error: notConnected("tl;dv") };
+        return tldvAdapter.getNotes(ctx.tldvToken, meetingId);
+      },
+    }),
+
+    tldv_get_transcript: tool({
+      description:
+        "Read the speaker-attributed transcript of one tl;dv meeting, truncated if very long. Get the meetingId from tldv_list_meetings. Pull this when you need exact quotes or detail beyond the notes.",
+      inputSchema: z.object({
+        meetingId: z.string().describe("Meeting id from tldv_list_meetings."),
+      }),
+      execute: async ({ meetingId }) => {
+        if (!ctx.tldvToken) return { error: notConnected("tl;dv") };
+        return tldvAdapter.getTranscript(ctx.tldvToken, meetingId);
       },
     }),
 
@@ -1341,6 +1701,8 @@ export const ALL_TOOL_NAMES = [
   "ashby_list_jobs",
   "ashby_list_candidates",
   "ashby_search_candidates",
+  "bamboohr_list_jobs",
+  "bamboohr_list_applications",
   "breezyhr_list_positions",
   "breezyhr_list_candidates",
   "breezyhr_search_candidates",
@@ -1353,12 +1715,19 @@ export const ALL_TOOL_NAMES = [
   "brightdata_scrape_linkedin_profiles",
   "brightdata_scrape_linkedin_companies",
   "brightdata_get_snapshot",
+  "cats_list_jobs",
+  "cats_list_candidates",
   "contactout_people_search",
   "contactout_linkedin_enrich",
   "contactout_person_enrich",
   "contactout_email_verify",
   "coresignal_search_employees",
   "coresignal_collect_employee",
+  "fathom_list_meetings",
+  "fathom_get_summary",
+  "fathom_get_transcript",
+  "fireflies_list_meetings",
+  "fireflies_get_meeting",
   "greenhouse_list_jobs",
   "greenhouse_list_candidates",
   "greenhouse_search_candidates",
@@ -1366,6 +1735,7 @@ export const ALL_TOOL_NAMES = [
   "hubspot_search_companies",
   "hubspot_search_deals",
   "instantly_list_campaigns",
+  "instantly_list_leads",
   "instantly_campaign_analytics",
   "instantly_add_lead",
   "jazzhr_list_jobs",
@@ -1384,6 +1754,8 @@ export const ALL_TOOL_NAMES = [
   "manatal_list_jobs",
   "manatal_search_candidates",
   "manatal_list_job_candidates",
+  "peopledatalabs_enrich_person",
+  "peopledatalabs_search_people",
   "pinpoint_list_jobs",
   "pinpoint_list_candidates",
   "pipedrive_search_persons",
@@ -1393,9 +1765,17 @@ export const ALL_TOOL_NAMES = [
   "recruitee_list_candidates",
   "recruiterflow_list_jobs",
   "recruiterflow_list_candidates",
+  "rocketreach_search_people",
+  "rocketreach_lookup_person",
+  "rocketreach_check_lookup",
+  "smartrecruiters_list_jobs",
+  "smartrecruiters_list_candidates",
   "teamtailor_list_jobs",
   "teamtailor_list_candidates",
   "teamtailor_list_job_candidates",
+  "tldv_list_meetings",
+  "tldv_get_notes",
+  "tldv_get_transcript",
   "workable_list_jobs",
   "workable_list_candidates",
   "zohocrm_search_contacts",
