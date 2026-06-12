@@ -19,7 +19,7 @@ function redirectUri(request: NextRequest): string {
 }
 
 export async function GET(request: NextRequest) {
-  const origin = request.nextUrl.origin;
+  const origin = env.appBaseUrl || request.nextUrl.origin;
   const session = await getSession();
   if (!session) {
     return NextResponse.redirect(new URL("/sign-in", origin));

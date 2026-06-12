@@ -21,11 +21,11 @@ function redirectUri(request: NextRequest): string {
 export async function GET(request: NextRequest) {
   const session = await getSession();
   if (!session) {
-    return NextResponse.redirect(new URL("/sign-in", request.nextUrl.origin));
+    return NextResponse.redirect(new URL("/sign-in", env.appBaseUrl || request.nextUrl.origin));
   }
   if (!env.jobadderClientId || !env.jobadderClientSecret) {
     return NextResponse.redirect(
-      new URL("/settings/connectors?error=not_configured", request.nextUrl.origin),
+      new URL("/settings/connectors?error=not_configured", env.appBaseUrl || request.nextUrl.origin),
     );
   }
   const adapter = getAdapter(PROVIDER)!;
