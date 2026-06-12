@@ -16,8 +16,17 @@
 #   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, NEXT_PUBLIC_SUPABASE_ANON_KEY,
 #   APP_ENCRYPTION_KEY, NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY, CLERK_SECRET_KEY,
 #   CLERK_WEBHOOK_SIGNING_SECRET, CALYFLOW_PLATFORM_API_KEY, CRON_SECRET
-# Optional connector SECRETS (Airtable):
-#   AIRTABLE_CLIENT_ID, AIRTABLE_CLIENT_SECRET
+# Optional connector OAuth SECRETS (each enables one connector's Connect flow):
+#   AIRTABLE_CLIENT_ID, AIRTABLE_CLIENT_SECRET,
+#   BULLHORN_CLIENT_ID, BULLHORN_CLIENT_SECRET,
+#   GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET,
+#   JOBADDER_CLIENT_ID, JOBADDER_CLIENT_SECRET,
+#   MICROSOFT_CLIENT_ID, MICROSOFT_CLIENT_SECRET,
+#   NOTION_CLIENT_ID, NOTION_CLIENT_SECRET,
+#   ZOHO_CLIENT_ID, ZOHO_CLIENT_SECRET
+# Optional connector VARIABLES (regional base-URL overrides; code has defaults):
+#   BULLHORN_AUTH_BASE, BULLHORN_REST_LOGIN_BASE,
+#   ZOHO_ACCOUNTS_BASE, ZOHO_API_BASE, ZOHO_RECRUIT_API_BASE
 # Optional SECRETS (enable CI-applied DB migrations):
 #   SUPABASE_ACCESS_TOKEN, SUPABASE_DB_PASSWORD
 
@@ -129,6 +138,14 @@ jobs:
               "CALYFLOW_PLATFORM_MODEL",
               "ONE_TIME_PLATFORM_CREDIT_DEFAULT_USD", "CRON_SECRET", "MOCK_AI",
               "APP_BASE_URL", "AIRTABLE_CLIENT_ID", "AIRTABLE_CLIENT_SECRET",
+              "BULLHORN_CLIENT_ID", "BULLHORN_CLIENT_SECRET",
+              "BULLHORN_AUTH_BASE", "BULLHORN_REST_LOGIN_BASE",
+              "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET",
+              "JOBADDER_CLIENT_ID", "JOBADDER_CLIENT_SECRET",
+              "MICROSOFT_CLIENT_ID", "MICROSOFT_CLIENT_SECRET",
+              "NOTION_CLIENT_ID", "NOTION_CLIENT_SECRET",
+              "ZOHO_CLIENT_ID", "ZOHO_CLIENT_SECRET",
+              "ZOHO_ACCOUNTS_BASE", "ZOHO_API_BASE", "ZOHO_RECRUIT_API_BASE",
             ];
             const env = Object.fromEntries(
               keys.filter((k) => process.env[k]).map((k) => [k, process.env[k]])
@@ -152,12 +169,31 @@ jobs:
           ONE_TIME_PLATFORM_CREDIT_DEFAULT_USD: ${{ vars.ONE_TIME_PLATFORM_CREDIT_DEFAULT_USD }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           MOCK_AI: ${{ vars.MOCK_AI }}
-          # Data-source connectors (Airtable). APP_BASE_URL is the public app URL
-          # (e.g. https://app.calyflow.com); the Airtable redirect URL registered
-          # in the OAuth integration must be ${APP_BASE_URL}/api/connectors/airtable/callback.
+          # OAuth connectors. APP_BASE_URL is the public app URL
+          # (e.g. https://app.calyflow.com); each provider's registered redirect
+          # URI must be ${APP_BASE_URL}/api/connectors/<provider>/callback.
+          # Unset values are filtered out above — a connector without
+          # credentials just shows "not configured" on its Connect button.
           APP_BASE_URL: ${{ vars.APP_BASE_URL }}
           AIRTABLE_CLIENT_ID: ${{ secrets.AIRTABLE_CLIENT_ID }}
           AIRTABLE_CLIENT_SECRET: ${{ secrets.AIRTABLE_CLIENT_SECRET }}
+          BULLHORN_CLIENT_ID: ${{ secrets.BULLHORN_CLIENT_ID }}
+          BULLHORN_CLIENT_SECRET: ${{ secrets.BULLHORN_CLIENT_SECRET }}
+          BULLHORN_AUTH_BASE: ${{ vars.BULLHORN_AUTH_BASE }}
+          BULLHORN_REST_LOGIN_BASE: ${{ vars.BULLHORN_REST_LOGIN_BASE }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          JOBADDER_CLIENT_ID: ${{ secrets.JOBADDER_CLIENT_ID }}
+          JOBADDER_CLIENT_SECRET: ${{ secrets.JOBADDER_CLIENT_SECRET }}
+          MICROSOFT_CLIENT_ID: ${{ secrets.MICROSOFT_CLIENT_ID }}
+          MICROSOFT_CLIENT_SECRET: ${{ secrets.MICROSOFT_CLIENT_SECRET }}
+          NOTION_CLIENT_ID: ${{ secrets.NOTION_CLIENT_ID }}
+          NOTION_CLIENT_SECRET: ${{ secrets.NOTION_CLIENT_SECRET }}
+          ZOHO_CLIENT_ID: ${{ secrets.ZOHO_CLIENT_ID }}
+          ZOHO_CLIENT_SECRET: ${{ secrets.ZOHO_CLIENT_SECRET }}
+          ZOHO_ACCOUNTS_BASE: ${{ vars.ZOHO_ACCOUNTS_BASE }}
+          ZOHO_API_BASE: ${{ vars.ZOHO_API_BASE }}
+          ZOHO_RECRUIT_API_BASE: ${{ vars.ZOHO_RECRUIT_API_BASE }}
 
       - name: Deploy to Cloud Run
         run: |
