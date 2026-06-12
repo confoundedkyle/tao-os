@@ -190,7 +190,13 @@ function ConnectorFooter({
   }
 
   if (connector.auth === "apikey") {
-    return <ApiKeyConnect provider={connector.provider} />;
+    return (
+      <ApiKeyConnect
+        provider={connector.provider}
+        placeholder={connector.apiKeyPlaceholder}
+        hint={connector.apiKeyHint}
+      />
+    );
   }
 
   return (
@@ -205,7 +211,15 @@ function ConnectorFooter({
   );
 }
 
-function ApiKeyConnect({ provider }: { provider: string }) {
+function ApiKeyConnect({
+  provider,
+  placeholder,
+  hint,
+}: {
+  provider: string;
+  placeholder?: string;
+  hint?: string;
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [key, setKey] = useState("");
@@ -235,7 +249,7 @@ function ApiKeyConnect({ provider }: { provider: string }) {
           value={key}
           autoFocus
           disabled={pending}
-          placeholder="Paste API key"
+          placeholder={placeholder ?? "Paste API key"}
           onChange={(e) => setKey(e.target.value)}
           className="min-w-44 flex-1 rounded-chip border border-navy-800/20 bg-white px-3 py-1.5 text-sm outline-none focus:border-mint-700"
         />
@@ -271,6 +285,7 @@ function ApiKeyConnect({ provider }: { provider: string }) {
           Cancel
         </button>
       </div>
+      {hint && <p className="mt-2 text-xs text-navy-800/45">{hint}</p>}
       {error && <p className="mt-2 text-sm text-coral-400">{error}</p>}
     </div>
   );

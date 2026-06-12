@@ -14,6 +14,10 @@ export interface Connector {
   live?: boolean;
   /** How the connector authenticates — drives the Connect affordance. */
   auth?: "oauth" | "apikey";
+  /** Input placeholder for non-obvious credential formats (e.g. "subdomain:api-key"). */
+  apiKeyPlaceholder?: string;
+  /** One-line help shown under the open API-key input: format + where to find it. */
+  apiKeyHint?: string;
 }
 
 export const CONNECTOR_CATEGORY_LABELS: Record<ConnectorCategory, string> = {
@@ -26,16 +30,16 @@ export const CONNECTOR_CATEGORY_LABELS: Record<ConnectorCategory, string> = {
 export const CONNECTORS: Connector[] = [
   // ATS
   { name: "Ashby", category: "ats", blurb: "Sync roles and candidates from the analytics-first modern ATS.", provider: "ashby", live: true, auth: "apikey" },
-  { name: "BambooHR", category: "ats", blurb: "Import applicants from the SMB-favorite HR platform's ATS.", provider: "bamboohr", live: true, auth: "apikey" },
+  { name: "BambooHR", category: "ats", blurb: "Import applicants from the SMB-favorite HR platform's ATS.", provider: "bamboohr", live: true, auth: "apikey", apiKeyPlaceholder: "company-domain:api-key", apiKeyHint: "The company domain is the {company} part of {company}.bamboohr.com; create the key from your avatar menu → API Keys." },
   { name: "BreezyHR", category: "ats", blurb: "Pull pipelines from the visual drag-and-drop hiring tool.", provider: "breezyhr", live: true, auth: "apikey" },
   { name: "CATS", category: "ats", blurb: "Pull jobs and candidates from the veteran agency ATS.", provider: "cats", live: true, auth: "apikey" },
   { name: "Greenhouse", category: "ats", blurb: "Sync jobs and candidates from the enterprise hiring standard.", provider: "greenhouse", live: true, auth: "apikey" },
   { name: "JazzHR", category: "ats", blurb: "Import candidates from the SMB-friendly recruiting software.", provider: "jazzhr", live: true, auth: "apikey" },
   { name: "Lever", category: "ats", blurb: "Sync pipelines from the CRM-style ATS teams love.", provider: "lever", live: true, auth: "apikey" },
-  { name: "Loxo", category: "ats", blurb: "Pull candidates from the AI recruiting platform for agencies.", provider: "loxo", live: true, auth: "apikey" },
+  { name: "Loxo", category: "ats", blurb: "Pull candidates from the AI recruiting platform for agencies.", provider: "loxo", live: true, auth: "apikey", apiKeyPlaceholder: "agency-slug:api-key", apiKeyHint: "The slug is the subdomain in your Loxo URL ({slug}.app.loxo.co); keys live in Settings → API Keys (Open API access is a paid Loxo feature)." },
   { name: "Manatal", category: "ats", blurb: "Import candidates from the affordable AI-recommendation ATS.", provider: "manatal", live: true, auth: "apikey" },
-  { name: "Pinpoint", category: "ats", blurb: "Sync roles from the in-house talent acquisition platform.", provider: "pinpoint", live: true, auth: "apikey" },
-  { name: "Recruitee", category: "ats", blurb: "Pull collaborative hiring pipelines straight into your projects.", provider: "recruitee", live: true, auth: "apikey" },
+  { name: "Pinpoint", category: "ats", blurb: "Sync roles from the in-house talent acquisition platform.", provider: "pinpoint", live: true, auth: "apikey", apiKeyPlaceholder: "subdomain:api-key", apiKeyHint: "The subdomain is your Pinpoint URL ({subdomain}.pinpointhq.com); keys are created under Company settings → API keys." },
+  { name: "Recruitee", category: "ats", blurb: "Pull collaborative hiring pipelines straight into your projects.", provider: "recruitee", live: true, auth: "apikey", apiKeyPlaceholder: "company-id:token", apiKeyHint: "Both are shown in Recruitee under Settings → Apps and plugins → Personal API tokens (the company ID is the number next to your token)." },
   { name: "Recruiterflow", category: "ats", blurb: "Sync the ATS + CRM built for recruiting firms.", provider: "recruiterflow", live: true, auth: "apikey" },
   { name: "SmartRecruiters", category: "ats", blurb: "Sync jobs and candidates from the enterprise TA suite.", provider: "smartrecruiters", live: true, auth: "apikey" },
   { name: "Teamtailor", category: "ats", blurb: "Import candidates from the employer-branding-first ATS.", provider: "teamtailor", live: true, auth: "apikey" },
@@ -68,6 +72,6 @@ export const CONNECTORS: Connector[] = [
   { name: "People Data Labs", category: "tool", blurb: "Enrich and search billions of person profiles at scale.", provider: "peopledatalabs", live: true, auth: "apikey" },
   { name: "RocketReach", category: "tool", blurb: "Find emails and phones across 700M+ professional profiles.", provider: "rocketreach", live: true, auth: "apikey" },
   { name: "Smartlead", category: "tool", blurb: "Track cold-email campaigns, leads, and reply analytics.", provider: "smartlead", live: true, auth: "apikey" },
-  { name: "Snov.io", category: "tool", blurb: "Find and verify work emails for outreach-ready lists.", provider: "snov", live: true, auth: "apikey" },
-  { name: "tl;dv", category: "tool", blurb: "Read AI notes and transcripts from your recorded meetings.", provider: "tldv", live: true, auth: "apikey" },
+  { name: "Snov.io", category: "tool", blurb: "Find and verify work emails for outreach-ready lists.", provider: "snov", live: true, auth: "apikey", apiKeyPlaceholder: "client-id:client-secret", apiKeyHint: "Both are shown in Snov.io under your account settings → API." },
+  { name: "tl;dv", category: "tool", blurb: "Read AI notes and transcripts from your recorded meetings.", provider: "tldv", live: true, auth: "apikey", apiKeyHint: "Create the key under personal settings → API Keys; API access requires the tl;dv Business plan." },
 ];
