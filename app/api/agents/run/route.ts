@@ -132,6 +132,7 @@ export async function POST(request: NextRequest) {
   let lushaToken: string | null = null;
   let manatalToken: string | null = null;
   let pipedriveToken: string | null = null;
+  let recruiteeToken: string | null = null;
   let recruiterflowToken: string | null = null;
   let teamtailorToken: string | null = null;
   let workableToken: string | null = null;
@@ -153,6 +154,7 @@ export async function POST(request: NextRequest) {
       lushaToken,
       manatalToken,
       pipedriveToken,
+      recruiteeToken,
       recruiterflowToken,
       teamtailorToken,
       workableToken,
@@ -173,6 +175,7 @@ export async function POST(request: NextRequest) {
       tokenFor("lusha_", "lusha"),
       tokenFor("manatal_", "manatal"),
       tokenFor("pipedrive_", "pipedrive"),
+      tokenFor("recruitee_", "recruitee"),
       tokenFor("recruiterflow_", "recruiterflow"),
       tokenFor("teamtailor_", "teamtailor"),
       tokenFor("workable_", "workable"),
@@ -229,6 +232,7 @@ export async function POST(request: NextRequest) {
     lushaToken,
     manatalToken,
     pipedriveToken,
+    recruiteeToken,
     recruiterflowToken,
     teamtailorToken,
     workableToken,

@@ -19,6 +19,7 @@ import { loxoAdapter } from "../integrations/loxo";
 import { lushaAdapter } from "../integrations/lusha";
 import { manatalAdapter } from "../integrations/manatal";
 import { pipedriveAdapter } from "../integrations/pipedrive";
+import { recruiteeAdapter } from "../integrations/recruitee";
 import { recruiterflowAdapter } from "../integrations/recruiterflow";
 import { teamtailorAdapter } from "../integrations/teamtailor";
 import { workableAdapter } from "../integrations/workable";
@@ -50,6 +51,7 @@ export interface ToolContext {
   lushaToken: string | null;
   manatalToken: string | null;
   pipedriveToken: string | null;
+  recruiteeToken: string | null;
   recruiterflowToken: string | null;
   teamtailorToken: string | null;
   workableToken: string | null;
@@ -951,6 +953,35 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    recruitee_list_offers: tool({
+      description:
+        "List jobs (offers) in the connected Recruitee ATS (title, status, department, location, offer id). Use to find the role you are sourcing for.",
+      inputSchema: z.object({
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.recruiteeToken) return { error: notConnected("Recruitee") };
+        return recruiteeAdapter.listOffers(ctx.recruiteeToken, args);
+      },
+    }),
+
+    recruitee_list_candidates: tool({
+      description:
+        "List candidates in the connected Recruitee ATS as a Markdown table (name, email, phone, positions). Filters combine: query searches by name/email, offerId scopes to one job's pipeline (from recruitee_list_offers).",
+      inputSchema: z.object({
+        query: z.string().optional().describe("Search by name or email."),
+        offerId: z
+          .string()
+          .optional()
+          .describe("Offer id to scope to one job's pipeline."),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.recruiteeToken) return { error: notConnected("Recruitee") };
+        return recruiteeAdapter.listCandidates(ctx.recruiteeToken, args);
+      },
+    }),
+
     recruiterflow_list_jobs: tool({
       description:
         "List jobs in the connected Recruiterflow ATS (name, status, client company, location, job id). Set openOnly for live roles; paginate with page.",
@@ -1143,6 +1174,8 @@ export const ALL_TOOL_NAMES = [
   "pipedrive_search_persons",
   "pipedrive_search_organizations",
   "pipedrive_search_deals",
+  "recruitee_list_offers",
+  "recruitee_list_candidates",
   "recruiterflow_list_jobs",
   "recruiterflow_list_candidates",
   "teamtailor_list_jobs",
