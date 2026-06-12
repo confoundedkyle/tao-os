@@ -18,12 +18,14 @@ import { greenhouseAdapter } from "./greenhouse";
 import { hubspotAdapter } from "./hubspot";
 import { hunterAdapter } from "./hunter";
 import { instantlyAdapter } from "./instantly";
+import { jazzhrAdapter } from "./jazzhr";
 import { lemlistAdapter } from "./lemlist";
 import { leverAdapter } from "./lever";
 import { loxoAdapter } from "./loxo";
 import { lushaAdapter } from "./lusha";
 import { manatalAdapter } from "./manatal";
 import { peopledatalabsAdapter } from "./peopledatalabs";
+import { pinpointAdapter } from "./pinpoint";
 import { pipedriveAdapter } from "./pipedrive";
 import { recruiteeAdapter } from "./recruitee";
 import { recruiterflowAdapter } from "./recruiterflow";
@@ -59,12 +61,14 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   hubspot: hubspotAdapter,
   hunter: hunterAdapter,
   instantly: instantlyAdapter,
+  jazzhr: jazzhrAdapter,
   lemlist: lemlistAdapter,
   lever: leverAdapter,
   loxo: loxoAdapter,
   lusha: lushaAdapter,
   manatal: manatalAdapter,
   peopledatalabs: peopledatalabsAdapter,
+  pinpoint: pinpointAdapter,
   pipedrive: pipedriveAdapter,
   recruitee: recruiteeAdapter,
   recruiterflow: recruiterflowAdapter,

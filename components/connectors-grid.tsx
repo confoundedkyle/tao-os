@@ -24,12 +24,14 @@ const FILTERS: { value: Filter; label: string }[] = [
   { value: "all", label: "All" },
   { value: "ats", label: "ATS" },
   { value: "crm", label: "CRM" },
+  { value: "data", label: "Data" },
   { value: "tool", label: "Tools" },
 ];
 
 const BADGE_STYLES: Record<ConnectorCategory, string> = {
   ats: "bg-mint-400/20 text-mint-700",
   crm: "bg-sky-300/25 text-navy-800/75",
+  data: "bg-lavender-300/25 text-navy-800/75",
   tool: "bg-amber-400/15 text-amber-400",
 };
 
@@ -188,7 +190,13 @@ function ConnectorFooter({
   }
 
   if (connector.auth === "apikey") {
-    return <ApiKeyConnect provider={connector.provider} />;
+    return (
+      <ApiKeyConnect
+        provider={connector.provider}
+        placeholder={connector.apiKeyPlaceholder}
+        hint={connector.apiKeyHint}
+      />
+    );
   }
 
   return (
@@ -203,7 +211,15 @@ function ConnectorFooter({
   );
 }
 
-function ApiKeyConnect({ provider }: { provider: string }) {
+function ApiKeyConnect({
+  provider,
+  placeholder,
+  hint,
+}: {
+  provider: string;
+  placeholder?: string;
+  hint?: string;
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [key, setKey] = useState("");
@@ -233,7 +249,7 @@ function ApiKeyConnect({ provider }: { provider: string }) {
           value={key}
           autoFocus
           disabled={pending}
-          placeholder="Paste API key"
+          placeholder={placeholder ?? "Paste API key"}
           onChange={(e) => setKey(e.target.value)}
           className="min-w-44 flex-1 rounded-chip border border-navy-800/20 bg-white px-3 py-1.5 text-sm outline-none focus:border-mint-700"
         />
@@ -269,6 +285,7 @@ function ApiKeyConnect({ provider }: { provider: string }) {
           Cancel
         </button>
       </div>
+      {hint && <p className="mt-2 text-xs text-navy-800/45">{hint}</p>}
       {error && <p className="mt-2 text-sm text-coral-400">{error}</p>}
     </div>
   );

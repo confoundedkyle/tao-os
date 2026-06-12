@@ -132,12 +132,14 @@ export async function POST(request: NextRequest) {
   let hubspotToken: string | null = null;
   let hunterToken: string | null = null;
   let instantlyToken: string | null = null;
+  let jazzhrToken: string | null = null;
   let lemlistToken: string | null = null;
   let leverToken: string | null = null;
   let loxoToken: string | null = null;
   let lushaToken: string | null = null;
   let manatalToken: string | null = null;
   let peopledatalabsToken: string | null = null;
+  let pinpointToken: string | null = null;
   let pipedriveToken: string | null = null;
   let recruiteeToken: string | null = null;
   let recruiterflowToken: string | null = null;
@@ -168,12 +170,14 @@ export async function POST(request: NextRequest) {
       hubspotToken,
       hunterToken,
       instantlyToken,
+      jazzhrToken,
       lemlistToken,
       leverToken,
       loxoToken,
       lushaToken,
       manatalToken,
       peopledatalabsToken,
+      pinpointToken,
       pipedriveToken,
       recruiteeToken,
       recruiterflowToken,
@@ -203,12 +207,14 @@ export async function POST(request: NextRequest) {
       tokenFor("hubspot_", "hubspot"),
       tokenFor("hunter_", "hunter"),
       tokenFor("instantly_", "instantly"),
+      tokenFor("jazzhr_", "jazzhr"),
       tokenFor("lemlist_", "lemlist"),
       tokenFor("lever_", "lever"),
       tokenFor("loxo_", "loxo"),
       tokenFor("lusha_", "lusha"),
       tokenFor("manatal_", "manatal"),
       tokenFor("peopledatalabs_", "peopledatalabs"),
+      tokenFor("pinpoint_", "pinpoint"),
       tokenFor("pipedrive_", "pipedrive"),
       tokenFor("recruitee_", "recruitee"),
       tokenFor("recruiterflow_", "recruiterflow"),
@@ -274,12 +280,14 @@ export async function POST(request: NextRequest) {
     hubspotToken,
     hunterToken,
     instantlyToken,
+    jazzhrToken,
     lemlistToken,
     leverToken,
     loxoToken,
     lushaToken,
     manatalToken,
     peopledatalabsToken,
+    pinpointToken,
     pipedriveToken,
     recruiteeToken,
     recruiterflowToken,

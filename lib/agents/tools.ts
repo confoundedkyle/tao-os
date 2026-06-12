@@ -19,12 +19,14 @@ import { greenhouseAdapter } from "../integrations/greenhouse";
 import { hubspotAdapter } from "../integrations/hubspot";
 import { hunterAdapter } from "../integrations/hunter";
 import { instantlyAdapter } from "../integrations/instantly";
+import { jazzhrAdapter } from "../integrations/jazzhr";
 import { lemlistAdapter } from "../integrations/lemlist";
 import { leverAdapter } from "../integrations/lever";
 import { loxoAdapter } from "../integrations/loxo";
 import { lushaAdapter } from "../integrations/lusha";
 import { manatalAdapter } from "../integrations/manatal";
 import { peopledatalabsAdapter } from "../integrations/peopledatalabs";
+import { pinpointAdapter } from "../integrations/pinpoint";
 import { pipedriveAdapter } from "../integrations/pipedrive";
 import { recruiteeAdapter } from "../integrations/recruitee";
 import { recruiterflowAdapter } from "../integrations/recruiterflow";
@@ -65,12 +67,14 @@ export interface ToolContext {
   hubspotToken: string | null;
   hunterToken: string | null;
   instantlyToken: string | null;
+  jazzhrToken: string | null;
   lemlistToken: string | null;
   leverToken: string | null;
   loxoToken: string | null;
   lushaToken: string | null;
   manatalToken: string | null;
   peopledatalabsToken: string | null;
+  pinpointToken: string | null;
   pipedriveToken: string | null;
   recruiteeToken: string | null;
   recruiterflowToken: string | null;
@@ -932,6 +936,92 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    instantly_campaign_analytics: tool({
+      description:
+        "Get outreach performance for Instantly.ai campaigns — leads, contacted, emails sent, unique opens/replies, bounces, unsubscribes, opportunities. Scope to one campaign with campaignId and/or a date range.",
+      inputSchema: z.object({
+        campaignId: z
+          .string()
+          .optional()
+          .describe("Campaign id (from instantly_list_campaigns); omit for all."),
+        startDate: z.string().optional().describe("YYYY-MM-DD."),
+        endDate: z.string().optional().describe("YYYY-MM-DD."),
+      }),
+      execute: async (args) => {
+        if (!ctx.instantlyToken) return { error: notConnected("Instantly.ai") };
+        return instantlyAdapter.campaignAnalytics(ctx.instantlyToken, args);
+      },
+    }),
+
+    instantly_add_lead: tool({
+      description:
+        "Add a lead to an Instantly.ai campaign. CAUTION: an Active campaign will start sending real cold emails to this person — only add leads the user explicitly asked to enroll, never in bulk without instruction. Skips emails already in the workspace or campaign by default. Provide firstName/companyName so sequence personalisation variables resolve.",
+      inputSchema: z.object({
+        campaignId: z
+          .string()
+          .describe("Target campaign id (from instantly_list_campaigns)."),
+        email: z.string().describe("The lead's email address."),
+        firstName: z.string().optional(),
+        lastName: z.string().optional(),
+        companyName: z.string().optional(),
+        jobTitle: z.string().optional(),
+        personalization: z
+          .string()
+          .optional()
+          .describe("Personalised opening line, if the sequence uses one."),
+        skipIfInWorkspace: z
+          .boolean()
+          .optional()
+          .describe("Skip if the email exists anywhere in the workspace (default true)."),
+      }),
+      execute: async (args) => {
+        if (!ctx.instantlyToken) return { error: notConnected("Instantly.ai") };
+        return instantlyAdapter.addLead(ctx.instantlyToken, args);
+      },
+    }),
+
+    jazzhr_list_jobs: tool({
+      description:
+        "List jobs in the connected JazzHR ATS (title, status, department, location, job id). Filter by status, e.g. open. 100 rows per page; paginate with page.",
+      inputSchema: z.object({
+        status: z.string().optional().describe('Job status filter, e.g. "open".'),
+        page: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.jazzhrToken) return { error: notConnected("JazzHR") };
+        return jazzhrAdapter.listJobs(ctx.jazzhrToken, args);
+      },
+    }),
+
+    jazzhr_list_applicants: tool({
+      description:
+        "List applicants in the connected JazzHR ATS as a Markdown table (name, phone, job applied for, apply date). Filters combine: jobId scopes to one role, name finds a person. Emails are not in list rows — use jazzhr_get_applicant for full contact details.",
+      inputSchema: z.object({
+        jobId: z
+          .string()
+          .optional()
+          .describe("Job id (from jazzhr_list_jobs) to scope to one role."),
+        name: z.string().optional().describe("Filter by applicant name."),
+        page: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.jazzhrToken) return { error: notConnected("JazzHR") };
+        return jazzhrAdapter.listApplicants(ctx.jazzhrToken, args);
+      },
+    }),
+
+    jazzhr_get_applicant: tool({
+      description:
+        "Get one JazzHR applicant's full details — email, phone, address, apply date — by applicant id (from jazzhr_list_applicants).",
+      inputSchema: z.object({
+        applicantId: z.string().describe("Applicant id."),
+      }),
+      execute: async ({ applicantId }) => {
+        if (!ctx.jazzhrToken) return { error: notConnected("JazzHR") };
+        return jazzhrAdapter.getApplicant(ctx.jazzhrToken, applicantId);
+      },
+    }),
+
     lever_list_postings: tool({
       description:
         "List job postings in the connected Lever ATS (title, state, team, location, posting id). Filter by state, e.g. published. Use to find the role you are sourcing for.",
@@ -1000,24 +1090,6 @@ function buildAll(ctx: ToolContext): ToolSet {
       execute: async (args) => {
         if (!ctx.instantlyToken) return { error: notConnected("Instantly.ai") };
         return instantlyAdapter.listLeads(ctx.instantlyToken, args);
-      },
-    }),
-
-    instantly_add_lead: tool({
-      description:
-        "Add one lead to an Instantly.ai campaign. CAUTION: in an active campaign this queues real outreach emails to that person — only add leads the user explicitly asked to enroll, never in bulk.",
-      inputSchema: z.object({
-        campaignId: z
-          .string()
-          .describe("Campaign id from instantly_list_campaigns."),
-        email: z.string().describe("The lead's email address."),
-        firstName: z.string().optional(),
-        lastName: z.string().optional(),
-        companyName: z.string().optional(),
-      }),
-      execute: async (args) => {
-        if (!ctx.instantlyToken) return { error: notConnected("Instantly.ai") };
-        return instantlyAdapter.addLead(ctx.instantlyToken, args);
       },
     }),
 
@@ -1164,6 +1236,32 @@ function buildAll(ctx: ToolContext): ToolSet {
       execute: async (args) => {
         if (!ctx.lushaToken) return { error: notConnected("Lusha") };
         return lushaAdapter.enrichContacts(ctx.lushaToken, args);
+      },
+    }),
+
+    pinpoint_list_jobs: tool({
+      description:
+        "List jobs in the connected Pinpoint ATS (title, status, visibility, workplace type, job id). Paginate with page; no server-side filters.",
+      inputSchema: z.object({
+        page: z.number().int().positive().optional(),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.pinpointToken) return { error: notConnected("Pinpoint") };
+        return pinpointAdapter.listJobs(ctx.pinpointToken, args);
+      },
+    }),
+
+    pinpoint_list_candidates: tool({
+      description:
+        "List candidates in the connected Pinpoint ATS as a Markdown table (name, email, phone). No server-side search — paginate with page and scan; be economical.",
+      inputSchema: z.object({
+        page: z.number().int().positive().optional(),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.pinpointToken) return { error: notConnected("Pinpoint") };
+        return pinpointAdapter.listCandidates(ctx.pinpointToken, args);
       },
     }),
 
@@ -1763,11 +1861,15 @@ export const ALL_TOOL_NAMES = [
   "hubspot_search_contacts",
   "hubspot_search_companies",
   "hubspot_search_deals",
-  "lever_list_postings",
-  "lever_list_opportunities",
   "instantly_list_campaigns",
   "instantly_list_leads",
+  "instantly_campaign_analytics",
   "instantly_add_lead",
+  "jazzhr_list_jobs",
+  "jazzhr_list_applicants",
+  "jazzhr_get_applicant",
+  "lever_list_postings",
+  "lever_list_opportunities",
   "lemlist_list_campaigns",
   "lemlist_list_activities",
   "lemlist_add_lead",
@@ -1781,6 +1883,8 @@ export const ALL_TOOL_NAMES = [
   "manatal_list_job_candidates",
   "peopledatalabs_enrich_person",
   "peopledatalabs_search_people",
+  "pinpoint_list_jobs",
+  "pinpoint_list_candidates",
   "pipedrive_search_persons",
   "pipedrive_search_organizations",
   "pipedrive_search_deals",

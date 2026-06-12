@@ -2,13 +2,15 @@ import "server-only";
 import type { ConnectorAdapter } from "./types";
 
 // Instantly.ai (cold-email outreach). Auth is an API v2 key (Instantly:
-// Settings → Integrations → API) sent as a Bearer header. Lists use cursor
-// paging: pass starting_after, read next_starting_after from the { items }
-// envelope. Listing leads is a POST by API design (complex filters). Campaign
-// and lead statuses arrive as numeric codes — known ones are mapped, unknown
-// ones surface raw. Adding a lead is an outward-facing write: in an active
+// Settings → Integrations → API keys; needs campaigns:read + leads:create or
+// broader scopes) sent as a Bearer header. Lists use cursor paging: pass
+// starting_after, read next_starting_after from the { items } envelope.
+// Listing leads is a POST by API design (complex filters). Campaign and lead
+// statuses arrive as numeric codes — known ones are mapped, unknown ones
+// surface raw. Adding a lead is an outward-facing write: in an active
 // campaign Instantly queues real outreach emails to that person, so the tool
-// layer must make that explicit.
+// layer must make that explicit, and skip_if_in_workspace defaults to true so
+// already-contacted emails are never re-enrolled.
 const API = "https://api.instantly.ai/api/v2";
 
 const DEFAULT_LIMIT = 20;
@@ -43,6 +45,21 @@ export interface InstantlyLead {
   email_reply_count?: number | null;
 }
 
+export interface InstantlyAnalytics {
+  campaign_id?: string;
+  campaign_name?: string | null;
+  campaign_status?: number | null;
+  leads_count?: number | null;
+  contacted_count?: number | null;
+  emails_sent_count?: number | null;
+  open_count_unique?: number | null;
+  reply_count_unique?: number | null;
+  bounced_count?: number | null;
+  unsubscribed_count?: number | null;
+  completed_count?: number | null;
+  total_opportunities?: number | null;
+}
+
 export interface InstantlyAdapter extends ConnectorAdapter {
   listCampaigns(
     apiKey: string,
@@ -57,6 +74,10 @@ export interface InstantlyAdapter extends ConnectorAdapter {
       limit?: number;
     },
   ): Promise<{ text: string; count: number; truncated: boolean }>;
+  campaignAnalytics(
+    apiKey: string,
+    args?: { campaignId?: string; startDate?: string; endDate?: string },
+  ): Promise<{ text: string; count: number }>;
   addLead(
     apiKey: string,
     args: {
@@ -65,8 +86,11 @@ export interface InstantlyAdapter extends ConnectorAdapter {
       firstName?: string;
       lastName?: string;
       companyName?: string;
+      jobTitle?: string;
+      personalization?: string;
+      skipIfInWorkspace?: boolean;
     },
-  ): Promise<{ text: string; ok: boolean }>;
+  ): Promise<{ text: string; added: boolean }>;
 }
 
 function headers(apiKey: string): Record<string, string> {
@@ -218,27 +242,68 @@ export const instantlyAdapter: InstantlyAdapter = {
     };
   },
 
+  async campaignAnalytics(apiKey, args) {
+    const stats = await request<InstantlyAnalytics[]>(
+      apiKey,
+      "GET",
+      "/campaigns/analytics",
+      {
+        id: args?.campaignId,
+        start_date: args?.startDate,
+        end_date: args?.endDate,
+      },
+    );
+    const list = Array.isArray(stats) ? stats : [];
+    if (list.length === 0) return { text: "_No analytics._", count: 0 };
+    const lines = [
+      "| Campaign | Status | Leads | Contacted | Sent | Opens | Replies | Bounced | Unsubs | Opportunities |",
+      "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+    ];
+    for (const s of list) {
+      lines.push(
+        `| ${cell(s.campaign_name)} | ${cell(campaignStatus(s.campaign_status))} | ${
+          s.leads_count ?? ""
+        } | ${s.contacted_count ?? ""} | ${s.emails_sent_count ?? ""} | ${
+          s.open_count_unique ?? ""
+        } | ${s.reply_count_unique ?? ""} | ${s.bounced_count ?? ""} | ${
+          s.unsubscribed_count ?? ""
+        } | ${s.total_opportunities ?? ""} |`,
+      );
+      if (lines.join("\n").length > CHAR_CAP) break;
+    }
+    return { text: lines.join("\n"), count: list.length };
+  },
+
   async addLead(apiKey, args) {
     if (!args.campaignId || !args.email) {
-      return { text: "Provide campaignId and email.", ok: false };
+      return {
+        text: "Provide a campaignId (from instantly_list_campaigns) and the lead's email.",
+        added: false,
+      };
     }
-    const json = await request<{ id?: string; email?: string }>(
+    const body: Record<string, unknown> = {
+      campaign: args.campaignId,
+      email: args.email,
+      skip_if_in_workspace: args.skipIfInWorkspace ?? true,
+      skip_if_in_campaign: true,
+    };
+    if (args.firstName) body.first_name = args.firstName;
+    if (args.lastName) body.last_name = args.lastName;
+    if (args.companyName) body.company_name = args.companyName;
+    if (args.jobTitle) body.job_title = args.jobTitle;
+    if (args.personalization) body.personalization = args.personalization;
+
+    const lead = await request<{ id?: string; status?: string }>(
       apiKey,
       "POST",
       "/leads",
-      {
-        campaign: args.campaignId,
-        email: args.email,
-        first_name: args.firstName || undefined,
-        last_name: args.lastName || undefined,
-        company_name: args.companyName || undefined,
-      },
+      body,
     );
     return {
-      text: `Added ${json.email ?? args.email} to campaign ${args.campaignId}${
-        json.id ? ` (lead id ${json.id})` : ""
+      text: `Added ${args.email} to campaign ${args.campaignId}${
+        lead?.status ? ` (lead status: ${lead.status})` : ""
       }.`,
-      ok: true,
+      added: true,
     };
   },
 };
