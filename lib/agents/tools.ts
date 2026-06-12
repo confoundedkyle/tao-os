@@ -9,6 +9,7 @@ import { ashbyAdapter } from "../integrations/ashby";
 import { breezyhrAdapter } from "../integrations/breezyhr";
 import { brightdataAdapter } from "../integrations/brightdata";
 import { contactoutAdapter } from "../integrations/contactout";
+import { coresignalAdapter } from "../integrations/coresignal";
 import { greenhouseAdapter } from "../integrations/greenhouse";
 import { hubspotAdapter } from "../integrations/hubspot";
 import { hunterAdapter } from "../integrations/hunter";
@@ -38,6 +39,7 @@ export interface ToolContext {
   breezyhrToken: string | null;
   brightdataToken: string | null;
   contactoutToken: string | null;
+  coresignalToken: string | null;
   greenhouseToken: string | null;
   hubspotToken: string | null;
   hunterToken: string | null;
@@ -254,6 +256,41 @@ function buildAll(ctx: ToolContext): ToolSet {
       execute: async (args) => {
         if (!ctx.breezyhrToken) return { error: notConnected("BreezyHR") };
         return breezyhrAdapter.searchCandidates(ctx.breezyhrToken, args);
+      },
+    }),
+
+    coresignal_search_employees: tool({
+      description:
+        "Search Coresignal's public employment-data profiles by name, title, company, and/or location, and return full profiles (name, title, company, location, work history, professional email when known, LinkedIn URL) for the top matches. EVERY call costs credits (the search plus ~2 credits per returned profile) — keep limit small (default 3, max 5) and only search when other sources lack the data.",
+      inputSchema: z.object({
+        name: z.string().optional().describe("Person's full name."),
+        title: z.string().optional().describe("Job title / headline keywords."),
+        company: z.string().optional().describe("Company name (current or past)."),
+        location: z.string().optional(),
+        limit: z
+          .number()
+          .int()
+          .positive()
+          .optional()
+          .describe("Profiles to collect (max 5; each costs credits)."),
+      }),
+      execute: async (args) => {
+        if (!ctx.coresignalToken) return { error: notConnected("Coresignal") };
+        return coresignalAdapter.searchEmployees(ctx.coresignalToken, args);
+      },
+    }),
+
+    coresignal_collect_employee: tool({
+      description:
+        "Fetch one Coresignal employee profile by Coresignal ID (from coresignal_search_employees) or LinkedIn shorthand name (the part after /in/ in a profile URL). Costs ~2 credits per call.",
+      inputSchema: z.object({
+        idOrShorthand: z
+          .string()
+          .describe("Coresignal id, or LinkedIn shorthand, e.g. janedoe."),
+      }),
+      execute: async ({ idOrShorthand }) => {
+        if (!ctx.coresignalToken) return { error: notConnected("Coresignal") };
+        return coresignalAdapter.collectEmployee(ctx.coresignalToken, idOrShorthand);
       },
     }),
 
@@ -1051,6 +1088,8 @@ export const ALL_TOOL_NAMES = [
   "contactout_linkedin_enrich",
   "contactout_person_enrich",
   "contactout_email_verify",
+  "coresignal_search_employees",
+  "coresignal_collect_employee",
   "greenhouse_list_jobs",
   "greenhouse_list_candidates",
   "greenhouse_search_candidates",

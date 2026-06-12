@@ -122,6 +122,7 @@ export async function POST(request: NextRequest) {
   let breezyhrToken: string | null = null;
   let brightdataToken: string | null = null;
   let contactoutToken: string | null = null;
+  let coresignalToken: string | null = null;
   let greenhouseToken: string | null = null;
   let hubspotToken: string | null = null;
   let hunterToken: string | null = null;
@@ -141,6 +142,7 @@ export async function POST(request: NextRequest) {
       breezyhrToken,
       brightdataToken,
       contactoutToken,
+      coresignalToken,
       greenhouseToken,
       hubspotToken,
       hunterToken,
@@ -159,6 +161,7 @@ export async function POST(request: NextRequest) {
       tokenFor("breezyhr_", "breezyhr"),
       tokenFor("brightdata_", "brightdata"),
       tokenFor("contactout_", "contactout"),
+      tokenFor("coresignal_", "coresignal"),
       tokenFor("greenhouse_", "greenhouse"),
       tokenFor("hubspot_", "hubspot"),
       tokenFor("hunter_", "hunter"),
@@ -213,6 +216,7 @@ export async function POST(request: NextRequest) {
     breezyhrToken,
     brightdataToken,
     contactoutToken,
+    coresignalToken,
     greenhouseToken,
     hubspotToken,
     hunterToken,

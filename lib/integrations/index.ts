@@ -8,6 +8,7 @@ import { ashbyAdapter } from "./ashby";
 import { breezyhrAdapter } from "./breezyhr";
 import { brightdataAdapter } from "./brightdata";
 import { contactoutAdapter } from "./contactout";
+import { coresignalAdapter } from "./coresignal";
 import { greenhouseAdapter } from "./greenhouse";
 import { hubspotAdapter } from "./hubspot";
 import { hunterAdapter } from "./hunter";
@@ -32,6 +33,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   breezyhr: breezyhrAdapter,
   brightdata: brightdataAdapter,
   contactout: contactoutAdapter,
+  coresignal: coresignalAdapter,
   greenhouse: greenhouseAdapter,
   hubspot: hubspotAdapter,
   hunter: hunterAdapter,
