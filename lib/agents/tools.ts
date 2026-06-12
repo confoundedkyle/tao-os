@@ -13,6 +13,7 @@ import { coresignalAdapter } from "../integrations/coresignal";
 import { greenhouseAdapter } from "../integrations/greenhouse";
 import { hubspotAdapter } from "../integrations/hubspot";
 import { hunterAdapter } from "../integrations/hunter";
+import { instantlyAdapter } from "../integrations/instantly";
 import { jazzhrAdapter } from "../integrations/jazzhr";
 import { lemlistAdapter } from "../integrations/lemlist";
 import { leverAdapter } from "../integrations/lever";
@@ -49,6 +50,7 @@ export interface ToolContext {
   greenhouseToken: string | null;
   hubspotToken: string | null;
   hunterToken: string | null;
+  instantlyToken: string | null;
   jazzhrToken: string | null;
   lemlistToken: string | null;
   leverToken: string | null;
@@ -743,6 +745,68 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    instantly_list_campaigns: tool({
+      description:
+        "List cold-email campaigns in the connected Instantly.ai workspace (name, status, campaign id). Filter by name search or status code (0 Draft, 1 Active, 2 Paused, 3 Completed).",
+      inputSchema: z.object({
+        search: z.string().optional().describe("Filter by campaign name."),
+        status: z
+          .number()
+          .int()
+          .optional()
+          .describe("Status filter: 0 Draft, 1 Active, 2 Paused, 3 Completed."),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.instantlyToken) return { error: notConnected("Instantly.ai") };
+        return instantlyAdapter.listCampaigns(ctx.instantlyToken, args);
+      },
+    }),
+
+    instantly_campaign_analytics: tool({
+      description:
+        "Get outreach performance for Instantly.ai campaigns — leads, contacted, emails sent, unique opens/replies, bounces, unsubscribes, opportunities. Scope to one campaign with campaignId and/or a date range.",
+      inputSchema: z.object({
+        campaignId: z
+          .string()
+          .optional()
+          .describe("Campaign id (from instantly_list_campaigns); omit for all."),
+        startDate: z.string().optional().describe("YYYY-MM-DD."),
+        endDate: z.string().optional().describe("YYYY-MM-DD."),
+      }),
+      execute: async (args) => {
+        if (!ctx.instantlyToken) return { error: notConnected("Instantly.ai") };
+        return instantlyAdapter.campaignAnalytics(ctx.instantlyToken, args);
+      },
+    }),
+
+    instantly_add_lead: tool({
+      description:
+        "Add a lead to an Instantly.ai campaign. CAUTION: an Active campaign will start sending real cold emails to this person — only add leads the user explicitly asked to enroll, never in bulk without instruction. Skips emails already in the workspace or campaign by default. Provide firstName/companyName so sequence personalisation variables resolve.",
+      inputSchema: z.object({
+        campaignId: z
+          .string()
+          .describe("Target campaign id (from instantly_list_campaigns)."),
+        email: z.string().describe("The lead's email address."),
+        firstName: z.string().optional(),
+        lastName: z.string().optional(),
+        companyName: z.string().optional(),
+        jobTitle: z.string().optional(),
+        personalization: z
+          .string()
+          .optional()
+          .describe("Personalised opening line, if the sequence uses one."),
+        skipIfInWorkspace: z
+          .boolean()
+          .optional()
+          .describe("Skip if the email exists anywhere in the workspace (default true)."),
+      }),
+      execute: async (args) => {
+        if (!ctx.instantlyToken) return { error: notConnected("Instantly.ai") };
+        return instantlyAdapter.addLead(ctx.instantlyToken, args);
+      },
+    }),
+
     jazzhr_list_jobs: tool({
       description:
         "List jobs in the connected JazzHR ATS (title, status, department, location, job id). Filter by status, e.g. open. 100 rows per page; paginate with page.",
@@ -1301,6 +1365,9 @@ export const ALL_TOOL_NAMES = [
   "hubspot_search_contacts",
   "hubspot_search_companies",
   "hubspot_search_deals",
+  "instantly_list_campaigns",
+  "instantly_campaign_analytics",
+  "instantly_add_lead",
   "jazzhr_list_jobs",
   "jazzhr_list_applicants",
   "jazzhr_get_applicant",
