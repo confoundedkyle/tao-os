@@ -136,6 +136,8 @@ export async function POST(request: NextRequest) {
   let recruiterflowToken: string | null = null;
   let teamtailorToken: string | null = null;
   let workableToken: string | null = null;
+  let zohoCrmToken: string | null = null;
+  let zohoRecruitToken: string | null = null;
   try {
     [
       airtableToken,
@@ -158,6 +160,8 @@ export async function POST(request: NextRequest) {
       recruiterflowToken,
       teamtailorToken,
       workableToken,
+      zohoCrmToken,
+      zohoRecruitToken,
     ] = await Promise.all([
       tokenFor("airtable_", "airtable"),
       tokenFor("apollo_", "apollo"),
@@ -179,6 +183,8 @@ export async function POST(request: NextRequest) {
       tokenFor("recruiterflow_", "recruiterflow"),
       tokenFor("teamtailor_", "teamtailor"),
       tokenFor("workable_", "workable"),
+      tokenFor("zohocrm_", "zoho-crm"),
+      tokenFor("zohorecruit_", "zoho-recruit"),
     ]);
   } catch (err) {
     return NextResponse.json(
@@ -236,6 +242,8 @@ export async function POST(request: NextRequest) {
     recruiterflowToken,
     teamtailorToken,
     workableToken,
+    zohoCrmToken,
+    zohoRecruitToken,
     createdDocIds: [],
   };
 

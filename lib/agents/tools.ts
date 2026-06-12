@@ -23,6 +23,8 @@ import { recruiteeAdapter } from "../integrations/recruitee";
 import { recruiterflowAdapter } from "../integrations/recruiterflow";
 import { teamtailorAdapter } from "../integrations/teamtailor";
 import { workableAdapter } from "../integrations/workable";
+import { zohoCrmAdapter } from "../integrations/zoho-crm";
+import { zohoRecruitAdapter } from "../integrations/zoho-recruit";
 import type { Doc } from "../types";
 
 // Agent tools. Each tool's execute closes over a server-derived ToolContext —
@@ -55,6 +57,8 @@ export interface ToolContext {
   recruiterflowToken: string | null;
   teamtailorToken: string | null;
   workableToken: string | null;
+  zohoCrmToken: string | null;
+  zohoRecruitToken: string | null;
   /** Documents the agent created this run (mutated by calyflow_create_document). */
   createdDocIds: string[];
 }
@@ -1084,6 +1088,73 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    zohocrm_search_contacts: tool({
+      description:
+        "Search contacts in the connected Zoho CRM by name, email, or other text (2+ characters). Returns name, email, phone, account, and title.",
+      inputSchema: z.object({
+        word: z.string().describe("Search text, e.g. a name or email."),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.zohoCrmToken) return { error: notConnected("Zoho CRM") };
+        return zohoCrmAdapter.searchContacts(ctx.zohoCrmToken, args);
+      },
+    }),
+
+    zohocrm_search_accounts: tool({
+      description:
+        "Search accounts (companies) in the connected Zoho CRM by name (2+ characters). Returns account name, website, industry, and location.",
+      inputSchema: z.object({
+        word: z.string().describe("Search text, e.g. a company name."),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.zohoCrmToken) return { error: notConnected("Zoho CRM") };
+        return zohoCrmAdapter.searchAccounts(ctx.zohoCrmToken, args);
+      },
+    }),
+
+    zohocrm_search_deals: tool({
+      description:
+        "Search deals in the connected Zoho CRM by name (2+ characters). Returns deal name, amount, stage, account, and closing date.",
+      inputSchema: z.object({
+        word: z.string().describe("Search text, e.g. a deal or client name."),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.zohoCrmToken) return { error: notConnected("Zoho CRM") };
+        return zohoCrmAdapter.searchDeals(ctx.zohoCrmToken, args);
+      },
+    }),
+
+    zohorecruit_search_candidates: tool({
+      description:
+        "Search candidates in the connected Zoho Recruit ATS by name, email, or skill text (2+ characters). Returns name, email, phone, title, and city.",
+      inputSchema: z.object({
+        word: z.string().describe("Search text, e.g. a name, email, or skill."),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.zohoRecruitToken)
+          return { error: notConnected("Zoho Recruit") };
+        return zohoRecruitAdapter.searchCandidates(ctx.zohoRecruitToken, args);
+      },
+    }),
+
+    zohorecruit_search_job_openings: tool({
+      description:
+        "Search job openings in the connected Zoho Recruit ATS by title or client text (2+ characters). Returns posting title, client, status, city, and openings count.",
+      inputSchema: z.object({
+        word: z.string().describe("Search text, e.g. a role title or client."),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.zohoRecruitToken)
+          return { error: notConnected("Zoho Recruit") };
+        return zohoRecruitAdapter.searchJobOpenings(ctx.zohoRecruitToken, args);
+      },
+    }),
+
     calyflow_create_document: tool({
       description:
         "Save a Markdown document into the current project (e.g. your final analysis/summary). Returns the new document id.",
@@ -1183,5 +1254,10 @@ export const ALL_TOOL_NAMES = [
   "teamtailor_list_job_candidates",
   "workable_list_jobs",
   "workable_list_candidates",
+  "zohocrm_search_contacts",
+  "zohocrm_search_accounts",
+  "zohocrm_search_deals",
+  "zohorecruit_search_candidates",
+  "zohorecruit_search_job_openings",
   "calyflow_create_document",
 ] as const;

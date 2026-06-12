@@ -22,6 +22,8 @@ import { recruiteeAdapter } from "./recruitee";
 import { recruiterflowAdapter } from "./recruiterflow";
 import { teamtailorAdapter } from "./teamtailor";
 import { workableAdapter } from "./workable";
+import { zohoCrmAdapter } from "./zoho-crm";
+import { zohoRecruitAdapter } from "./zoho-recruit";
 import type { ConnectorAdapter } from "./types";
 
 export type { ConnectorAdapter, ResourceRef } from "./types";
@@ -49,6 +51,8 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   recruiterflow: recruiterflowAdapter,
   teamtailor: teamtailorAdapter,
   workable: workableAdapter,
+  "zoho-crm": zohoCrmAdapter,
+  "zoho-recruit": zohoRecruitAdapter,
 };
 
 export function getAdapter(provider: string): ConnectorAdapter | null {

@@ -62,6 +62,24 @@ export const env = {
   get airtableClientSecret() {
     return process.env.AIRTABLE_CLIENT_SECRET ?? "";
   },
+  /** Zoho OAuth app credentials (API console; one client serves CRM + Recruit).
+   *  Zoho is region-sharded — a deployment targets ONE data center, set via the
+   *  base URLs below (defaults are the US DC; use .eu/.in/... for others). */
+  get zohoClientId() {
+    return process.env.ZOHO_CLIENT_ID ?? "";
+  },
+  get zohoClientSecret() {
+    return process.env.ZOHO_CLIENT_SECRET ?? "";
+  },
+  get zohoAccountsBase() {
+    return (process.env.ZOHO_ACCOUNTS_BASE ?? "https://accounts.zoho.com").replace(/\/$/, "");
+  },
+  get zohoApiBase() {
+    return (process.env.ZOHO_API_BASE ?? "https://www.zohoapis.com").replace(/\/$/, "");
+  },
+  get zohoRecruitApiBase() {
+    return (process.env.ZOHO_RECRUIT_API_BASE ?? "https://recruit.zoho.com").replace(/\/$/, "");
+  },
   /** Svix signing secret for the Clerk webhook endpoint. */
   get clerkWebhookSigningSecret() {
     return process.env.CLERK_WEBHOOK_SIGNING_SECRET ?? "";
