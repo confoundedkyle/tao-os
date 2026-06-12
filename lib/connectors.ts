@@ -1,7 +1,7 @@
 // Connector catalog — mirrors aiwithmichal.com/store/skills. Activation is
 // not built yet; cards render with disabled buttons until each connector ships.
 
-export type ConnectorCategory = "ats" | "crm" | "tool";
+export type ConnectorCategory = "ats" | "crm" | "data" | "tool";
 
 export interface Connector {
   name: string;
@@ -19,6 +19,7 @@ export interface Connector {
 export const CONNECTOR_CATEGORY_LABELS: Record<ConnectorCategory, string> = {
   ats: "ATS",
   crm: "CRM",
+  data: "Data",
   tool: "Tool",
 };
 
@@ -39,10 +40,14 @@ export const CONNECTORS: Connector[] = [
   { name: "Zoho Recruit", category: "ats", blurb: "Import candidates from Zoho's staffing-ready ATS.", provider: "zoho-recruit", live: true, auth: "oauth" },
 
   // CRM
-  { name: "Airtable", category: "crm", blurb: "Sync the flexible candidate and client bases you already run.", provider: "airtable", live: true, auth: "oauth" },
   { name: "HubSpot", category: "crm", blurb: "Sync client companies, deals, and contacts effortlessly.", provider: "hubspot", live: true, auth: "apikey" },
   { name: "Pipedrive", category: "crm", blurb: "Pull your BD pipeline and client deals into Calyflow.", provider: "pipedrive", live: true, auth: "apikey" },
   { name: "Zoho CRM", category: "crm", blurb: "Sync clients and deals from Zoho's sales suite.", provider: "zoho-crm", live: true, auth: "oauth" },
+
+  // Data (spreadsheets & flexible databases)
+  { name: "Airtable", category: "data", blurb: "Sync the flexible candidate and client bases you already run.", provider: "airtable", live: true, auth: "oauth" },
+  { name: "Google Sheets", category: "data", blurb: "Read candidate and client trackers straight from your Google Sheets.", auth: "oauth" },
+  { name: "Microsoft Excel", category: "data", blurb: "Pull pipelines and lists from Excel workbooks in OneDrive and SharePoint.", auth: "oauth" },
 
   // Tools (sourcing & outreach)
   { name: "Apollo", category: "tool", blurb: "Source contact data from the 270M-profile B2B database.", provider: "apollo", live: true, auth: "apikey" },

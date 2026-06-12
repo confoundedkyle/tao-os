@@ -24,12 +24,14 @@ const FILTERS: { value: Filter; label: string }[] = [
   { value: "all", label: "All" },
   { value: "ats", label: "ATS" },
   { value: "crm", label: "CRM" },
+  { value: "data", label: "Data" },
   { value: "tool", label: "Tools" },
 ];
 
 const BADGE_STYLES: Record<ConnectorCategory, string> = {
   ats: "bg-mint-400/20 text-mint-700",
   crm: "bg-sky-300/25 text-navy-800/75",
+  data: "bg-lavender-300/25 text-navy-800/75",
   tool: "bg-amber-400/15 text-amber-400",
 };
 
