@@ -13,6 +13,7 @@ import { coresignalAdapter } from "../integrations/coresignal";
 import { greenhouseAdapter } from "../integrations/greenhouse";
 import { hubspotAdapter } from "../integrations/hubspot";
 import { hunterAdapter } from "../integrations/hunter";
+import { instantlyAdapter } from "../integrations/instantly";
 import { lemlistAdapter } from "../integrations/lemlist";
 import { leverAdapter } from "../integrations/lever";
 import { loxoAdapter } from "../integrations/loxo";
@@ -47,6 +48,7 @@ export interface ToolContext {
   greenhouseToken: string | null;
   hubspotToken: string | null;
   hunterToken: string | null;
+  instantlyToken: string | null;
   lemlistToken: string | null;
   leverToken: string | null;
   loxoToken: string | null;
@@ -772,6 +774,62 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    instantly_list_campaigns: tool({
+      description:
+        "List cold-email campaigns in the connected Instantly.ai workspace (name, status, campaign id). search filters by name; paginate by passing the startingAfter cursor from the previous page.",
+      inputSchema: z.object({
+        search: z.string().optional().describe("Filter campaigns by name."),
+        startingAfter: z
+          .string()
+          .optional()
+          .describe("Cursor from the previous page."),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.instantlyToken) return { error: notConnected("Instantly.ai") };
+        return instantlyAdapter.listCampaigns(ctx.instantlyToken, args);
+      },
+    }),
+
+    instantly_list_leads: tool({
+      description:
+        "List leads in the connected Instantly.ai workspace as a Markdown table (name, email, company, status, reply count). Filters combine: campaignId scopes to one campaign (from instantly_list_campaigns), search matches name/email; paginate with the startingAfter cursor.",
+      inputSchema: z.object({
+        campaignId: z
+          .string()
+          .optional()
+          .describe("Campaign id to scope to one campaign."),
+        search: z.string().optional().describe("Search by name or email."),
+        startingAfter: z
+          .string()
+          .optional()
+          .describe("Cursor from the previous page."),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.instantlyToken) return { error: notConnected("Instantly.ai") };
+        return instantlyAdapter.listLeads(ctx.instantlyToken, args);
+      },
+    }),
+
+    instantly_add_lead: tool({
+      description:
+        "Add one lead to an Instantly.ai campaign. CAUTION: in an active campaign this queues real outreach emails to that person — only add leads the user explicitly asked to enroll, never in bulk.",
+      inputSchema: z.object({
+        campaignId: z
+          .string()
+          .describe("Campaign id from instantly_list_campaigns."),
+        email: z.string().describe("The lead's email address."),
+        firstName: z.string().optional(),
+        lastName: z.string().optional(),
+        companyName: z.string().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.instantlyToken) return { error: notConnected("Instantly.ai") };
+        return instantlyAdapter.addLead(ctx.instantlyToken, args);
+      },
+    }),
+
     lemlist_list_campaigns: tool({
       description:
         "List outreach campaigns in the connected lemlist account (name, status, errors, campaign id). Filter by status: running, draft, paused, ended, archived, errors.",
@@ -1231,6 +1289,9 @@ export const ALL_TOOL_NAMES = [
   "hubspot_search_deals",
   "lever_list_postings",
   "lever_list_opportunities",
+  "instantly_list_campaigns",
+  "instantly_list_leads",
+  "instantly_add_lead",
   "lemlist_list_campaigns",
   "lemlist_list_activities",
   "lemlist_add_lead",
