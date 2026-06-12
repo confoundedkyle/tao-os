@@ -22,6 +22,7 @@ import { pipedriveAdapter } from "../integrations/pipedrive";
 import { recruiteeAdapter } from "../integrations/recruitee";
 import { recruiterflowAdapter } from "../integrations/recruiterflow";
 import { teamtailorAdapter } from "../integrations/teamtailor";
+import { tldvAdapter } from "../integrations/tldv";
 import { workableAdapter } from "../integrations/workable";
 import { zohoCrmAdapter } from "../integrations/zoho-crm";
 import { zohoRecruitAdapter } from "../integrations/zoho-recruit";
@@ -56,6 +57,7 @@ export interface ToolContext {
   recruiteeToken: string | null;
   recruiterflowToken: string | null;
   teamtailorToken: string | null;
+  tldvToken: string | null;
   workableToken: string | null;
   zohoCrmToken: string | null;
   zohoRecruitToken: string | null;
@@ -1054,6 +1056,44 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    tldv_list_meetings: tool({
+      description:
+        "List meetings recorded by the connected tl;dv notetaker (name, date, duration, organizer, invitees, meeting id). query searches meeting names; paginate with page.",
+      inputSchema: z.object({
+        query: z.string().optional().describe("Search meeting names."),
+        page: z.number().int().positive().optional(),
+        limit: z.number().int().positive().optional().describe("Max 50."),
+      }),
+      execute: async (args) => {
+        if (!ctx.tldvToken) return { error: notConnected("tl;dv") };
+        return tldvAdapter.listMeetings(ctx.tldvToken, args);
+      },
+    }),
+
+    tldv_get_notes: tool({
+      description:
+        "Read the AI notes of one tl;dv meeting (markdown with per-topic summaries). Get the meetingId from tldv_list_meetings. Prefer this before the transcript.",
+      inputSchema: z.object({
+        meetingId: z.string().describe("Meeting id from tldv_list_meetings."),
+      }),
+      execute: async ({ meetingId }) => {
+        if (!ctx.tldvToken) return { error: notConnected("tl;dv") };
+        return tldvAdapter.getNotes(ctx.tldvToken, meetingId);
+      },
+    }),
+
+    tldv_get_transcript: tool({
+      description:
+        "Read the speaker-attributed transcript of one tl;dv meeting, truncated if very long. Get the meetingId from tldv_list_meetings. Pull this when you need exact quotes or detail beyond the notes.",
+      inputSchema: z.object({
+        meetingId: z.string().describe("Meeting id from tldv_list_meetings."),
+      }),
+      execute: async ({ meetingId }) => {
+        if (!ctx.tldvToken) return { error: notConnected("tl;dv") };
+        return tldvAdapter.getTranscript(ctx.tldvToken, meetingId);
+      },
+    }),
+
     workable_list_jobs: tool({
       description:
         "List jobs in the connected Workable ATS (title, state, department, location, shortcode). Filter by state: draft, published, closed, archived. Use to find the role you are sourcing for — the shortcode scopes candidate lookups.",
@@ -1252,6 +1292,9 @@ export const ALL_TOOL_NAMES = [
   "teamtailor_list_jobs",
   "teamtailor_list_candidates",
   "teamtailor_list_job_candidates",
+  "tldv_list_meetings",
+  "tldv_get_notes",
+  "tldv_get_transcript",
   "workable_list_jobs",
   "workable_list_candidates",
   "zohocrm_search_contacts",

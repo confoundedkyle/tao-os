@@ -135,6 +135,7 @@ export async function POST(request: NextRequest) {
   let recruiteeToken: string | null = null;
   let recruiterflowToken: string | null = null;
   let teamtailorToken: string | null = null;
+  let tldvToken: string | null = null;
   let workableToken: string | null = null;
   let zohoCrmToken: string | null = null;
   let zohoRecruitToken: string | null = null;
@@ -159,6 +160,7 @@ export async function POST(request: NextRequest) {
       recruiteeToken,
       recruiterflowToken,
       teamtailorToken,
+      tldvToken,
       workableToken,
       zohoCrmToken,
       zohoRecruitToken,
@@ -182,6 +184,7 @@ export async function POST(request: NextRequest) {
       tokenFor("recruitee_", "recruitee"),
       tokenFor("recruiterflow_", "recruiterflow"),
       tokenFor("teamtailor_", "teamtailor"),
+      tokenFor("tldv_", "tldv"),
       tokenFor("workable_", "workable"),
       tokenFor("zohocrm_", "zoho-crm"),
       tokenFor("zohorecruit_", "zoho-recruit"),
@@ -241,6 +244,7 @@ export async function POST(request: NextRequest) {
     recruiteeToken,
     recruiterflowToken,
     teamtailorToken,
+    tldvToken,
     workableToken,
     zohoCrmToken,
     zohoRecruitToken,
