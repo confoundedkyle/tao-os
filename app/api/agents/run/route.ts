@@ -133,6 +133,7 @@ export async function POST(request: NextRequest) {
   let hunterToken: string | null = null;
   let instantlyToken: string | null = null;
   let jazzhrToken: string | null = null;
+  let jobadderToken: string | null = null;
   let lemlistToken: string | null = null;
   let leverToken: string | null = null;
   let loxoToken: string | null = null;
@@ -171,6 +172,7 @@ export async function POST(request: NextRequest) {
       hunterToken,
       instantlyToken,
       jazzhrToken,
+      jobadderToken,
       lemlistToken,
       leverToken,
       loxoToken,
@@ -208,6 +210,7 @@ export async function POST(request: NextRequest) {
       tokenFor("hunter_", "hunter"),
       tokenFor("instantly_", "instantly"),
       tokenFor("jazzhr_", "jazzhr"),
+      tokenFor("jobadder_", "jobadder"),
       tokenFor("lemlist_", "lemlist"),
       tokenFor("lever_", "lever"),
       tokenFor("loxo_", "loxo"),
@@ -281,6 +284,7 @@ export async function POST(request: NextRequest) {
     hunterToken,
     instantlyToken,
     jazzhrToken,
+    jobadderToken,
     lemlistToken,
     leverToken,
     loxoToken,

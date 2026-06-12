@@ -62,6 +62,15 @@ export const env = {
   get airtableClientSecret() {
     return process.env.AIRTABLE_CLIENT_SECRET ?? "";
   },
+  /** JobAdder OAuth app credentials (developers.jobadder.com; the connector
+   *  must request read + offline_access and register the
+   *  /api/connectors/jobadder/callback redirect URI). */
+  get jobadderClientId() {
+    return process.env.JOBADDER_CLIENT_ID ?? "";
+  },
+  get jobadderClientSecret() {
+    return process.env.JOBADDER_CLIENT_SECRET ?? "";
+  },
   /** Zoho OAuth app credentials (API console; one client serves CRM + Recruit).
    *  Zoho is region-sharded — a deployment targets ONE data center, set via the
    *  base URLs below (defaults are the US DC; use .eu/.in/... for others). */
