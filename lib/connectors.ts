@@ -27,6 +27,7 @@ export const CONNECTORS: Connector[] = [
   { name: "Ashby", category: "ats", blurb: "Sync roles and candidates from the analytics-first modern ATS.", provider: "ashby", live: true, auth: "apikey" },
   { name: "BambooHR", category: "ats", blurb: "Import applicants from the SMB-favorite HR platform's ATS.", provider: "bamboohr", live: true, auth: "apikey" },
   { name: "BreezyHR", category: "ats", blurb: "Pull pipelines from the visual drag-and-drop hiring tool.", provider: "breezyhr", live: true, auth: "apikey" },
+  { name: "CATS", category: "ats", blurb: "Pull jobs and candidates from the veteran agency ATS.", provider: "cats", live: true, auth: "apikey" },
   { name: "Greenhouse", category: "ats", blurb: "Sync jobs and candidates from the enterprise hiring standard.", provider: "greenhouse", live: true, auth: "apikey" },
   { name: "JazzHR", category: "ats", blurb: "Import candidates from the SMB-friendly recruiting software." },
   { name: "Lever", category: "ats", blurb: "Sync pipelines from the CRM-style ATS teams love.", provider: "lever", live: true, auth: "apikey" },
