@@ -138,6 +138,7 @@ export async function POST(request: NextRequest) {
   let loxoToken: string | null = null;
   let lushaToken: string | null = null;
   let manatalToken: string | null = null;
+  let mondayToken: string | null = null;
   let peopledatalabsToken: string | null = null;
   let pinpointToken: string | null = null;
   let pipedriveToken: string | null = null;
@@ -176,6 +177,7 @@ export async function POST(request: NextRequest) {
       loxoToken,
       lushaToken,
       manatalToken,
+      mondayToken,
       peopledatalabsToken,
       pinpointToken,
       pipedriveToken,
@@ -213,6 +215,7 @@ export async function POST(request: NextRequest) {
       tokenFor("loxo_", "loxo"),
       tokenFor("lusha_", "lusha"),
       tokenFor("manatal_", "manatal"),
+      tokenFor("monday_", "monday"),
       tokenFor("peopledatalabs_", "peopledatalabs"),
       tokenFor("pinpoint_", "pinpoint"),
       tokenFor("pipedrive_", "pipedrive"),
@@ -286,6 +289,7 @@ export async function POST(request: NextRequest) {
     loxoToken,
     lushaToken,
     manatalToken,
+    mondayToken,
     peopledatalabsToken,
     pinpointToken,
     pipedriveToken,

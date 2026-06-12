@@ -25,6 +25,7 @@ import { leverAdapter } from "../integrations/lever";
 import { loxoAdapter } from "../integrations/loxo";
 import { lushaAdapter } from "../integrations/lusha";
 import { manatalAdapter } from "../integrations/manatal";
+import { mondayAdapter } from "../integrations/monday";
 import { peopledatalabsAdapter } from "../integrations/peopledatalabs";
 import { pinpointAdapter } from "../integrations/pinpoint";
 import { pipedriveAdapter } from "../integrations/pipedrive";
@@ -73,6 +74,7 @@ export interface ToolContext {
   loxoToken: string | null;
   lushaToken: string | null;
   manatalToken: string | null;
+  mondayToken: string | null;
   peopledatalabsToken: string | null;
   pinpointToken: string | null;
   pipedriveToken: string | null;
@@ -1204,6 +1206,36 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    monday_list_boards: tool({
+      description:
+        "List boards in the connected monday.com account (name, workspace, kind, item count, board id), sorted by recent use. Use to find the candidate or client tracker you need; page with page.",
+      inputSchema: z.object({
+        page: z.number().int().positive().optional(),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.mondayToken) return { error: notConnected("monday.com") };
+        return mondayAdapter.listBoards(ctx.mondayToken, args);
+      },
+    }),
+
+    monday_list_items: tool({
+      description:
+        "Read one monday.com board's items as a Markdown table whose columns come from the board itself (first 8 columns). Get the boardId from monday_list_boards; page large boards with the cursor the previous call returned.",
+      inputSchema: z.object({
+        boardId: z.string().describe("Board id from monday_list_boards."),
+        cursor: z
+          .string()
+          .optional()
+          .describe("Cursor from the previous monday_list_items call."),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.mondayToken) return { error: notConnected("monday.com") };
+        return mondayAdapter.listItems(ctx.mondayToken, args);
+      },
+    }),
+
     lusha_search_person: tool({
       description:
         "Look up a person in Lusha's B2B contact database — by LinkedIn URL, email, or firstName+lastName plus companyName/companyDomain. Returns a free preview: who matched, which data points exist, what each reveal costs in credits, and the contact id. Does NOT reveal emails/phones — use lusha_enrich_contacts with the contact id for that.",
@@ -1881,6 +1913,8 @@ export const ALL_TOOL_NAMES = [
   "manatal_list_jobs",
   "manatal_search_candidates",
   "manatal_list_job_candidates",
+  "monday_list_boards",
+  "monday_list_items",
   "peopledatalabs_enrich_person",
   "peopledatalabs_search_people",
   "pinpoint_list_jobs",
