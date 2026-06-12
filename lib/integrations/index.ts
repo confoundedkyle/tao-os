@@ -12,6 +12,7 @@ import { catsAdapter } from "./cats";
 import { contactoutAdapter } from "./contactout";
 import { coresignalAdapter } from "./coresignal";
 import { fathomAdapter } from "./fathom";
+import { firefliesAdapter } from "./fireflies";
 import { greenhouseAdapter } from "./greenhouse";
 import { hubspotAdapter } from "./hubspot";
 import { hunterAdapter } from "./hunter";
@@ -29,6 +30,7 @@ import { rocketreachAdapter } from "./rocketreach";
 import { smartrecruitersAdapter } from "./smartrecruiters";
 import { snovAdapter } from "./snov";
 import { teamtailorAdapter } from "./teamtailor";
+import { tldvAdapter } from "./tldv";
 import { workableAdapter } from "./workable";
 import { zohoCrmAdapter } from "./zoho-crm";
 import { zohoRecruitAdapter } from "./zoho-recruit";
@@ -49,6 +51,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   contactout: contactoutAdapter,
   coresignal: coresignalAdapter,
   fathom: fathomAdapter,
+  fireflies: firefliesAdapter,
   greenhouse: greenhouseAdapter,
   hubspot: hubspotAdapter,
   hunter: hunterAdapter,
@@ -66,6 +69,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   smartrecruiters: smartrecruitersAdapter,
   snov: snovAdapter,
   teamtailor: teamtailorAdapter,
+  tldv: tldvAdapter,
   workable: workableAdapter,
   "zoho-crm": zohoCrmAdapter,
   "zoho-recruit": zohoRecruitAdapter,

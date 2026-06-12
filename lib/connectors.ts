@@ -56,6 +56,7 @@ export const CONNECTORS: Connector[] = [
   { name: "ContactOut", category: "tool", blurb: "Find personal emails and phones behind LinkedIn profiles.", provider: "contactout", live: true, auth: "apikey" },
   { name: "Coresignal", category: "tool", blurb: "Enrich candidates with fresh public employment data.", provider: "coresignal", live: true, auth: "apikey" },
   { name: "Fathom", category: "tool", blurb: "Read AI summaries and transcripts of your recorded calls.", provider: "fathom", live: true, auth: "apikey" },
+  { name: "Fireflies.ai", category: "tool", blurb: "Search interview and client-call transcripts and summaries.", provider: "fireflies", live: true, auth: "apikey" },
   { name: "HireEZ", category: "tool", blurb: "AI outbound sourcing across 800M+ candidate profiles." },
   { name: "Hunter.io", category: "tool", blurb: "Find and verify work email addresses instantly.", provider: "hunter", live: true, auth: "apikey" },
   { name: "Instantly.ai", category: "tool", blurb: "Scale cold email outreach with automated warm-up.", provider: "instantly", live: true, auth: "apikey" },
@@ -64,4 +65,5 @@ export const CONNECTORS: Connector[] = [
   { name: "People Data Labs", category: "tool", blurb: "Enrich and search billions of person profiles at scale.", provider: "peopledatalabs", live: true, auth: "apikey" },
   { name: "RocketReach", category: "tool", blurb: "Find emails and phones across 700M+ professional profiles.", provider: "rocketreach", live: true, auth: "apikey" },
   { name: "Snov.io", category: "tool", blurb: "Find and verify work emails for outreach-ready lists.", provider: "snov", live: true, auth: "apikey" },
+  { name: "tl;dv", category: "tool", blurb: "Read AI notes and transcripts from your recorded meetings.", provider: "tldv", live: true, auth: "apikey" },
 ];

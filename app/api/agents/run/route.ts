@@ -126,6 +126,7 @@ export async function POST(request: NextRequest) {
   let contactoutToken: string | null = null;
   let coresignalToken: string | null = null;
   let fathomToken: string | null = null;
+  let firefliesToken: string | null = null;
   let greenhouseToken: string | null = null;
   let hubspotToken: string | null = null;
   let hunterToken: string | null = null;
@@ -143,6 +144,7 @@ export async function POST(request: NextRequest) {
   let smartrecruitersToken: string | null = null;
   let snovToken: string | null = null;
   let teamtailorToken: string | null = null;
+  let tldvToken: string | null = null;
   let workableToken: string | null = null;
   let zohoCrmToken: string | null = null;
   let zohoRecruitToken: string | null = null;
@@ -158,6 +160,7 @@ export async function POST(request: NextRequest) {
       contactoutToken,
       coresignalToken,
       fathomToken,
+      firefliesToken,
       greenhouseToken,
       hubspotToken,
       hunterToken,
@@ -175,6 +178,7 @@ export async function POST(request: NextRequest) {
       smartrecruitersToken,
       snovToken,
       teamtailorToken,
+      tldvToken,
       workableToken,
       zohoCrmToken,
       zohoRecruitToken,
@@ -189,6 +193,7 @@ export async function POST(request: NextRequest) {
       tokenFor("contactout_", "contactout"),
       tokenFor("coresignal_", "coresignal"),
       tokenFor("fathom_", "fathom"),
+      tokenFor("fireflies_", "fireflies"),
       tokenFor("greenhouse_", "greenhouse"),
       tokenFor("hubspot_", "hubspot"),
       tokenFor("hunter_", "hunter"),
@@ -206,6 +211,7 @@ export async function POST(request: NextRequest) {
       tokenFor("smartrecruiters_", "smartrecruiters"),
       tokenFor("snov_", "snov"),
       tokenFor("teamtailor_", "teamtailor"),
+      tokenFor("tldv_", "tldv"),
       tokenFor("workable_", "workable"),
       tokenFor("zohocrm_", "zoho-crm"),
       tokenFor("zohorecruit_", "zoho-recruit"),
@@ -256,6 +262,7 @@ export async function POST(request: NextRequest) {
     contactoutToken,
     coresignalToken,
     fathomToken,
+    firefliesToken,
     greenhouseToken,
     hubspotToken,
     hunterToken,
@@ -273,6 +280,7 @@ export async function POST(request: NextRequest) {
     smartrecruitersToken,
     snovToken,
     teamtailorToken,
+    tldvToken,
     workableToken,
     zohoCrmToken,
     zohoRecruitToken,
