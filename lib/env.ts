@@ -62,6 +62,15 @@ export const env = {
   get airtableClientSecret() {
     return process.env.AIRTABLE_CLIENT_SECRET ?? "";
   },
+  /** Notion public OAuth integration credentials (notion.so/my-integrations;
+   *  the integration must be public with the
+   *  /api/connectors/notion/callback redirect URI registered). */
+  get notionClientId() {
+    return process.env.NOTION_CLIENT_ID ?? "";
+  },
+  get notionClientSecret() {
+    return process.env.NOTION_CLIENT_SECRET ?? "";
+  },
   /** Zoho OAuth app credentials (API console; one client serves CRM + Recruit).
    *  Zoho is region-sharded — a deployment targets ONE data center, set via the
    *  base URLs below (defaults are the US DC; use .eu/.in/... for others). */

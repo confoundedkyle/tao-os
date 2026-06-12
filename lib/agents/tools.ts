@@ -25,6 +25,7 @@ import { leverAdapter } from "../integrations/lever";
 import { loxoAdapter } from "../integrations/loxo";
 import { lushaAdapter } from "../integrations/lusha";
 import { manatalAdapter } from "../integrations/manatal";
+import { notionAdapter } from "../integrations/notion";
 import { peopledatalabsAdapter } from "../integrations/peopledatalabs";
 import { pinpointAdapter } from "../integrations/pinpoint";
 import { pipedriveAdapter } from "../integrations/pipedrive";
@@ -73,6 +74,7 @@ export interface ToolContext {
   loxoToken: string | null;
   lushaToken: string | null;
   manatalToken: string | null;
+  notionToken: string | null;
   peopledatalabsToken: string | null;
   pinpointToken: string | null;
   pipedriveToken: string | null;
@@ -1204,6 +1206,52 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    notion_search: tool({
+      description:
+        "Search the connected Notion workspace by keyword for databases and pages (title, type, last edited, id). Set databasesOnly to find trackers to query; omit query to list what the connection can reach.",
+      inputSchema: z.object({
+        query: z.string().optional().describe("Keyword to search titles for."),
+        databasesOnly: z
+          .boolean()
+          .optional()
+          .describe("Only return databases."),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.notionToken) return { error: notConnected("Notion") };
+        return notionAdapter.search(ctx.notionToken, args);
+      },
+    }),
+
+    notion_query_database: tool({
+      description:
+        "Read one Notion database's rows as a Markdown table whose columns come from the database itself (first 8, title first). Get the databaseId from notion_search; page large databases with the cursor the previous call returned.",
+      inputSchema: z.object({
+        databaseId: z.string().describe("Database id from notion_search."),
+        cursor: z
+          .string()
+          .optional()
+          .describe("Cursor from the previous notion_query_database call."),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.notionToken) return { error: notConnected("Notion") };
+        return notionAdapter.queryDatabase(ctx.notionToken, args);
+      },
+    }),
+
+    notion_read_page: tool({
+      description:
+        "Read one Notion page in full: its property values plus the page body as plain text. Get the pageId from notion_search or a notion_query_database row.",
+      inputSchema: z.object({
+        pageId: z.string().describe("Page id."),
+      }),
+      execute: async ({ pageId }) => {
+        if (!ctx.notionToken) return { error: notConnected("Notion") };
+        return notionAdapter.readPage(ctx.notionToken, pageId);
+      },
+    }),
+
     lusha_search_person: tool({
       description:
         "Look up a person in Lusha's B2B contact database — by LinkedIn URL, email, or firstName+lastName plus companyName/companyDomain. Returns a free preview: who matched, which data points exist, what each reveal costs in credits, and the contact id. Does NOT reveal emails/phones — use lusha_enrich_contacts with the contact id for that.",
@@ -1881,6 +1929,9 @@ export const ALL_TOOL_NAMES = [
   "manatal_list_jobs",
   "manatal_search_candidates",
   "manatal_list_job_candidates",
+  "notion_search",
+  "notion_query_database",
+  "notion_read_page",
   "peopledatalabs_enrich_person",
   "peopledatalabs_search_people",
   "pinpoint_list_jobs",
