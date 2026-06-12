@@ -21,6 +21,7 @@ import { manatalAdapter } from "../integrations/manatal";
 import { pipedriveAdapter } from "../integrations/pipedrive";
 import { recruiteeAdapter } from "../integrations/recruitee";
 import { recruiterflowAdapter } from "../integrations/recruiterflow";
+import { smartrecruitersAdapter } from "../integrations/smartrecruiters";
 import { teamtailorAdapter } from "../integrations/teamtailor";
 import { workableAdapter } from "../integrations/workable";
 import { zohoCrmAdapter } from "../integrations/zoho-crm";
@@ -55,6 +56,7 @@ export interface ToolContext {
   pipedriveToken: string | null;
   recruiteeToken: string | null;
   recruiterflowToken: string | null;
+  smartrecruitersToken: string | null;
   teamtailorToken: string | null;
   workableToken: string | null;
   zohoCrmToken: string | null;
@@ -1015,6 +1017,41 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    smartrecruiters_list_jobs: tool({
+      description:
+        "List jobs in the connected SmartRecruiters ATS (title, status, department, location, job id). Optionally filter by status (e.g. SOURCING, OFFER, FILLED). Use to find the role you are sourcing for — the job id scopes candidate lookups.",
+      inputSchema: z.object({
+        status: z.string().optional().describe("Job status filter."),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.smartrecruitersToken)
+          return { error: notConnected("SmartRecruiters") };
+        return smartrecruitersAdapter.listJobs(ctx.smartrecruitersToken, args);
+      },
+    }),
+
+    smartrecruiters_list_candidates: tool({
+      description:
+        "List candidates in the connected SmartRecruiters ATS as a Markdown table (name, email, phone, location, stage, job). Filters combine: query searches by name/email, jobId scopes to one job's pipeline (from smartrecruiters_list_jobs).",
+      inputSchema: z.object({
+        query: z.string().optional().describe("Search by name or email."),
+        jobId: z
+          .string()
+          .optional()
+          .describe("Job id to scope to one role's pipeline."),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.smartrecruitersToken)
+          return { error: notConnected("SmartRecruiters") };
+        return smartrecruitersAdapter.listCandidates(
+          ctx.smartrecruitersToken,
+          args,
+        );
+      },
+    }),
+
     teamtailor_list_jobs: tool({
       description:
         "List jobs in the connected Teamtailor ATS (title, status, remote status, job id). Filter by status: published, draft, archived, scheduled, internal.",
@@ -1249,6 +1286,8 @@ export const ALL_TOOL_NAMES = [
   "recruitee_list_candidates",
   "recruiterflow_list_jobs",
   "recruiterflow_list_candidates",
+  "smartrecruiters_list_jobs",
+  "smartrecruiters_list_candidates",
   "teamtailor_list_jobs",
   "teamtailor_list_candidates",
   "teamtailor_list_job_candidates",

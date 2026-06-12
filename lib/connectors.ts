@@ -34,6 +34,7 @@ export const CONNECTORS: Connector[] = [
   { name: "Pinpoint", category: "ats", blurb: "Sync roles from the in-house talent acquisition platform." },
   { name: "Recruitee", category: "ats", blurb: "Pull collaborative hiring pipelines straight into your projects.", provider: "recruitee", live: true, auth: "apikey" },
   { name: "Recruiterflow", category: "ats", blurb: "Sync the ATS + CRM built for recruiting firms.", provider: "recruiterflow", live: true, auth: "apikey" },
+  { name: "SmartRecruiters", category: "ats", blurb: "Sync jobs and candidates from the enterprise TA suite.", provider: "smartrecruiters", live: true, auth: "apikey" },
   { name: "Teamtailor", category: "ats", blurb: "Import candidates from the employer-branding-first ATS.", provider: "teamtailor", live: true, auth: "apikey" },
   { name: "Vincere", category: "ats", blurb: "Sync the recruitment OS popular with staffing agencies." },
   { name: "Workable", category: "ats", blurb: "Pull jobs and candidates from the all-in-one hiring platform.", provider: "workable", live: true, auth: "apikey" },
