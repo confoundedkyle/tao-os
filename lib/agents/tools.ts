@@ -13,8 +13,11 @@ import { brightdataAdapter } from "../integrations/brightdata";
 import { catsAdapter } from "../integrations/cats";
 import { contactoutAdapter } from "../integrations/contactout";
 import { coresignalAdapter } from "../integrations/coresignal";
+import { crelateAdapter } from "../integrations/crelate";
 import { fathomAdapter } from "../integrations/fathom";
 import { firefliesAdapter } from "../integrations/fireflies";
+import { gongAdapter } from "../integrations/gong";
+import { googleSheetsAdapter } from "../integrations/google-sheets";
 import { greenhouseAdapter } from "../integrations/greenhouse";
 import { hubspotAdapter } from "../integrations/hubspot";
 import { hunterAdapter } from "../integrations/hunter";
@@ -26,17 +29,21 @@ import { loxoAdapter } from "../integrations/loxo";
 import { lushaAdapter } from "../integrations/lusha";
 import { manatalAdapter } from "../integrations/manatal";
 import { microsoftExcelAdapter } from "../integrations/microsoft-excel";
+import { mondayAdapter } from "../integrations/monday";
+import { notionAdapter } from "../integrations/notion";
 import { peopledatalabsAdapter } from "../integrations/peopledatalabs";
 import { pinpointAdapter } from "../integrations/pinpoint";
 import { pipedriveAdapter } from "../integrations/pipedrive";
 import { recruiteeAdapter } from "../integrations/recruitee";
 import { recruiterflowAdapter } from "../integrations/recruiterflow";
 import { rocketreachAdapter } from "../integrations/rocketreach";
+import { signalhireAdapter } from "../integrations/signalhire";
 import { smartleadAdapter } from "../integrations/smartlead";
 import { smartrecruitersAdapter } from "../integrations/smartrecruiters";
 import { snovAdapter } from "../integrations/snov";
 import { teamtailorAdapter } from "../integrations/teamtailor";
 import { tldvAdapter } from "../integrations/tldv";
+import { woodpeckerAdapter } from "../integrations/woodpecker";
 import { workableAdapter } from "../integrations/workable";
 import { zohoCrmAdapter } from "../integrations/zoho-crm";
 import { zohoRecruitAdapter } from "../integrations/zoho-recruit";
@@ -62,8 +69,11 @@ export interface ToolContext {
   catsToken: string | null;
   contactoutToken: string | null;
   coresignalToken: string | null;
+  crelateToken: string | null;
   fathomToken: string | null;
   firefliesToken: string | null;
+  gongToken: string | null;
+  googleSheetsToken: string | null;
   greenhouseToken: string | null;
   hubspotToken: string | null;
   hunterToken: string | null;
@@ -75,17 +85,21 @@ export interface ToolContext {
   lushaToken: string | null;
   manatalToken: string | null;
   microsoftExcelToken: string | null;
+  mondayToken: string | null;
+  notionToken: string | null;
   peopledatalabsToken: string | null;
   pinpointToken: string | null;
   pipedriveToken: string | null;
   recruiteeToken: string | null;
   recruiterflowToken: string | null;
   rocketreachToken: string | null;
+  signalhireToken: string | null;
   smartleadToken: string | null;
   smartrecruitersToken: string | null;
   snovToken: string | null;
   teamtailorToken: string | null;
   tldvToken: string | null;
+  woodpeckerToken: string | null;
   workableToken: string | null;
   zohoCrmToken: string | null;
   zohoRecruitToken: string | null;
@@ -474,6 +488,102 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    gong_list_calls: tool({
+      description:
+        "List recorded calls in the connected Gong account as a Markdown table (title, date, duration, direction, call id). Defaults to the last 30 days; narrow with fromDate/toDate (ISO dates) and page with cursor.",
+      inputSchema: z.object({
+        fromDate: z
+          .string()
+          .optional()
+          .describe("Earliest call date, ISO format (e.g. 2026-05-01)."),
+        toDate: z
+          .string()
+          .optional()
+          .describe("Latest call date, ISO format."),
+        cursor: z.string().optional().describe("Pagination cursor."),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.gongToken) return { error: notConnected("Gong") };
+        return gongAdapter.listCalls(ctx.gongToken, args);
+      },
+    }),
+
+    gong_get_summary: tool({
+      description:
+        "Read one Gong call's AI brief, key points, outline, and participants. Get the callId from gong_list_calls. Briefs require Gong smart features — if absent, fall back to gong_get_transcript.",
+      inputSchema: z.object({
+        callId: z.string().describe("Call id from gong_list_calls."),
+      }),
+      execute: async ({ callId }) => {
+        if (!ctx.gongToken) return { error: notConnected("Gong") };
+        return gongAdapter.getSummary(ctx.gongToken, callId);
+      },
+    }),
+
+    gong_get_transcript: tool({
+      description:
+        "Read the speaker-attributed transcript of one Gong call, truncated if very long. Get the callId from gong_list_calls. Prefer gong_get_summary first; pull the transcript when you need exact quotes or detail.",
+      inputSchema: z.object({
+        callId: z.string().describe("Call id from gong_list_calls."),
+      }),
+      execute: async ({ callId }) => {
+        if (!ctx.gongToken) return { error: notConnected("Gong") };
+        return gongAdapter.getTranscript(ctx.gongToken, callId);
+      },
+    }),
+
+    googlesheets_list_spreadsheets: tool({
+      description:
+        "List the Google Sheets spreadsheets the connection can access (name, last modified, spreadsheet id), newest first. Pass query to filter by name.",
+      inputSchema: z.object({
+        query: z
+          .string()
+          .optional()
+          .describe("Filter spreadsheets by name (contains match)."),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.googleSheetsToken)
+          return { error: notConnected("Google Sheets") };
+        return googleSheetsAdapter.listSpreadsheets(ctx.googleSheetsToken, args);
+      },
+    }),
+
+    googlesheets_list_sheets: tool({
+      description:
+        "List the sheet tabs of one Google Sheets spreadsheet (title, rows, columns). Get the spreadsheetId from googlesheets_list_spreadsheets.",
+      inputSchema: z.object({
+        spreadsheetId: z
+          .string()
+          .describe("Spreadsheet id from googlesheets_list_spreadsheets."),
+      }),
+      execute: async ({ spreadsheetId }) => {
+        if (!ctx.googleSheetsToken)
+          return { error: notConnected("Google Sheets") };
+        return googleSheetsAdapter.listSheets(ctx.googleSheetsToken, spreadsheetId);
+      },
+    }),
+
+    googlesheets_read_range: tool({
+      description:
+        "Read rows from a Google Sheets range as a Markdown table (the first row is treated as the header). range uses A1 notation: a sheet name like 'Candidates' reads the whole tab; 'Candidates!A1:F50' reads a block. Start with a whole tab, then narrow.",
+      inputSchema: z.object({
+        spreadsheetId: z
+          .string()
+          .describe("Spreadsheet id from googlesheets_list_spreadsheets."),
+        range: z
+          .string()
+          .describe("A1 notation, e.g. Candidates or Candidates!A1:F50."),
+        maxRows: z.number().int().positive().optional().describe("Max 200."),
+      }),
+      execute: async (args) => {
+        if (!ctx.googleSheetsToken)
+          return { error: notConnected("Google Sheets") };
+        return googleSheetsAdapter.readRange(ctx.googleSheetsToken, args);
+      },
+    }),
+
     greenhouse_list_jobs: tool({
       description:
         "List jobs/requisitions in the connected Greenhouse ATS (name, status, department, office, job id). Use to find the role you are sourcing for.",
@@ -773,6 +883,56 @@ function buildAll(ctx: ToolContext): ToolSet {
       execute: async (args) => {
         if (!ctx.catsToken) return { error: notConnected("CATS") };
         return catsAdapter.listCandidates(ctx.catsToken, args);
+      },
+    }),
+
+    crelate_list_jobs: tool({
+      description:
+        "List jobs in the connected Crelate ATS (name, company, status, openings, job id). Pass name to filter by job name (contains match); paginate with offset.",
+      inputSchema: z.object({
+        name: z
+          .string()
+          .optional()
+          .describe("Filter by job name (contains match)."),
+        offset: z.number().int().nonnegative().optional(),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.crelateToken) return { error: notConnected("Crelate") };
+        return crelateAdapter.listJobs(ctx.crelateToken, args);
+      },
+    }),
+
+    crelate_search_contacts: tool({
+      description:
+        "Search contacts in the connected Crelate ATS by keyword (name, skill, company) and get full rows back (name, title, company, email, phone, LinkedIn). Use this when you have search terms; use crelate_list_contacts to browse or filter by type.",
+      inputSchema: z.object({
+        query: z
+          .string()
+          .describe("Keyword query: name, skill, company, …"),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.crelateToken) return { error: notConnected("Crelate") };
+        return crelateAdapter.searchContacts(ctx.crelateToken, args);
+      },
+    }),
+
+    crelate_list_contacts: tool({
+      description:
+        "List contacts in the connected Crelate ATS as a Markdown table (name, title, company, email, phone, LinkedIn). Filter by recordType (candidate, client, vendor, …) or email; paginate with offset.",
+      inputSchema: z.object({
+        recordType: z
+          .string()
+          .optional()
+          .describe("Record type filter, e.g. candidate or client."),
+        email: z.string().optional().describe("Find a contact by email."),
+        offset: z.number().int().nonnegative().optional(),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.crelateToken) return { error: notConnected("Crelate") };
+        return crelateAdapter.listContacts(ctx.crelateToken, args);
       },
     }),
 
@@ -1257,6 +1417,82 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    monday_list_boards: tool({
+      description:
+        "List boards in the connected monday.com account (name, workspace, kind, item count, board id), sorted by recent use. Use to find the candidate or client tracker you need; page with page.",
+      inputSchema: z.object({
+        page: z.number().int().positive().optional(),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.mondayToken) return { error: notConnected("monday.com") };
+        return mondayAdapter.listBoards(ctx.mondayToken, args);
+      },
+    }),
+
+    monday_list_items: tool({
+      description:
+        "Read one monday.com board's items as a Markdown table whose columns come from the board itself (first 8 columns). Get the boardId from monday_list_boards; page large boards with the cursor the previous call returned.",
+      inputSchema: z.object({
+        boardId: z.string().describe("Board id from monday_list_boards."),
+        cursor: z
+          .string()
+          .optional()
+          .describe("Cursor from the previous monday_list_items call."),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.mondayToken) return { error: notConnected("monday.com") };
+        return mondayAdapter.listItems(ctx.mondayToken, args);
+      },
+    }),
+
+    notion_search: tool({
+      description:
+        "Search the connected Notion workspace by keyword for databases and pages (title, type, last edited, id). Set databasesOnly to find trackers to query; omit query to list what the connection can reach.",
+      inputSchema: z.object({
+        query: z.string().optional().describe("Keyword to search titles for."),
+        databasesOnly: z
+          .boolean()
+          .optional()
+          .describe("Only return databases."),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.notionToken) return { error: notConnected("Notion") };
+        return notionAdapter.search(ctx.notionToken, args);
+      },
+    }),
+
+    notion_query_database: tool({
+      description:
+        "Read one Notion database's rows as a Markdown table whose columns come from the database itself (first 8, title first). Get the databaseId from notion_search; page large databases with the cursor the previous call returned.",
+      inputSchema: z.object({
+        databaseId: z.string().describe("Database id from notion_search."),
+        cursor: z
+          .string()
+          .optional()
+          .describe("Cursor from the previous notion_query_database call."),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.notionToken) return { error: notConnected("Notion") };
+        return notionAdapter.queryDatabase(ctx.notionToken, args);
+      },
+    }),
+
+    notion_read_page: tool({
+      description:
+        "Read one Notion page in full: its property values plus the page body as plain text. Get the pageId from notion_search or a notion_query_database row.",
+      inputSchema: z.object({
+        pageId: z.string().describe("Page id."),
+      }),
+      execute: async ({ pageId }) => {
+        if (!ctx.notionToken) return { error: notConnected("Notion") };
+        return notionAdapter.readPage(ctx.notionToken, pageId);
+      },
+    }),
+
     lusha_search_person: tool({
       description:
         "Look up a person in Lusha's B2B contact database — by LinkedIn URL, email, or firstName+lastName plus companyName/companyDomain. Returns a free preview: who matched, which data points exist, what each reveal costs in credits, and the contact id. Does NOT reveal emails/phones — use lusha_enrich_contacts with the contact id for that.",
@@ -1616,6 +1852,44 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    signalhire_search_people: tool({
+      description:
+        "Search SignalHire profiles by title, company, location, or keywords. Returns name, title, company, location, and profile UID — no contact details. Free of credit cost (draws from a daily search quota); treat results as candidates for signalhire_enrich_person.",
+      inputSchema: z.object({
+        title: z.string().optional().describe("Current job title to match."),
+        company: z.string().optional().describe("Current company to match."),
+        location: z
+          .string()
+          .optional()
+          .describe("City, state, or country to match."),
+        keywords: z
+          .string()
+          .optional()
+          .describe("Skills or other profile keywords."),
+        limit: z.number().int().positive().optional().describe("Max 25."),
+      }),
+      execute: async (args) => {
+        if (!ctx.signalhireToken) return { error: notConnected("SignalHire") };
+        return signalhireAdapter.searchPeople(ctx.signalhireToken, args);
+      },
+    }),
+
+    signalhire_enrich_person: tool({
+      description:
+        "Reveal a person's emails and phones via SignalHire from a LinkedIn profile URL, an email, a phone number, or a profile UID (from signalhire_search_people). Costs a credit per successful match — enrich selectively, never in bulk.",
+      inputSchema: z.object({
+        identifier: z
+          .string()
+          .describe(
+            "LinkedIn profile URL, email, phone number, or SignalHire profile UID.",
+          ),
+      }),
+      execute: async (args) => {
+        if (!ctx.signalhireToken) return { error: notConnected("SignalHire") };
+        return signalhireAdapter.enrichPerson(ctx.signalhireToken, args);
+      },
+    }),
+
     smartrecruiters_list_jobs: tool({
       description:
         "List jobs in the connected SmartRecruiters ATS (title, status, department, location, job id). Optionally filter by status (e.g. SOURCING, OFFER, FILLED). Use to find the role you are sourcing for — the job id scopes candidate lookups.",
@@ -1762,6 +2036,65 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    woodpecker_list_campaigns: tool({
+      description:
+        "List campaigns in the connected Woodpecker account (name, status, created, folder, daily limit, campaign id). Optionally filter by comma-separated statuses: RUNNING, DRAFT, EDITED, PAUSED, STOPPED, COMPLETED.",
+      inputSchema: z.object({
+        status: z
+          .string()
+          .optional()
+          .describe("Comma-separated status filter, e.g. RUNNING,PAUSED."),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.woodpeckerToken) return { error: notConnected("Woodpecker") };
+        return woodpeckerAdapter.listCampaigns(ctx.woodpeckerToken, args);
+      },
+    }),
+
+    woodpecker_list_prospects: tool({
+      description:
+        "List prospects in the connected Woodpecker account as a Markdown table (name, email, company, title, status, last contacted/replied). Filters combine: email or company (find specific prospects), campaignId (one campaign's prospects), status (ACTIVE, BOUNCED, REPLIED, BLACKLIST, INVALID), interested (INTERESTED, MAYBE-LATER, NOT-INTERESTED, NOT-MARKED). Page with page.",
+      inputSchema: z.object({
+        email: z.string().optional().describe("Find a prospect by email."),
+        company: z.string().optional().describe("Filter by company name."),
+        status: z
+          .string()
+          .optional()
+          .describe("Global status filter, e.g. REPLIED."),
+        campaignId: z
+          .number()
+          .int()
+          .optional()
+          .describe("Campaign id from woodpecker_list_campaigns."),
+        interested: z
+          .string()
+          .optional()
+          .describe("Interest filter, e.g. INTERESTED."),
+        page: z.number().int().positive().optional(),
+        limit: z.number().int().positive().optional().describe("Max 200."),
+      }),
+      execute: async (args) => {
+        if (!ctx.woodpeckerToken) return { error: notConnected("Woodpecker") };
+        return woodpeckerAdapter.listProspects(ctx.woodpeckerToken, args);
+      },
+    }),
+
+    woodpecker_campaign_stats: tool({
+      description:
+        "Aggregate performance statistics for one Woodpecker campaign (sent, opens, replies, bounces). Get the campaignId from woodpecker_list_campaigns.",
+      inputSchema: z.object({
+        campaignId: z
+          .number()
+          .int()
+          .describe("Campaign id from woodpecker_list_campaigns."),
+      }),
+      execute: async (args) => {
+        if (!ctx.woodpeckerToken) return { error: notConnected("Woodpecker") };
+        return woodpeckerAdapter.campaignStats(ctx.woodpeckerToken, args);
+      },
+    }),
+
     zohocrm_search_contacts: tool({
       description:
         "Search contacts in the connected Zoho CRM by name, email, or other text (2+ characters). Returns name, email, phone, account, and title.",
@@ -1897,6 +2230,9 @@ export const ALL_TOOL_NAMES = [
   "brightdata_get_snapshot",
   "cats_list_jobs",
   "cats_list_candidates",
+  "crelate_list_jobs",
+  "crelate_search_contacts",
+  "crelate_list_contacts",
   "contactout_people_search",
   "contactout_linkedin_enrich",
   "contactout_person_enrich",
@@ -1908,6 +2244,12 @@ export const ALL_TOOL_NAMES = [
   "fathom_get_transcript",
   "fireflies_list_meetings",
   "fireflies_get_meeting",
+  "gong_list_calls",
+  "gong_get_summary",
+  "gong_get_transcript",
+  "googlesheets_list_spreadsheets",
+  "googlesheets_list_sheets",
+  "googlesheets_read_range",
   "greenhouse_list_jobs",
   "greenhouse_list_candidates",
   "greenhouse_search_candidates",
@@ -1937,6 +2279,11 @@ export const ALL_TOOL_NAMES = [
   "excel_list_workbooks",
   "excel_list_worksheets",
   "excel_read_range",
+  "monday_list_boards",
+  "monday_list_items",
+  "notion_search",
+  "notion_query_database",
+  "notion_read_page",
   "peopledatalabs_enrich_person",
   "peopledatalabs_search_people",
   "pinpoint_list_jobs",
@@ -1951,6 +2298,8 @@ export const ALL_TOOL_NAMES = [
   "rocketreach_search_people",
   "rocketreach_lookup_person",
   "rocketreach_check_lookup",
+  "signalhire_search_people",
+  "signalhire_enrich_person",
   "smartlead_list_campaigns",
   "smartlead_list_leads",
   "smartlead_campaign_analytics",
@@ -1966,6 +2315,9 @@ export const ALL_TOOL_NAMES = [
   "tldv_list_meetings",
   "tldv_get_notes",
   "tldv_get_transcript",
+  "woodpecker_list_campaigns",
+  "woodpecker_list_prospects",
+  "woodpecker_campaign_stats",
   "workable_list_jobs",
   "workable_list_candidates",
   "zohocrm_search_contacts",
