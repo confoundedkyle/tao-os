@@ -27,12 +27,14 @@ describe("GET /api/v1/connectors", () => {
     }
   });
 
-  it("maps the live flag to status", async () => {
+  it("maps each connector's live flag to status", async () => {
     const items = await getItems();
     const byName = Object.fromEntries(items.map((i) => [i.name, i]));
-    expect(byName["Ashby"].status).toBe("available");
-    expect(byName["Microsoft Excel"].status).toBe("coming_soon");
-    expect(byName["HireEZ"].status).toBe("coming_soon");
+    for (const c of CONNECTORS) {
+      expect(byName[c.name].status).toBe(
+        c.live ? "available" : "coming_soon",
+      );
+    }
   });
 
   it("lists BYO AI providers without the internal calyflow default", async () => {
