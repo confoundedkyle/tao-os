@@ -126,6 +126,7 @@ export async function POST(request: NextRequest) {
   let hubspotToken: string | null = null;
   let hunterToken: string | null = null;
   let lemlistToken: string | null = null;
+  let leverToken: string | null = null;
   let loxoToken: string | null = null;
   let lushaToken: string | null = null;
   let manatalToken: string | null = null;
@@ -143,6 +144,7 @@ export async function POST(request: NextRequest) {
       hubspotToken,
       hunterToken,
       lemlistToken,
+      leverToken,
       loxoToken,
       lushaToken,
       manatalToken,
@@ -159,6 +161,7 @@ export async function POST(request: NextRequest) {
       tokenFor("hubspot_", "hubspot"),
       tokenFor("hunter_", "hunter"),
       tokenFor("lemlist_", "lemlist"),
+      tokenFor("lever_", "lever"),
       tokenFor("loxo_", "loxo"),
       tokenFor("lusha_", "lusha"),
       tokenFor("manatal_", "manatal"),
@@ -211,6 +214,7 @@ export async function POST(request: NextRequest) {
     hubspotToken,
     hunterToken,
     lemlistToken,
+    leverToken,
     loxoToken,
     lushaToken,
     manatalToken,

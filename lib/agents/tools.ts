@@ -13,6 +13,7 @@ import { greenhouseAdapter } from "../integrations/greenhouse";
 import { hubspotAdapter } from "../integrations/hubspot";
 import { hunterAdapter } from "../integrations/hunter";
 import { lemlistAdapter } from "../integrations/lemlist";
+import { leverAdapter } from "../integrations/lever";
 import { loxoAdapter } from "../integrations/loxo";
 import { lushaAdapter } from "../integrations/lusha";
 import { manatalAdapter } from "../integrations/manatal";
@@ -40,6 +41,7 @@ export interface ToolContext {
   hubspotToken: string | null;
   hunterToken: string | null;
   lemlistToken: string | null;
+  leverToken: string | null;
   loxoToken: string | null;
   lushaToken: string | null;
   manatalToken: string | null;
@@ -690,6 +692,39 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    lever_list_postings: tool({
+      description:
+        "List job postings in the connected Lever ATS (title, state, team, location, posting id). Filter by state, e.g. published. Use to find the role you are sourcing for.",
+      inputSchema: z.object({
+        state: z
+          .string()
+          .optional()
+          .describe("Posting state filter, e.g. published, internal, closed."),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.leverToken) return { error: notConnected("Lever") };
+        return leverAdapter.listPostings(ctx.leverToken, args);
+      },
+    }),
+
+    lever_list_opportunities: tool({
+      description:
+        "List candidates (opportunities) in the connected Lever ATS as a Markdown table (name, headline, email, phone, stage). Filters combine: postingId scopes to one role's pipeline, email finds a specific person.",
+      inputSchema: z.object({
+        postingId: z
+          .string()
+          .optional()
+          .describe("Posting id (from lever_list_postings) to scope to one role."),
+        email: z.string().optional().describe("Find a candidate by email."),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.leverToken) return { error: notConnected("Lever") };
+        return leverAdapter.listOpportunities(ctx.leverToken, args);
+      },
+    }),
+
     lemlist_list_campaigns: tool({
       description:
         "List outreach campaigns in the connected lemlist account (name, status, errors, campaign id). Filter by status: running, draft, paused, ended, archived, errors.",
@@ -981,6 +1016,8 @@ export const ALL_TOOL_NAMES = [
   "hubspot_search_contacts",
   "hubspot_search_companies",
   "hubspot_search_deals",
+  "lever_list_postings",
+  "lever_list_opportunities",
   "lemlist_list_campaigns",
   "lemlist_list_activities",
   "lemlist_add_lead",

@@ -12,6 +12,7 @@ import { greenhouseAdapter } from "./greenhouse";
 import { hubspotAdapter } from "./hubspot";
 import { hunterAdapter } from "./hunter";
 import { lemlistAdapter } from "./lemlist";
+import { leverAdapter } from "./lever";
 import { loxoAdapter } from "./loxo";
 import { lushaAdapter } from "./lusha";
 import { manatalAdapter } from "./manatal";
@@ -34,6 +35,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   hubspot: hubspotAdapter,
   hunter: hunterAdapter,
   lemlist: lemlistAdapter,
+  lever: leverAdapter,
   loxo: loxoAdapter,
   lusha: lushaAdapter,
   manatal: manatalAdapter,
