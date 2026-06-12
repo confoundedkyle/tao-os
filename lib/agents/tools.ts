@@ -10,6 +10,7 @@ import { breezyhrAdapter } from "../integrations/breezyhr";
 import { brightdataAdapter } from "../integrations/brightdata";
 import { contactoutAdapter } from "../integrations/contactout";
 import { coresignalAdapter } from "../integrations/coresignal";
+import { firefliesAdapter } from "../integrations/fireflies";
 import { greenhouseAdapter } from "../integrations/greenhouse";
 import { hubspotAdapter } from "../integrations/hubspot";
 import { hunterAdapter } from "../integrations/hunter";
@@ -44,6 +45,7 @@ export interface ToolContext {
   brightdataToken: string | null;
   contactoutToken: string | null;
   coresignalToken: string | null;
+  firefliesToken: string | null;
   greenhouseToken: string | null;
   hubspotToken: string | null;
   hunterToken: string | null;
@@ -299,6 +301,42 @@ function buildAll(ctx: ToolContext): ToolSet {
       execute: async ({ idOrShorthand }) => {
         if (!ctx.coresignalToken) return { error: notConnected("Coresignal") };
         return coresignalAdapter.collectEmployee(ctx.coresignalToken, idOrShorthand);
+      },
+    }),
+
+    fireflies_list_meetings: tool({
+      description:
+        "List meetings recorded by the connected Fireflies.ai notetaker (title, date, duration, organizer, participants, meeting id). Filters combine: keyword searches titles and spoken content, participantEmail scopes to one person's meetings, fromDate/toDate (ISO 8601) bound the range.",
+      inputSchema: z.object({
+        keyword: z
+          .string()
+          .optional()
+          .describe("Search meeting titles and spoken content."),
+        participantEmail: z
+          .string()
+          .optional()
+          .describe("Only meetings this email attended."),
+        fromDate: z.string().optional().describe("ISO 8601 start of range."),
+        toDate: z.string().optional().describe("ISO 8601 end of range."),
+        limit: z.number().int().positive().optional().describe("Max 50."),
+      }),
+      execute: async (args) => {
+        if (!ctx.firefliesToken) return { error: notConnected("Fireflies.ai") };
+        return firefliesAdapter.listMeetings(ctx.firefliesToken, args);
+      },
+    }),
+
+    fireflies_get_meeting: tool({
+      description:
+        "Read one Fireflies.ai meeting in full: AI summary (overview, action items, keywords) plus the speaker-attributed transcript, truncated if very long. Get the meetingId from fireflies_list_meetings.",
+      inputSchema: z.object({
+        meetingId: z
+          .string()
+          .describe("Meeting id from fireflies_list_meetings."),
+      }),
+      execute: async (args) => {
+        if (!ctx.firefliesToken) return { error: notConnected("Fireflies.ai") };
+        return firefliesAdapter.getMeeting(ctx.firefliesToken, args);
       },
     }),
 
@@ -1223,6 +1261,8 @@ export const ALL_TOOL_NAMES = [
   "contactout_email_verify",
   "coresignal_search_employees",
   "coresignal_collect_employee",
+  "fireflies_list_meetings",
+  "fireflies_get_meeting",
   "greenhouse_list_jobs",
   "greenhouse_list_candidates",
   "greenhouse_search_candidates",
