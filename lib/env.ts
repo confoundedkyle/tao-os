@@ -71,6 +71,16 @@ export const env = {
   get googleClientSecret() {
     return process.env.GOOGLE_CLIENT_SECRET ?? "";
   },
+  /** Microsoft OAuth app credentials (Entra app registration; the Excel
+   *  connector). The app must be multi-tenant + personal accounts, with the
+   *  /api/connectors/microsoft-excel/callback redirect URI registered as a
+   *  Web platform URI. */
+  get microsoftClientId() {
+    return process.env.MICROSOFT_CLIENT_ID ?? "";
+  },
+  get microsoftClientSecret() {
+    return process.env.MICROSOFT_CLIENT_SECRET ?? "";
+  },
   /** Notion public OAuth integration credentials (notion.so/my-integrations;
    *  the integration must be public with the
    *  /api/connectors/notion/callback redirect URI registered). */

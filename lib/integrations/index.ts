@@ -27,6 +27,7 @@ import { leverAdapter } from "./lever";
 import { loxoAdapter } from "./loxo";
 import { lushaAdapter } from "./lusha";
 import { manatalAdapter } from "./manatal";
+import { microsoftExcelAdapter } from "./microsoft-excel";
 import { mondayAdapter } from "./monday";
 import { notionAdapter } from "./notion";
 import { peopledatalabsAdapter } from "./peopledatalabs";
@@ -77,6 +78,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   loxo: loxoAdapter,
   lusha: lushaAdapter,
   manatal: manatalAdapter,
+  "microsoft-excel": microsoftExcelAdapter,
   monday: mondayAdapter,
   notion: notionAdapter,
   peopledatalabs: peopledatalabsAdapter,

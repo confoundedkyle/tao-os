@@ -141,6 +141,7 @@ export async function POST(request: NextRequest) {
   let loxoToken: string | null = null;
   let lushaToken: string | null = null;
   let manatalToken: string | null = null;
+  let microsoftExcelToken: string | null = null;
   let mondayToken: string | null = null;
   let notionToken: string | null = null;
   let peopledatalabsToken: string | null = null;
@@ -186,6 +187,7 @@ export async function POST(request: NextRequest) {
       loxoToken,
       lushaToken,
       manatalToken,
+      microsoftExcelToken,
       mondayToken,
       notionToken,
       peopledatalabsToken,
@@ -230,6 +232,7 @@ export async function POST(request: NextRequest) {
       tokenFor("loxo_", "loxo"),
       tokenFor("lusha_", "lusha"),
       tokenFor("manatal_", "manatal"),
+      tokenFor("excel_", "microsoft-excel"),
       tokenFor("monday_", "monday"),
       tokenFor("notion_", "notion"),
       tokenFor("peopledatalabs_", "peopledatalabs"),
@@ -310,6 +313,7 @@ export async function POST(request: NextRequest) {
     loxoToken,
     lushaToken,
     manatalToken,
+    microsoftExcelToken,
     mondayToken,
     notionToken,
     peopledatalabsToken,

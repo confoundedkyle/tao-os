@@ -58,7 +58,7 @@ export const CONNECTORS: Connector[] = [
   // Data (spreadsheets & flexible databases)
   { name: "Airtable", category: "data", blurb: "Sync the flexible candidate and client bases you already run.", provider: "airtable", live: true, auth: "oauth" },
   { name: "Google Sheets", category: "data", blurb: "Read candidate and client trackers straight from your Google Sheets.", provider: "google-sheets", live: true, auth: "oauth" },
-  { name: "Microsoft Excel", category: "data", blurb: "Pull pipelines and lists from Excel workbooks in OneDrive and SharePoint.", auth: "oauth" },
+  { name: "Microsoft Excel", category: "data", blurb: "Pull pipelines and lists from Excel workbooks in OneDrive and SharePoint.", provider: "microsoft-excel", live: true, auth: "oauth" },
 
   // Tools (sourcing & outreach)
   { name: "Apollo", category: "tool", blurb: "Source contact data from the 270M-profile B2B database.", provider: "apollo", live: true, auth: "apikey" },

@@ -28,6 +28,7 @@ import { leverAdapter } from "../integrations/lever";
 import { loxoAdapter } from "../integrations/loxo";
 import { lushaAdapter } from "../integrations/lusha";
 import { manatalAdapter } from "../integrations/manatal";
+import { microsoftExcelAdapter } from "../integrations/microsoft-excel";
 import { mondayAdapter } from "../integrations/monday";
 import { notionAdapter } from "../integrations/notion";
 import { peopledatalabsAdapter } from "../integrations/peopledatalabs";
@@ -83,6 +84,7 @@ export interface ToolContext {
   loxoToken: string | null;
   lushaToken: string | null;
   manatalToken: string | null;
+  microsoftExcelToken: string | null;
   mondayToken: string | null;
   notionToken: string | null;
   peopledatalabsToken: string | null;
@@ -1364,6 +1366,57 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    excel_list_workbooks: tool({
+      description:
+        "List the Excel workbooks (.xlsx/.xlsm) the connected Microsoft account can reach in OneDrive/SharePoint (name, folder, modified, item id). Pass query to search by file name.",
+      inputSchema: z.object({
+        query: z
+          .string()
+          .optional()
+          .describe("Search workbooks by name; omit to list recent .xlsx files."),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.microsoftExcelToken)
+          return { error: notConnected("Microsoft Excel") };
+        return microsoftExcelAdapter.listWorkbooks(ctx.microsoftExcelToken, args);
+      },
+    }),
+
+    excel_list_worksheets: tool({
+      description:
+        "List the worksheet tabs of one Excel workbook. Get the itemId from excel_list_workbooks.",
+      inputSchema: z.object({
+        itemId: z.string().describe("Drive item id from excel_list_workbooks."),
+      }),
+      execute: async ({ itemId }) => {
+        if (!ctx.microsoftExcelToken)
+          return { error: notConnected("Microsoft Excel") };
+        return microsoftExcelAdapter.listWorksheets(ctx.microsoftExcelToken, itemId);
+      },
+    }),
+
+    excel_read_range: tool({
+      description:
+        "Read rows from an Excel worksheet as a Markdown table (the first row is treated as the header). Omit address to read the sheet's used range; pass an A1 block like A1:F50 to read part of a large sheet.",
+      inputSchema: z.object({
+        itemId: z.string().describe("Drive item id from excel_list_workbooks."),
+        worksheet: z
+          .string()
+          .describe("Worksheet name from excel_list_worksheets."),
+        address: z
+          .string()
+          .optional()
+          .describe("A1 block, e.g. A1:F50; omit for the used range."),
+        maxRows: z.number().int().positive().optional().describe("Max 200."),
+      }),
+      execute: async (args) => {
+        if (!ctx.microsoftExcelToken)
+          return { error: notConnected("Microsoft Excel") };
+        return microsoftExcelAdapter.readRange(ctx.microsoftExcelToken, args);
+      },
+    }),
+
     monday_list_boards: tool({
       description:
         "List boards in the connected monday.com account (name, workspace, kind, item count, board id), sorted by recent use. Use to find the candidate or client tracker you need; page with page.",
@@ -2223,6 +2276,9 @@ export const ALL_TOOL_NAMES = [
   "manatal_list_jobs",
   "manatal_search_candidates",
   "manatal_list_job_candidates",
+  "excel_list_workbooks",
+  "excel_list_worksheets",
+  "excel_read_range",
   "monday_list_boards",
   "monday_list_items",
   "notion_search",
