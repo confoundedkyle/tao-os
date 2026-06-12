@@ -21,6 +21,7 @@ import { manatalAdapter } from "../integrations/manatal";
 import { pipedriveAdapter } from "../integrations/pipedrive";
 import { recruiteeAdapter } from "../integrations/recruitee";
 import { recruiterflowAdapter } from "../integrations/recruiterflow";
+import { smartleadAdapter } from "../integrations/smartlead";
 import { teamtailorAdapter } from "../integrations/teamtailor";
 import { workableAdapter } from "../integrations/workable";
 import { zohoCrmAdapter } from "../integrations/zoho-crm";
@@ -55,6 +56,7 @@ export interface ToolContext {
   pipedriveToken: string | null;
   recruiteeToken: string | null;
   recruiterflowToken: string | null;
+  smartleadToken: string | null;
   teamtailorToken: string | null;
   workableToken: string | null;
   zohoCrmToken: string | null;
@@ -1015,6 +1017,48 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    smartlead_list_campaigns: tool({
+      description:
+        "List cold-email campaigns in the connected Smartlead account (name, status, created date, campaign id). Statuses: DRAFTED, ACTIVE, PAUSED, STOPPED, ARCHIVED.",
+      inputSchema: z.object({
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.smartleadToken) return { error: notConnected("Smartlead") };
+        return smartleadAdapter.listCampaigns(ctx.smartleadToken, args);
+      },
+    }),
+
+    smartlead_list_leads: tool({
+      description:
+        "List leads in one Smartlead campaign as a Markdown table (name, email, company, status, opens, replies). Get the campaignId from smartlead_list_campaigns; page with offset.",
+      inputSchema: z.object({
+        campaignId: z
+          .string()
+          .describe("Campaign id from smartlead_list_campaigns."),
+        offset: z.number().int().nonnegative().optional(),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.smartleadToken) return { error: notConnected("Smartlead") };
+        return smartleadAdapter.listLeads(ctx.smartleadToken, args);
+      },
+    }),
+
+    smartlead_campaign_analytics: tool({
+      description:
+        "Aggregate performance metrics for one Smartlead campaign (sent, opens, clicks, replies, bounces, unsubscribes). Get the campaignId from smartlead_list_campaigns.",
+      inputSchema: z.object({
+        campaignId: z
+          .string()
+          .describe("Campaign id from smartlead_list_campaigns."),
+      }),
+      execute: async (args) => {
+        if (!ctx.smartleadToken) return { error: notConnected("Smartlead") };
+        return smartleadAdapter.campaignAnalytics(ctx.smartleadToken, args);
+      },
+    }),
+
     teamtailor_list_jobs: tool({
       description:
         "List jobs in the connected Teamtailor ATS (title, status, remote status, job id). Filter by status: published, draft, archived, scheduled, internal.",
@@ -1249,6 +1293,9 @@ export const ALL_TOOL_NAMES = [
   "recruitee_list_candidates",
   "recruiterflow_list_jobs",
   "recruiterflow_list_candidates",
+  "smartlead_list_campaigns",
+  "smartlead_list_leads",
+  "smartlead_campaign_analytics",
   "teamtailor_list_jobs",
   "teamtailor_list_candidates",
   "teamtailor_list_job_candidates",

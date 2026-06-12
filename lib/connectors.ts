@@ -57,4 +57,5 @@ export const CONNECTORS: Connector[] = [
   { name: "Instantly.ai", category: "tool", blurb: "Scale cold email outreach with automated warm-up." },
   { name: "Lemlist", category: "tool", blurb: "Personalised cold outreach sequences that get replies.", provider: "lemlist", live: true, auth: "apikey" },
   { name: "Lusha", category: "tool", blurb: "B2B contact data to reach candidates and clients.", provider: "lusha", live: true, auth: "apikey" },
+  { name: "Smartlead", category: "tool", blurb: "Track cold-email campaigns, leads, and reply analytics.", provider: "smartlead", live: true, auth: "apikey" },
 ];
