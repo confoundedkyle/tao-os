@@ -34,8 +34,10 @@ export const CONNECTORS: Connector[] = [
   { name: "BreezyHR", category: "ats", blurb: "Pull pipelines from the visual drag-and-drop hiring tool.", provider: "breezyhr", live: true, auth: "apikey" },
   { name: "Bullhorn", category: "ats", blurb: "Sync candidates, jobs, and submissions from the agency staffing standard.", provider: "bullhorn", live: true, auth: "oauth" },
   { name: "CATS", category: "ats", blurb: "Pull jobs and candidates from the veteran agency ATS.", provider: "cats", live: true, auth: "apikey" },
+  { name: "Crelate", category: "ats", blurb: "Pull contacts and jobs from the executive-search favorite ATS + CRM.", provider: "crelate", live: true, auth: "apikey", apiKeyHint: "Enable and copy the key in Crelate under Settings → My Settings & Preferences → API Key." },
   { name: "Greenhouse", category: "ats", blurb: "Sync jobs and candidates from the enterprise hiring standard.", provider: "greenhouse", live: true, auth: "apikey" },
   { name: "JazzHR", category: "ats", blurb: "Import candidates from the SMB-friendly recruiting software.", provider: "jazzhr", live: true, auth: "apikey" },
+  { name: "JobAdder", category: "ats", blurb: "Sync candidates, jobs, and pipelines from the ANZ/UK agency favorite.", provider: "jobadder", live: true, auth: "oauth" },
   { name: "Lever", category: "ats", blurb: "Sync pipelines from the CRM-style ATS teams love.", provider: "lever", live: true, auth: "apikey" },
   { name: "Loxo", category: "ats", blurb: "Pull candidates from the AI recruiting platform for agencies.", provider: "loxo", live: true, auth: "apikey", apiKeyPlaceholder: "agency-slug:api-key", apiKeyHint: "The slug is the subdomain in your Loxo URL ({slug}.app.loxo.co); keys live in Settings → API Keys (Open API access is a paid Loxo feature)." },
   { name: "Manatal", category: "ats", blurb: "Import candidates from the affordable AI-recommendation ATS.", provider: "manatal", live: true, auth: "apikey" },
@@ -50,13 +52,15 @@ export const CONNECTORS: Connector[] = [
   // CRM
   { name: "Attio", category: "crm", blurb: "Query people, companies, and deals from the modern CRM.", provider: "attio", live: true, auth: "apikey" },
   { name: "HubSpot", category: "crm", blurb: "Sync client companies, deals, and contacts effortlessly.", provider: "hubspot", live: true, auth: "apikey" },
+  { name: "monday.com", category: "crm", blurb: "Read the candidate and client boards your agency already runs.", provider: "monday", live: true, auth: "apikey", apiKeyHint: "Copy your personal API token from your monday.com profile picture → Developers → API token." },
+  { name: "Notion", category: "crm", blurb: "Read the databases and pages your team already runs recruiting on.", provider: "notion", live: true, auth: "oauth" },
   { name: "Pipedrive", category: "crm", blurb: "Pull your BD pipeline and client deals into Calyflow.", provider: "pipedrive", live: true, auth: "apikey" },
   { name: "Zoho CRM", category: "crm", blurb: "Sync clients and deals from Zoho's sales suite.", provider: "zoho-crm", live: true, auth: "oauth" },
 
   // Data (spreadsheets & flexible databases)
   { name: "Airtable", category: "data", blurb: "Sync the flexible candidate and client bases you already run.", provider: "airtable", live: true, auth: "oauth" },
-  { name: "Google Sheets", category: "data", blurb: "Read candidate and client trackers straight from your Google Sheets.", auth: "oauth" },
-  { name: "Microsoft Excel", category: "data", blurb: "Pull pipelines and lists from Excel workbooks in OneDrive and SharePoint.", auth: "oauth" },
+  { name: "Google Sheets", category: "data", blurb: "Read candidate and client trackers straight from your Google Sheets.", provider: "google-sheets", live: true, auth: "oauth" },
+  { name: "Microsoft Excel", category: "data", blurb: "Pull pipelines and lists from Excel workbooks in OneDrive and SharePoint.", provider: "microsoft-excel", live: true, auth: "oauth" },
 
   // Tools (sourcing & outreach)
   { name: "Apollo", category: "tool", blurb: "Source contact data from the 270M-profile B2B database.", provider: "apollo", live: true, auth: "apikey" },
@@ -65,6 +69,7 @@ export const CONNECTORS: Connector[] = [
   { name: "Coresignal", category: "tool", blurb: "Enrich candidates with fresh public employment data.", provider: "coresignal", live: true, auth: "apikey" },
   { name: "Fathom", category: "tool", blurb: "Read AI summaries and transcripts of your recorded calls.", provider: "fathom", live: true, auth: "apikey" },
   { name: "Fireflies.ai", category: "tool", blurb: "Search interview and client-call transcripts and summaries.", provider: "fireflies", live: true, auth: "apikey" },
+  { name: "Gong", category: "tool", blurb: "Read briefs and transcripts from your recorded sales and intake calls.", provider: "gong", live: true, auth: "apikey", apiKeyPlaceholder: "access-key:secret", apiKeyHint: "A Gong admin creates the access-key pair under company settings → Ecosystem → API; paste both parts separated by a colon." },
   { name: "HireEZ", category: "tool", blurb: "AI outbound sourcing across 800M+ candidate profiles." },
   { name: "Hunter.io", category: "tool", blurb: "Find and verify work email addresses instantly.", provider: "hunter", live: true, auth: "apikey" },
   { name: "Instantly.ai", category: "tool", blurb: "Scale cold email outreach with automated warm-up.", provider: "instantly", live: true, auth: "apikey" },
@@ -72,7 +77,9 @@ export const CONNECTORS: Connector[] = [
   { name: "Lusha", category: "tool", blurb: "B2B contact data to reach candidates and clients.", provider: "lusha", live: true, auth: "apikey" },
   { name: "People Data Labs", category: "tool", blurb: "Enrich and search billions of person profiles at scale.", provider: "peopledatalabs", live: true, auth: "apikey" },
   { name: "RocketReach", category: "tool", blurb: "Find emails and phones across 700M+ professional profiles.", provider: "rocketreach", live: true, auth: "apikey" },
+  { name: "SignalHire", category: "tool", blurb: "Reveal candidate emails and phones with the recruiter-built contact finder.", provider: "signalhire", live: true, auth: "apikey", apiKeyHint: "Create the key in SignalHire under Integrations & API; the same credit pool is shared with the web app and extension." },
   { name: "Smartlead", category: "tool", blurb: "Track cold-email campaigns, leads, and reply analytics.", provider: "smartlead", live: true, auth: "apikey" },
   { name: "Snov.io", category: "tool", blurb: "Find and verify work emails for outreach-ready lists.", provider: "snov", live: true, auth: "apikey", apiKeyPlaceholder: "client-id:client-secret", apiKeyHint: "Both are shown in Snov.io under your account settings → API." },
   { name: "tl;dv", category: "tool", blurb: "Read AI notes and transcripts from your recorded meetings.", provider: "tldv", live: true, auth: "apikey", apiKeyHint: "Create the key under personal settings → API Keys; API access requires the tl;dv Business plan." },
+  { name: "Woodpecker", category: "tool", blurb: "Track cold-email campaigns and prospect replies, EU-style.", provider: "woodpecker", live: true, auth: "apikey", apiKeyHint: "Create the key in Woodpecker under Add-ons → API & Integrations → API keys." },
 ];
