@@ -126,6 +126,7 @@ export async function POST(request: NextRequest) {
   let catsToken: string | null = null;
   let contactoutToken: string | null = null;
   let coresignalToken: string | null = null;
+  let crelateToken: string | null = null;
   let fathomToken: string | null = null;
   let firefliesToken: string | null = null;
   let gongToken: string | null = null;
@@ -167,6 +168,7 @@ export async function POST(request: NextRequest) {
       catsToken,
       contactoutToken,
       coresignalToken,
+      crelateToken,
       fathomToken,
       firefliesToken,
       gongToken,
@@ -207,6 +209,7 @@ export async function POST(request: NextRequest) {
       tokenFor("cats_", "cats"),
       tokenFor("contactout_", "contactout"),
       tokenFor("coresignal_", "coresignal"),
+      tokenFor("crelate_", "crelate"),
       tokenFor("fathom_", "fathom"),
       tokenFor("fireflies_", "fireflies"),
       tokenFor("gong_", "gong"),
@@ -283,6 +286,7 @@ export async function POST(request: NextRequest) {
     catsToken,
     contactoutToken,
     coresignalToken,
+    crelateToken,
     fathomToken,
     firefliesToken,
     gongToken,

@@ -13,6 +13,7 @@ import { brightdataAdapter } from "../integrations/brightdata";
 import { catsAdapter } from "../integrations/cats";
 import { contactoutAdapter } from "../integrations/contactout";
 import { coresignalAdapter } from "../integrations/coresignal";
+import { crelateAdapter } from "../integrations/crelate";
 import { fathomAdapter } from "../integrations/fathom";
 import { firefliesAdapter } from "../integrations/fireflies";
 import { gongAdapter } from "../integrations/gong";
@@ -64,6 +65,7 @@ export interface ToolContext {
   catsToken: string | null;
   contactoutToken: string | null;
   coresignalToken: string | null;
+  crelateToken: string | null;
   fathomToken: string | null;
   firefliesToken: string | null;
   gongToken: string | null;
@@ -822,6 +824,56 @@ function buildAll(ctx: ToolContext): ToolSet {
       execute: async (args) => {
         if (!ctx.catsToken) return { error: notConnected("CATS") };
         return catsAdapter.listCandidates(ctx.catsToken, args);
+      },
+    }),
+
+    crelate_list_jobs: tool({
+      description:
+        "List jobs in the connected Crelate ATS (name, company, status, openings, job id). Pass name to filter by job name (contains match); paginate with offset.",
+      inputSchema: z.object({
+        name: z
+          .string()
+          .optional()
+          .describe("Filter by job name (contains match)."),
+        offset: z.number().int().nonnegative().optional(),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.crelateToken) return { error: notConnected("Crelate") };
+        return crelateAdapter.listJobs(ctx.crelateToken, args);
+      },
+    }),
+
+    crelate_search_contacts: tool({
+      description:
+        "Search contacts in the connected Crelate ATS by keyword (name, skill, company) and get full rows back (name, title, company, email, phone, LinkedIn). Use this when you have search terms; use crelate_list_contacts to browse or filter by type.",
+      inputSchema: z.object({
+        query: z
+          .string()
+          .describe("Keyword query: name, skill, company, …"),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.crelateToken) return { error: notConnected("Crelate") };
+        return crelateAdapter.searchContacts(ctx.crelateToken, args);
+      },
+    }),
+
+    crelate_list_contacts: tool({
+      description:
+        "List contacts in the connected Crelate ATS as a Markdown table (name, title, company, email, phone, LinkedIn). Filter by recordType (candidate, client, vendor, …) or email; paginate with offset.",
+      inputSchema: z.object({
+        recordType: z
+          .string()
+          .optional()
+          .describe("Record type filter, e.g. candidate or client."),
+        email: z.string().optional().describe("Find a contact by email."),
+        offset: z.number().int().nonnegative().optional(),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.crelateToken) return { error: notConnected("Crelate") };
+        return crelateAdapter.listContacts(ctx.crelateToken, args);
       },
     }),
 
@@ -1979,6 +2031,9 @@ export const ALL_TOOL_NAMES = [
   "brightdata_get_snapshot",
   "cats_list_jobs",
   "cats_list_candidates",
+  "crelate_list_jobs",
+  "crelate_search_contacts",
+  "crelate_list_contacts",
   "contactout_people_search",
   "contactout_linkedin_enrich",
   "contactout_person_enrich",
