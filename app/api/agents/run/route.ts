@@ -126,6 +126,7 @@ export async function POST(request: NextRequest) {
   let contactoutToken: string | null = null;
   let coresignalToken: string | null = null;
   let fathomToken: string | null = null;
+  let firefliesToken: string | null = null;
   let greenhouseToken: string | null = null;
   let hubspotToken: string | null = null;
   let hunterToken: string | null = null;
@@ -158,6 +159,7 @@ export async function POST(request: NextRequest) {
       contactoutToken,
       coresignalToken,
       fathomToken,
+      firefliesToken,
       greenhouseToken,
       hubspotToken,
       hunterToken,
@@ -189,6 +191,7 @@ export async function POST(request: NextRequest) {
       tokenFor("contactout_", "contactout"),
       tokenFor("coresignal_", "coresignal"),
       tokenFor("fathom_", "fathom"),
+      tokenFor("fireflies_", "fireflies"),
       tokenFor("greenhouse_", "greenhouse"),
       tokenFor("hubspot_", "hubspot"),
       tokenFor("hunter_", "hunter"),
@@ -256,6 +259,7 @@ export async function POST(request: NextRequest) {
     contactoutToken,
     coresignalToken,
     fathomToken,
+    firefliesToken,
     greenhouseToken,
     hubspotToken,
     hunterToken,
