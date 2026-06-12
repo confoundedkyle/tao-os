@@ -134,6 +134,7 @@ export async function POST(request: NextRequest) {
   let pipedriveToken: string | null = null;
   let recruiteeToken: string | null = null;
   let recruiterflowToken: string | null = null;
+  let rocketreachToken: string | null = null;
   let teamtailorToken: string | null = null;
   let workableToken: string | null = null;
   let zohoCrmToken: string | null = null;
@@ -158,6 +159,7 @@ export async function POST(request: NextRequest) {
       pipedriveToken,
       recruiteeToken,
       recruiterflowToken,
+      rocketreachToken,
       teamtailorToken,
       workableToken,
       zohoCrmToken,
@@ -181,6 +183,7 @@ export async function POST(request: NextRequest) {
       tokenFor("pipedrive_", "pipedrive"),
       tokenFor("recruitee_", "recruitee"),
       tokenFor("recruiterflow_", "recruiterflow"),
+      tokenFor("rocketreach_", "rocketreach"),
       tokenFor("teamtailor_", "teamtailor"),
       tokenFor("workable_", "workable"),
       tokenFor("zohocrm_", "zoho-crm"),
@@ -240,6 +243,7 @@ export async function POST(request: NextRequest) {
     pipedriveToken,
     recruiteeToken,
     recruiterflowToken,
+    rocketreachToken,
     teamtailorToken,
     workableToken,
     zohoCrmToken,
