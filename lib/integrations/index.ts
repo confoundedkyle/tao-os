@@ -5,8 +5,25 @@ import type { Connection } from "../types";
 import { airtableAdapter } from "./airtable";
 import { apolloAdapter } from "./apollo";
 import { ashbyAdapter } from "./ashby";
+import { breezyhrAdapter } from "./breezyhr";
+import { brightdataAdapter } from "./brightdata";
 import { contactoutAdapter } from "./contactout";
+import { coresignalAdapter } from "./coresignal";
+import { greenhouseAdapter } from "./greenhouse";
+import { hubspotAdapter } from "./hubspot";
 import { hunterAdapter } from "./hunter";
+import { lemlistAdapter } from "./lemlist";
+import { leverAdapter } from "./lever";
+import { loxoAdapter } from "./loxo";
+import { lushaAdapter } from "./lusha";
+import { manatalAdapter } from "./manatal";
+import { pipedriveAdapter } from "./pipedrive";
+import { recruiteeAdapter } from "./recruitee";
+import { recruiterflowAdapter } from "./recruiterflow";
+import { teamtailorAdapter } from "./teamtailor";
+import { workableAdapter } from "./workable";
+import { zohoCrmAdapter } from "./zoho-crm";
+import { zohoRecruitAdapter } from "./zoho-recruit";
 import type { ConnectorAdapter } from "./types";
 
 export type { ConnectorAdapter, ResourceRef } from "./types";
@@ -17,8 +34,25 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   airtable: airtableAdapter,
   apollo: apolloAdapter,
   ashby: ashbyAdapter,
+  breezyhr: breezyhrAdapter,
+  brightdata: brightdataAdapter,
   contactout: contactoutAdapter,
+  coresignal: coresignalAdapter,
+  greenhouse: greenhouseAdapter,
+  hubspot: hubspotAdapter,
   hunter: hunterAdapter,
+  lemlist: lemlistAdapter,
+  lever: leverAdapter,
+  loxo: loxoAdapter,
+  lusha: lushaAdapter,
+  manatal: manatalAdapter,
+  pipedrive: pipedriveAdapter,
+  recruitee: recruiteeAdapter,
+  recruiterflow: recruiterflowAdapter,
+  teamtailor: teamtailorAdapter,
+  workable: workableAdapter,
+  "zoho-crm": zohoCrmAdapter,
+  "zoho-recruit": zohoRecruitAdapter,
 };
 
 export function getAdapter(provider: string): ConnectorAdapter | null {

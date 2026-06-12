@@ -119,17 +119,73 @@ export async function POST(request: NextRequest) {
   let airtableToken: string | null = null;
   let apolloToken: string | null = null;
   let ashbyToken: string | null = null;
+  let breezyhrToken: string | null = null;
+  let brightdataToken: string | null = null;
   let contactoutToken: string | null = null;
+  let coresignalToken: string | null = null;
+  let greenhouseToken: string | null = null;
+  let hubspotToken: string | null = null;
   let hunterToken: string | null = null;
+  let lemlistToken: string | null = null;
+  let leverToken: string | null = null;
+  let loxoToken: string | null = null;
+  let lushaToken: string | null = null;
+  let manatalToken: string | null = null;
+  let pipedriveToken: string | null = null;
+  let recruiteeToken: string | null = null;
+  let recruiterflowToken: string | null = null;
+  let teamtailorToken: string | null = null;
+  let workableToken: string | null = null;
+  let zohoCrmToken: string | null = null;
+  let zohoRecruitToken: string | null = null;
   try {
-    [airtableToken, apolloToken, ashbyToken, contactoutToken, hunterToken] =
-      await Promise.all([
-        tokenFor("airtable_", "airtable"),
-        tokenFor("apollo_", "apollo"),
-        tokenFor("ashby_", "ashby"),
-        tokenFor("contactout_", "contactout"),
-        tokenFor("hunter_", "hunter"),
-      ]);
+    [
+      airtableToken,
+      apolloToken,
+      ashbyToken,
+      breezyhrToken,
+      brightdataToken,
+      contactoutToken,
+      coresignalToken,
+      greenhouseToken,
+      hubspotToken,
+      hunterToken,
+      lemlistToken,
+      leverToken,
+      loxoToken,
+      lushaToken,
+      manatalToken,
+      pipedriveToken,
+      recruiteeToken,
+      recruiterflowToken,
+      teamtailorToken,
+      workableToken,
+      zohoCrmToken,
+      zohoRecruitToken,
+    ] = await Promise.all([
+      tokenFor("airtable_", "airtable"),
+      tokenFor("apollo_", "apollo"),
+      tokenFor("ashby_", "ashby"),
+      tokenFor("breezyhr_", "breezyhr"),
+      tokenFor("brightdata_", "brightdata"),
+      tokenFor("contactout_", "contactout"),
+      tokenFor("coresignal_", "coresignal"),
+      tokenFor("greenhouse_", "greenhouse"),
+      tokenFor("hubspot_", "hubspot"),
+      tokenFor("hunter_", "hunter"),
+      tokenFor("lemlist_", "lemlist"),
+      tokenFor("lever_", "lever"),
+      tokenFor("loxo_", "loxo"),
+      tokenFor("lusha_", "lusha"),
+      tokenFor("manatal_", "manatal"),
+      tokenFor("pipedrive_", "pipedrive"),
+      tokenFor("recruitee_", "recruitee"),
+      tokenFor("recruiterflow_", "recruiterflow"),
+      tokenFor("teamtailor_", "teamtailor"),
+      tokenFor("workable_", "workable"),
+      tokenFor("zohocrm_", "zoho-crm"),
+      tokenFor("zohorecruit_", "zoho-recruit"),
+    ]);
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Connection error" },
@@ -169,8 +225,25 @@ export async function POST(request: NextRequest) {
     airtableToken,
     apolloToken,
     ashbyToken,
+    breezyhrToken,
+    brightdataToken,
     contactoutToken,
+    coresignalToken,
+    greenhouseToken,
+    hubspotToken,
     hunterToken,
+    lemlistToken,
+    leverToken,
+    loxoToken,
+    lushaToken,
+    manatalToken,
+    pipedriveToken,
+    recruiteeToken,
+    recruiterflowToken,
+    teamtailorToken,
+    workableToken,
+    zohoCrmToken,
+    zohoRecruitToken,
     createdDocIds: [],
   };
 
