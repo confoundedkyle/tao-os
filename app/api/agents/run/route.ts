@@ -128,6 +128,7 @@ export async function POST(request: NextRequest) {
   let greenhouseToken: string | null = null;
   let hubspotToken: string | null = null;
   let hunterToken: string | null = null;
+  let instantlyToken: string | null = null;
   let lemlistToken: string | null = null;
   let leverToken: string | null = null;
   let loxoToken: string | null = null;
@@ -156,6 +157,7 @@ export async function POST(request: NextRequest) {
       greenhouseToken,
       hubspotToken,
       hunterToken,
+      instantlyToken,
       lemlistToken,
       leverToken,
       loxoToken,
@@ -183,6 +185,7 @@ export async function POST(request: NextRequest) {
       tokenFor("greenhouse_", "greenhouse"),
       tokenFor("hubspot_", "hubspot"),
       tokenFor("hunter_", "hunter"),
+      tokenFor("instantly_", "instantly"),
       tokenFor("lemlist_", "lemlist"),
       tokenFor("lever_", "lever"),
       tokenFor("loxo_", "loxo"),
@@ -246,6 +249,7 @@ export async function POST(request: NextRequest) {
     greenhouseToken,
     hubspotToken,
     hunterToken,
+    instantlyToken,
     lemlistToken,
     leverToken,
     loxoToken,

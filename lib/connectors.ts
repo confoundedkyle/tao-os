@@ -57,7 +57,7 @@ export const CONNECTORS: Connector[] = [
   { name: "Coresignal", category: "tool", blurb: "Enrich candidates with fresh public employment data.", provider: "coresignal", live: true, auth: "apikey" },
   { name: "HireEZ", category: "tool", blurb: "AI outbound sourcing across 800M+ candidate profiles." },
   { name: "Hunter.io", category: "tool", blurb: "Find and verify work email addresses instantly.", provider: "hunter", live: true, auth: "apikey" },
-  { name: "Instantly.ai", category: "tool", blurb: "Scale cold email outreach with automated warm-up." },
+  { name: "Instantly.ai", category: "tool", blurb: "Scale cold email outreach with automated warm-up.", provider: "instantly", live: true, auth: "apikey" },
   { name: "Lemlist", category: "tool", blurb: "Personalised cold outreach sequences that get replies.", provider: "lemlist", live: true, auth: "apikey" },
   { name: "Lusha", category: "tool", blurb: "B2B contact data to reach candidates and clients.", provider: "lusha", live: true, auth: "apikey" },
   { name: "People Data Labs", category: "tool", blurb: "Enrich and search billions of person profiles at scale.", provider: "peopledatalabs", live: true, auth: "apikey" },

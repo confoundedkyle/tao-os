@@ -14,6 +14,7 @@ import { coresignalAdapter } from "./coresignal";
 import { greenhouseAdapter } from "./greenhouse";
 import { hubspotAdapter } from "./hubspot";
 import { hunterAdapter } from "./hunter";
+import { instantlyAdapter } from "./instantly";
 import { lemlistAdapter } from "./lemlist";
 import { leverAdapter } from "./lever";
 import { loxoAdapter } from "./loxo";
@@ -47,6 +48,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   greenhouse: greenhouseAdapter,
   hubspot: hubspotAdapter,
   hunter: hunterAdapter,
+  instantly: instantlyAdapter,
   lemlist: lemlistAdapter,
   lever: leverAdapter,
   loxo: loxoAdapter,
