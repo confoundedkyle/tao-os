@@ -10,6 +10,7 @@ import { attioAdapter } from "../integrations/attio";
 import { bamboohrAdapter } from "../integrations/bamboohr";
 import { breezyhrAdapter } from "../integrations/breezyhr";
 import { brightdataAdapter } from "../integrations/brightdata";
+import { bullhornAdapter } from "../integrations/bullhorn";
 import { catsAdapter } from "../integrations/cats";
 import { contactoutAdapter } from "../integrations/contactout";
 import { coresignalAdapter } from "../integrations/coresignal";
@@ -67,6 +68,7 @@ export interface ToolContext {
   bamboohrToken: string | null;
   breezyhrToken: string | null;
   brightdataToken: string | null;
+  bullhornToken: string | null;
   catsToken: string | null;
   contactoutToken: string | null;
   coresignalToken: string | null;
@@ -858,6 +860,55 @@ function buildAll(ctx: ToolContext): ToolSet {
       execute: async ({ snapshotId }) => {
         if (!ctx.brightdataToken) return { error: notConnected("Bright Data") };
         return brightdataAdapter.getSnapshot(ctx.brightdataToken, snapshotId);
+      },
+    }),
+
+    bullhorn_list_jobs: tool({
+      description:
+        "List jobs in the connected Bullhorn ATS (title, client, status, type, job id), newest first. Pass title to filter by job title; set openOnly for open roles; page with start.",
+      inputSchema: z.object({
+        title: z.string().optional().describe("Filter by job title."),
+        openOnly: z.boolean().optional().describe("Only return open jobs."),
+        start: z.number().int().nonnegative().optional(),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.bullhornToken) return { error: notConnected("Bullhorn") };
+        return bullhornAdapter.listJobs(ctx.bullhornToken, args);
+      },
+    }),
+
+    bullhorn_search_candidates: tool({
+      description:
+        "Search candidates in the connected Bullhorn ATS as a Markdown table (name, email, phone, title, company, location, status), newest first. Filters combine: name, email, or query (a raw Lucene fragment, e.g. occupation:\"engineer\" AND address.city:\"Berlin\"); page with start.",
+      inputSchema: z.object({
+        name: z.string().optional().describe("Search by candidate name."),
+        email: z.string().optional().describe("Find a candidate by email."),
+        query: z
+          .string()
+          .optional()
+          .describe(
+            'Raw Lucene fragment over candidate fields, e.g. occupation:"engineer".',
+          ),
+        start: z.number().int().nonnegative().optional(),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.bullhornToken) return { error: notConnected("Bullhorn") };
+        return bullhornAdapter.searchCandidates(ctx.bullhornToken, args);
+      },
+    }),
+
+    bullhorn_list_job_submissions: tool({
+      description:
+        "List one Bullhorn job's submissions (the pipeline) with each candidate's details and stage, newest first. Get the jobId from bullhorn_list_jobs.",
+      inputSchema: z.object({
+        jobId: z.number().int().describe("Job id from bullhorn_list_jobs."),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.bullhornToken) return { error: notConnected("Bullhorn") };
+        return bullhornAdapter.listJobSubmissions(ctx.bullhornToken, args);
       },
     }),
 
@@ -2284,6 +2335,9 @@ export const ALL_TOOL_NAMES = [
   "brightdata_scrape_linkedin_profiles",
   "brightdata_scrape_linkedin_companies",
   "brightdata_get_snapshot",
+  "bullhorn_list_jobs",
+  "bullhorn_search_candidates",
+  "bullhorn_list_job_submissions",
   "cats_list_jobs",
   "cats_list_candidates",
   "crelate_list_jobs",

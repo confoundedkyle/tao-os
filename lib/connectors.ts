@@ -32,6 +32,7 @@ export const CONNECTORS: Connector[] = [
   { name: "Ashby", category: "ats", blurb: "Sync roles and candidates from the analytics-first modern ATS.", provider: "ashby", live: true, auth: "apikey" },
   { name: "BambooHR", category: "ats", blurb: "Import applicants from the SMB-favorite HR platform's ATS.", provider: "bamboohr", live: true, auth: "apikey", apiKeyPlaceholder: "company-domain:api-key", apiKeyHint: "The company domain is the {company} part of {company}.bamboohr.com; create the key from your avatar menu → API Keys." },
   { name: "BreezyHR", category: "ats", blurb: "Pull pipelines from the visual drag-and-drop hiring tool.", provider: "breezyhr", live: true, auth: "apikey" },
+  { name: "Bullhorn", category: "ats", blurb: "Sync candidates, jobs, and submissions from the agency staffing standard.", provider: "bullhorn", live: true, auth: "oauth" },
   { name: "CATS", category: "ats", blurb: "Pull jobs and candidates from the veteran agency ATS.", provider: "cats", live: true, auth: "apikey" },
   { name: "Crelate", category: "ats", blurb: "Pull contacts and jobs from the executive-search favorite ATS + CRM.", provider: "crelate", live: true, auth: "apikey", apiKeyHint: "Enable and copy the key in Crelate under Settings → My Settings & Preferences → API Key." },
   { name: "Greenhouse", category: "ats", blurb: "Sync jobs and candidates from the enterprise hiring standard.", provider: "greenhouse", live: true, auth: "apikey" },
