@@ -31,6 +31,7 @@ import { pipedriveAdapter } from "../integrations/pipedrive";
 import { recruiteeAdapter } from "../integrations/recruitee";
 import { recruiterflowAdapter } from "../integrations/recruiterflow";
 import { rocketreachAdapter } from "../integrations/rocketreach";
+import { signalhireAdapter } from "../integrations/signalhire";
 import { smartleadAdapter } from "../integrations/smartlead";
 import { smartrecruitersAdapter } from "../integrations/smartrecruiters";
 import { snovAdapter } from "../integrations/snov";
@@ -79,6 +80,7 @@ export interface ToolContext {
   recruiteeToken: string | null;
   recruiterflowToken: string | null;
   rocketreachToken: string | null;
+  signalhireToken: string | null;
   smartleadToken: string | null;
   smartrecruitersToken: string | null;
   snovToken: string | null;
@@ -1563,6 +1565,44 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    signalhire_search_people: tool({
+      description:
+        "Search SignalHire profiles by title, company, location, or keywords. Returns name, title, company, location, and profile UID — no contact details. Free of credit cost (draws from a daily search quota); treat results as candidates for signalhire_enrich_person.",
+      inputSchema: z.object({
+        title: z.string().optional().describe("Current job title to match."),
+        company: z.string().optional().describe("Current company to match."),
+        location: z
+          .string()
+          .optional()
+          .describe("City, state, or country to match."),
+        keywords: z
+          .string()
+          .optional()
+          .describe("Skills or other profile keywords."),
+        limit: z.number().int().positive().optional().describe("Max 25."),
+      }),
+      execute: async (args) => {
+        if (!ctx.signalhireToken) return { error: notConnected("SignalHire") };
+        return signalhireAdapter.searchPeople(ctx.signalhireToken, args);
+      },
+    }),
+
+    signalhire_enrich_person: tool({
+      description:
+        "Reveal a person's emails and phones via SignalHire from a LinkedIn profile URL, an email, a phone number, or a profile UID (from signalhire_search_people). Costs a credit per successful match — enrich selectively, never in bulk.",
+      inputSchema: z.object({
+        identifier: z
+          .string()
+          .describe(
+            "LinkedIn profile URL, email, phone number, or SignalHire profile UID.",
+          ),
+      }),
+      execute: async (args) => {
+        if (!ctx.signalhireToken) return { error: notConnected("SignalHire") };
+        return signalhireAdapter.enrichPerson(ctx.signalhireToken, args);
+      },
+    }),
+
     smartrecruiters_list_jobs: tool({
       description:
         "List jobs in the connected SmartRecruiters ATS (title, status, department, location, job id). Optionally filter by status (e.g. SOURCING, OFFER, FILLED). Use to find the role you are sourcing for — the job id scopes candidate lookups.",
@@ -1895,6 +1935,8 @@ export const ALL_TOOL_NAMES = [
   "rocketreach_search_people",
   "rocketreach_lookup_person",
   "rocketreach_check_lookup",
+  "signalhire_search_people",
+  "signalhire_enrich_person",
   "smartlead_list_campaigns",
   "smartlead_list_leads",
   "smartlead_campaign_analytics",
