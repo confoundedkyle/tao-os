@@ -23,6 +23,7 @@ import { hubspotAdapter } from "../integrations/hubspot";
 import { hunterAdapter } from "../integrations/hunter";
 import { instantlyAdapter } from "../integrations/instantly";
 import { jazzhrAdapter } from "../integrations/jazzhr";
+import { jobadderAdapter } from "../integrations/jobadder";
 import { lemlistAdapter } from "../integrations/lemlist";
 import { leverAdapter } from "../integrations/lever";
 import { loxoAdapter } from "../integrations/loxo";
@@ -79,6 +80,7 @@ export interface ToolContext {
   hunterToken: string | null;
   instantlyToken: string | null;
   jazzhrToken: string | null;
+  jobadderToken: string | null;
   lemlistToken: string | null;
   leverToken: string | null;
   loxoToken: string | null;
@@ -1184,6 +1186,60 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    jobadder_list_jobs: tool({
+      description:
+        "List jobs in the connected JobAdder ATS (title, company, contact, status, job id). Pass title to filter by job title; set activeOnly for open roles; page with offset.",
+      inputSchema: z.object({
+        title: z.string().optional().describe("Filter by job title."),
+        activeOnly: z
+          .boolean()
+          .optional()
+          .describe("Only return active jobs."),
+        offset: z.number().int().nonnegative().optional(),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.jobadderToken) return { error: notConnected("JobAdder") };
+        return jobadderAdapter.listJobs(ctx.jobadderToken, args);
+      },
+    }),
+
+    jobadder_search_candidates: tool({
+      description:
+        "Search candidates in the connected JobAdder ATS as a Markdown table (name, email, phone, location, status). Filters combine: name, email, or keywords (skills/CV text); page with offset.",
+      inputSchema: z.object({
+        name: z.string().optional().describe("Search by candidate name."),
+        email: z.string().optional().describe("Find a candidate by email."),
+        keywords: z
+          .string()
+          .optional()
+          .describe("Keyword search across candidate records."),
+        offset: z.number().int().nonnegative().optional(),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.jobadderToken) return { error: notConnected("JobAdder") };
+        return jobadderAdapter.searchCandidates(ctx.jobadderToken, args);
+      },
+    }),
+
+    jobadder_list_job_applications: tool({
+      description:
+        "List one JobAdder job's applications with each candidate's details and stage. Get the jobId from jobadder_list_jobs; set activeOnly to skip rejected/withdrawn applications.",
+      inputSchema: z.object({
+        jobId: z.number().int().describe("Job id from jobadder_list_jobs."),
+        activeOnly: z
+          .boolean()
+          .optional()
+          .describe("Only return active applications."),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.jobadderToken) return { error: notConnected("JobAdder") };
+        return jobadderAdapter.listJobApplications(ctx.jobadderToken, args);
+      },
+    }),
+
     lever_list_postings: tool({
       description:
         "List job postings in the connected Lever ATS (title, state, team, location, posting id). Filter by state, e.g. published. Use to find the role you are sourcing for.",
@@ -2263,6 +2319,9 @@ export const ALL_TOOL_NAMES = [
   "jazzhr_list_jobs",
   "jazzhr_list_applicants",
   "jazzhr_get_applicant",
+  "jobadder_list_jobs",
+  "jobadder_search_candidates",
+  "jobadder_list_job_applications",
   "lever_list_postings",
   "lever_list_opportunities",
   "lemlist_list_campaigns",

@@ -22,6 +22,7 @@ import { hubspotAdapter } from "./hubspot";
 import { hunterAdapter } from "./hunter";
 import { instantlyAdapter } from "./instantly";
 import { jazzhrAdapter } from "./jazzhr";
+import { jobadderAdapter } from "./jobadder";
 import { lemlistAdapter } from "./lemlist";
 import { leverAdapter } from "./lever";
 import { loxoAdapter } from "./loxo";
@@ -73,6 +74,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   hunter: hunterAdapter,
   instantly: instantlyAdapter,
   jazzhr: jazzhrAdapter,
+  jobadder: jobadderAdapter,
   lemlist: lemlistAdapter,
   lever: leverAdapter,
   loxo: loxoAdapter,

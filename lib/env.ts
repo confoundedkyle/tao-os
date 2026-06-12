@@ -71,6 +71,15 @@ export const env = {
   get googleClientSecret() {
     return process.env.GOOGLE_CLIENT_SECRET ?? "";
   },
+  /** JobAdder OAuth app credentials (developers.jobadder.com; the connector
+   *  must request read + offline_access and register the
+   *  /api/connectors/jobadder/callback redirect URI). */
+  get jobadderClientId() {
+    return process.env.JOBADDER_CLIENT_ID ?? "";
+  },
+  get jobadderClientSecret() {
+    return process.env.JOBADDER_CLIENT_SECRET ?? "";
+  },
   /** Microsoft OAuth app credentials (Entra app registration; the Excel
    *  connector). The app must be multi-tenant + personal accounts, with the
    *  /api/connectors/microsoft-excel/callback redirect URI registered as a

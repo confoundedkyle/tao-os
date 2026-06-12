@@ -36,6 +36,7 @@ export const CONNECTORS: Connector[] = [
   { name: "Crelate", category: "ats", blurb: "Pull contacts and jobs from the executive-search favorite ATS + CRM.", provider: "crelate", live: true, auth: "apikey", apiKeyHint: "Enable and copy the key in Crelate under Settings → My Settings & Preferences → API Key." },
   { name: "Greenhouse", category: "ats", blurb: "Sync jobs and candidates from the enterprise hiring standard.", provider: "greenhouse", live: true, auth: "apikey" },
   { name: "JazzHR", category: "ats", blurb: "Import candidates from the SMB-friendly recruiting software.", provider: "jazzhr", live: true, auth: "apikey" },
+  { name: "JobAdder", category: "ats", blurb: "Sync candidates, jobs, and pipelines from the ANZ/UK agency favorite.", provider: "jobadder", live: true, auth: "oauth" },
   { name: "Lever", category: "ats", blurb: "Sync pipelines from the CRM-style ATS teams love.", provider: "lever", live: true, auth: "apikey" },
   { name: "Loxo", category: "ats", blurb: "Pull candidates from the AI recruiting platform for agencies.", provider: "loxo", live: true, auth: "apikey", apiKeyPlaceholder: "agency-slug:api-key", apiKeyHint: "The slug is the subdomain in your Loxo URL ({slug}.app.loxo.co); keys live in Settings → API Keys (Open API access is a paid Loxo feature)." },
   { name: "Manatal", category: "ats", blurb: "Import candidates from the affordable AI-recommendation ATS.", provider: "manatal", live: true, auth: "apikey" },
