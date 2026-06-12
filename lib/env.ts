@@ -62,6 +62,15 @@ export const env = {
   get airtableClientSecret() {
     return process.env.AIRTABLE_CLIENT_SECRET ?? "";
   },
+  /** Google OAuth app credentials (Cloud console; the Sheets connector).
+   *  The OAuth client must be a Web application with the
+   *  /api/connectors/google-sheets/callback redirect URI registered. */
+  get googleClientId() {
+    return process.env.GOOGLE_CLIENT_ID ?? "";
+  },
+  get googleClientSecret() {
+    return process.env.GOOGLE_CLIENT_SECRET ?? "";
+  },
   /** JobAdder OAuth app credentials (developers.jobadder.com; the connector
    *  must request read + offline_access and register the
    *  /api/connectors/jobadder/callback redirect URI). */
@@ -70,6 +79,25 @@ export const env = {
   },
   get jobadderClientSecret() {
     return process.env.JOBADDER_CLIENT_SECRET ?? "";
+  },
+  /** Microsoft OAuth app credentials (Entra app registration; the Excel
+   *  connector). The app must be multi-tenant + personal accounts, with the
+   *  /api/connectors/microsoft-excel/callback redirect URI registered as a
+   *  Web platform URI. */
+  get microsoftClientId() {
+    return process.env.MICROSOFT_CLIENT_ID ?? "";
+  },
+  get microsoftClientSecret() {
+    return process.env.MICROSOFT_CLIENT_SECRET ?? "";
+  },
+  /** Notion public OAuth integration credentials (notion.so/my-integrations;
+   *  the integration must be public with the
+   *  /api/connectors/notion/callback redirect URI registered). */
+  get notionClientId() {
+    return process.env.NOTION_CLIENT_ID ?? "";
+  },
+  get notionClientSecret() {
+    return process.env.NOTION_CLIENT_SECRET ?? "";
   },
   /** Zoho OAuth app credentials (API console; one client serves CRM + Recruit).
    *  Zoho is region-sharded — a deployment targets ONE data center, set via the

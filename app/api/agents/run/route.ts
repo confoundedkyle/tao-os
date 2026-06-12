@@ -126,8 +126,11 @@ export async function POST(request: NextRequest) {
   let catsToken: string | null = null;
   let contactoutToken: string | null = null;
   let coresignalToken: string | null = null;
+  let crelateToken: string | null = null;
   let fathomToken: string | null = null;
   let firefliesToken: string | null = null;
+  let gongToken: string | null = null;
+  let googleSheetsToken: string | null = null;
   let greenhouseToken: string | null = null;
   let hubspotToken: string | null = null;
   let hunterToken: string | null = null;
@@ -139,17 +142,22 @@ export async function POST(request: NextRequest) {
   let loxoToken: string | null = null;
   let lushaToken: string | null = null;
   let manatalToken: string | null = null;
+  let microsoftExcelToken: string | null = null;
+  let mondayToken: string | null = null;
+  let notionToken: string | null = null;
   let peopledatalabsToken: string | null = null;
   let pinpointToken: string | null = null;
   let pipedriveToken: string | null = null;
   let recruiteeToken: string | null = null;
   let recruiterflowToken: string | null = null;
   let rocketreachToken: string | null = null;
+  let signalhireToken: string | null = null;
   let smartleadToken: string | null = null;
   let smartrecruitersToken: string | null = null;
   let snovToken: string | null = null;
   let teamtailorToken: string | null = null;
   let tldvToken: string | null = null;
+  let woodpeckerToken: string | null = null;
   let workableToken: string | null = null;
   let zohoCrmToken: string | null = null;
   let zohoRecruitToken: string | null = null;
@@ -165,8 +173,11 @@ export async function POST(request: NextRequest) {
       catsToken,
       contactoutToken,
       coresignalToken,
+      crelateToken,
       fathomToken,
       firefliesToken,
+      gongToken,
+      googleSheetsToken,
       greenhouseToken,
       hubspotToken,
       hunterToken,
@@ -178,17 +189,22 @@ export async function POST(request: NextRequest) {
       loxoToken,
       lushaToken,
       manatalToken,
+      microsoftExcelToken,
+      mondayToken,
+      notionToken,
       peopledatalabsToken,
       pinpointToken,
       pipedriveToken,
       recruiteeToken,
       recruiterflowToken,
       rocketreachToken,
+      signalhireToken,
       smartleadToken,
       smartrecruitersToken,
       snovToken,
       teamtailorToken,
       tldvToken,
+      woodpeckerToken,
       workableToken,
       zohoCrmToken,
       zohoRecruitToken,
@@ -203,8 +219,11 @@ export async function POST(request: NextRequest) {
       tokenFor("cats_", "cats"),
       tokenFor("contactout_", "contactout"),
       tokenFor("coresignal_", "coresignal"),
+      tokenFor("crelate_", "crelate"),
       tokenFor("fathom_", "fathom"),
       tokenFor("fireflies_", "fireflies"),
+      tokenFor("gong_", "gong"),
+      tokenFor("googlesheets_", "google-sheets"),
       tokenFor("greenhouse_", "greenhouse"),
       tokenFor("hubspot_", "hubspot"),
       tokenFor("hunter_", "hunter"),
@@ -216,17 +235,22 @@ export async function POST(request: NextRequest) {
       tokenFor("loxo_", "loxo"),
       tokenFor("lusha_", "lusha"),
       tokenFor("manatal_", "manatal"),
+      tokenFor("excel_", "microsoft-excel"),
+      tokenFor("monday_", "monday"),
+      tokenFor("notion_", "notion"),
       tokenFor("peopledatalabs_", "peopledatalabs"),
       tokenFor("pinpoint_", "pinpoint"),
       tokenFor("pipedrive_", "pipedrive"),
       tokenFor("recruitee_", "recruitee"),
       tokenFor("recruiterflow_", "recruiterflow"),
       tokenFor("rocketreach_", "rocketreach"),
+      tokenFor("signalhire_", "signalhire"),
       tokenFor("smartlead_", "smartlead"),
       tokenFor("smartrecruiters_", "smartrecruiters"),
       tokenFor("snov_", "snov"),
       tokenFor("teamtailor_", "teamtailor"),
       tokenFor("tldv_", "tldv"),
+      tokenFor("woodpecker_", "woodpecker"),
       tokenFor("workable_", "workable"),
       tokenFor("zohocrm_", "zoho-crm"),
       tokenFor("zohorecruit_", "zoho-recruit"),
@@ -277,8 +301,11 @@ export async function POST(request: NextRequest) {
     catsToken,
     contactoutToken,
     coresignalToken,
+    crelateToken,
     fathomToken,
     firefliesToken,
+    gongToken,
+    googleSheetsToken,
     greenhouseToken,
     hubspotToken,
     hunterToken,
@@ -290,17 +317,22 @@ export async function POST(request: NextRequest) {
     loxoToken,
     lushaToken,
     manatalToken,
+    microsoftExcelToken,
+    mondayToken,
+    notionToken,
     peopledatalabsToken,
     pinpointToken,
     pipedriveToken,
     recruiteeToken,
     recruiterflowToken,
     rocketreachToken,
+    signalhireToken,
     smartleadToken,
     smartrecruitersToken,
     snovToken,
     teamtailorToken,
     tldvToken,
+    woodpeckerToken,
     workableToken,
     zohoCrmToken,
     zohoRecruitToken,
