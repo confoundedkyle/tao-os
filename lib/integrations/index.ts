@@ -20,6 +20,7 @@ import { manatalAdapter } from "./manatal";
 import { pipedriveAdapter } from "./pipedrive";
 import { recruiteeAdapter } from "./recruitee";
 import { recruiterflowAdapter } from "./recruiterflow";
+import { snovAdapter } from "./snov";
 import { teamtailorAdapter } from "./teamtailor";
 import { workableAdapter } from "./workable";
 import { zohoCrmAdapter } from "./zoho-crm";
@@ -49,6 +50,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   pipedrive: pipedriveAdapter,
   recruitee: recruiteeAdapter,
   recruiterflow: recruiterflowAdapter,
+  snov: snovAdapter,
   teamtailor: teamtailorAdapter,
   workable: workableAdapter,
   "zoho-crm": zohoCrmAdapter,

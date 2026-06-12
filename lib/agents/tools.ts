@@ -21,6 +21,7 @@ import { manatalAdapter } from "../integrations/manatal";
 import { pipedriveAdapter } from "../integrations/pipedrive";
 import { recruiteeAdapter } from "../integrations/recruitee";
 import { recruiterflowAdapter } from "../integrations/recruiterflow";
+import { snovAdapter } from "../integrations/snov";
 import { teamtailorAdapter } from "../integrations/teamtailor";
 import { workableAdapter } from "../integrations/workable";
 import { zohoCrmAdapter } from "../integrations/zoho-crm";
@@ -55,6 +56,7 @@ export interface ToolContext {
   pipedriveToken: string | null;
   recruiteeToken: string | null;
   recruiterflowToken: string | null;
+  snovToken: string | null;
   teamtailorToken: string | null;
   workableToken: string | null;
   zohoCrmToken: string | null;
@@ -1015,6 +1017,57 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    snov_find_email: tool({
+      description:
+        "Find a person's work email via Snov.io from their first name, last name, and company domain. Costs a credit. May return a pending task — finish it with snov_get_task_result.",
+      inputSchema: z.object({
+        firstName: z.string().describe("First name."),
+        lastName: z.string().describe("Last name."),
+        domain: z.string().describe("Company domain, e.g. acme.com."),
+      }),
+      execute: async (args) => {
+        if (!ctx.snovToken) return { error: notConnected("Snov.io") };
+        return snovAdapter.findEmail(ctx.snovToken, args);
+      },
+    }),
+
+    snov_verify_email: tool({
+      description:
+        "Verify one email's deliverability via Snov.io (SMTP status, disposability). May return a pending task — finish it with snov_get_task_result.",
+      inputSchema: z.object({
+        email: z.string().describe("The email address to verify."),
+      }),
+      execute: async (args) => {
+        if (!ctx.snovToken) return { error: notConnected("Snov.io") };
+        return snovAdapter.verifyEmail(ctx.snovToken, args);
+      },
+    }),
+
+    snov_get_task_result: tool({
+      description:
+        "Fetch the finished result of a pending Snov.io finder or verifier task (use the task hash the starting tool returned). Free to call.",
+      inputSchema: z.object({
+        type: z.enum(["finder", "verifier"]).describe("Which task type."),
+        taskHash: z.string().describe("Task hash from the starting tool."),
+      }),
+      execute: async (args) => {
+        if (!ctx.snovToken) return { error: notConnected("Snov.io") };
+        return snovAdapter.getTaskResult(ctx.snovToken, args);
+      },
+    }),
+
+    snov_get_profile: tool({
+      description:
+        "Look up the public profile behind an email via Snov.io (name, current position, social links). Useful to qualify an address before outreach.",
+      inputSchema: z.object({
+        email: z.string().describe("The email address to profile."),
+      }),
+      execute: async (args) => {
+        if (!ctx.snovToken) return { error: notConnected("Snov.io") };
+        return snovAdapter.getProfileByEmail(ctx.snovToken, args);
+      },
+    }),
+
     teamtailor_list_jobs: tool({
       description:
         "List jobs in the connected Teamtailor ATS (title, status, remote status, job id). Filter by status: published, draft, archived, scheduled, internal.",
@@ -1249,6 +1302,10 @@ export const ALL_TOOL_NAMES = [
   "recruitee_list_candidates",
   "recruiterflow_list_jobs",
   "recruiterflow_list_candidates",
+  "snov_find_email",
+  "snov_verify_email",
+  "snov_get_task_result",
+  "snov_get_profile",
   "teamtailor_list_jobs",
   "teamtailor_list_candidates",
   "teamtailor_list_job_candidates",
