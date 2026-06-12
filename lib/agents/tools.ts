@@ -27,6 +27,7 @@ import { leverAdapter } from "../integrations/lever";
 import { loxoAdapter } from "../integrations/loxo";
 import { lushaAdapter } from "../integrations/lusha";
 import { manatalAdapter } from "../integrations/manatal";
+import { mondayAdapter } from "../integrations/monday";
 import { notionAdapter } from "../integrations/notion";
 import { peopledatalabsAdapter } from "../integrations/peopledatalabs";
 import { pinpointAdapter } from "../integrations/pinpoint";
@@ -80,6 +81,7 @@ export interface ToolContext {
   loxoToken: string | null;
   lushaToken: string | null;
   manatalToken: string | null;
+  mondayToken: string | null;
   notionToken: string | null;
   peopledatalabsToken: string | null;
   pinpointToken: string | null;
@@ -1309,6 +1311,36 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    monday_list_boards: tool({
+      description:
+        "List boards in the connected monday.com account (name, workspace, kind, item count, board id), sorted by recent use. Use to find the candidate or client tracker you need; page with page.",
+      inputSchema: z.object({
+        page: z.number().int().positive().optional(),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.mondayToken) return { error: notConnected("monday.com") };
+        return mondayAdapter.listBoards(ctx.mondayToken, args);
+      },
+    }),
+
+    monday_list_items: tool({
+      description:
+        "Read one monday.com board's items as a Markdown table whose columns come from the board itself (first 8 columns). Get the boardId from monday_list_boards; page large boards with the cursor the previous call returned.",
+      inputSchema: z.object({
+        boardId: z.string().describe("Board id from monday_list_boards."),
+        cursor: z
+          .string()
+          .optional()
+          .describe("Cursor from the previous monday_list_items call."),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.mondayToken) return { error: notConnected("monday.com") };
+        return mondayAdapter.listItems(ctx.mondayToken, args);
+      },
+    }),
+
     notion_search: tool({
       description:
         "Search the connected Notion workspace by keyword for databases and pages (title, type, last edited, id). Set databasesOnly to find trackers to query; omit query to list what the connection can reach.",
@@ -2135,6 +2167,8 @@ export const ALL_TOOL_NAMES = [
   "manatal_list_jobs",
   "manatal_search_candidates",
   "manatal_list_job_candidates",
+  "monday_list_boards",
+  "monday_list_items",
   "notion_search",
   "notion_query_database",
   "notion_read_page",

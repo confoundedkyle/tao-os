@@ -26,6 +26,7 @@ import { leverAdapter } from "./lever";
 import { loxoAdapter } from "./loxo";
 import { lushaAdapter } from "./lusha";
 import { manatalAdapter } from "./manatal";
+import { mondayAdapter } from "./monday";
 import { notionAdapter } from "./notion";
 import { peopledatalabsAdapter } from "./peopledatalabs";
 import { pinpointAdapter } from "./pinpoint";
@@ -74,6 +75,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   loxo: loxoAdapter,
   lusha: lushaAdapter,
   manatal: manatalAdapter,
+  monday: mondayAdapter,
   notion: notionAdapter,
   peopledatalabs: peopledatalabsAdapter,
   pinpoint: pinpointAdapter,
