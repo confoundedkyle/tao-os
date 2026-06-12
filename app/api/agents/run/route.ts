@@ -119,6 +119,7 @@ export async function POST(request: NextRequest) {
   let airtableToken: string | null = null;
   let apolloToken: string | null = null;
   let ashbyToken: string | null = null;
+  let bamboohrToken: string | null = null;
   let breezyhrToken: string | null = null;
   let brightdataToken: string | null = null;
   let contactoutToken: string | null = null;
@@ -144,6 +145,7 @@ export async function POST(request: NextRequest) {
       airtableToken,
       apolloToken,
       ashbyToken,
+      bamboohrToken,
       breezyhrToken,
       brightdataToken,
       contactoutToken,
@@ -168,6 +170,7 @@ export async function POST(request: NextRequest) {
       tokenFor("airtable_", "airtable"),
       tokenFor("apollo_", "apollo"),
       tokenFor("ashby_", "ashby"),
+      tokenFor("bamboohr_", "bamboohr"),
       tokenFor("breezyhr_", "breezyhr"),
       tokenFor("brightdata_", "brightdata"),
       tokenFor("contactout_", "contactout"),
@@ -228,6 +231,7 @@ export async function POST(request: NextRequest) {
     airtableToken,
     apolloToken,
     ashbyToken,
+    bamboohrToken,
     breezyhrToken,
     brightdataToken,
     contactoutToken,

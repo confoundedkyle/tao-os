@@ -6,6 +6,7 @@ import { listDocuments, getDocument } from "../queries";
 import { airtableAdapter } from "../integrations/airtable";
 import { apolloAdapter } from "../integrations/apollo";
 import { ashbyAdapter } from "../integrations/ashby";
+import { bamboohrAdapter } from "../integrations/bamboohr";
 import { breezyhrAdapter } from "../integrations/breezyhr";
 import { brightdataAdapter } from "../integrations/brightdata";
 import { contactoutAdapter } from "../integrations/contactout";
@@ -41,6 +42,7 @@ export interface ToolContext {
   airtableToken: string | null;
   apolloToken: string | null;
   ashbyToken: string | null;
+  bamboohrToken: string | null;
   breezyhrToken: string | null;
   brightdataToken: string | null;
   contactoutToken: string | null;
@@ -210,6 +212,38 @@ function buildAll(ctx: ToolContext): ToolSet {
       execute: async ({ query }) => {
         if (!ctx.ashbyToken) return { error: notConnected("Ashby") };
         return ashbyAdapter.searchCandidates(ctx.ashbyToken, { query });
+      },
+    }),
+
+    bamboohr_list_jobs: tool({
+      description:
+        "List job openings in the connected BambooHR ATS (title, status, department, location, job id). Use to find the role you are sourcing for — the job id scopes application lookups.",
+      inputSchema: z.object({
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.bamboohrToken) return { error: notConnected("BambooHR") };
+        return bamboohrAdapter.listJobs(ctx.bamboohrToken, args);
+      },
+    }),
+
+    bamboohr_list_applications: tool({
+      description:
+        "List job applications in the connected BambooHR ATS as a Markdown table (name, email, phone, status, applied date, job). Filters combine: searchString searches by applicant name, jobId scopes to one job's pipeline (from bamboohr_list_jobs).",
+      inputSchema: z.object({
+        searchString: z
+          .string()
+          .optional()
+          .describe("Search by applicant name."),
+        jobId: z
+          .string()
+          .optional()
+          .describe("Job id to scope to one role's pipeline."),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.bamboohrToken) return { error: notConnected("BambooHR") };
+        return bamboohrAdapter.listApplications(ctx.bamboohrToken, args);
       },
     }),
 
@@ -1242,6 +1276,8 @@ export const ALL_TOOL_NAMES = [
   "ashby_list_jobs",
   "ashby_list_candidates",
   "ashby_search_candidates",
+  "bamboohr_list_jobs",
+  "bamboohr_list_applications",
   "breezyhr_list_positions",
   "breezyhr_list_candidates",
   "breezyhr_search_candidates",
