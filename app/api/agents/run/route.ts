@@ -144,6 +144,7 @@ export async function POST(request: NextRequest) {
   let rocketreachToken: string | null = null;
   let smartleadToken: string | null = null;
   let smartrecruitersToken: string | null = null;
+  let snovToken: string | null = null;
   let teamtailorToken: string | null = null;
   let tldvToken: string | null = null;
   let workableToken: string | null = null;
@@ -179,6 +180,7 @@ export async function POST(request: NextRequest) {
       rocketreachToken,
       smartleadToken,
       smartrecruitersToken,
+      snovToken,
       teamtailorToken,
       tldvToken,
       workableToken,
@@ -213,6 +215,7 @@ export async function POST(request: NextRequest) {
       tokenFor("rocketreach_", "rocketreach"),
       tokenFor("smartlead_", "smartlead"),
       tokenFor("smartrecruiters_", "smartrecruiters"),
+      tokenFor("snov_", "snov"),
       tokenFor("teamtailor_", "teamtailor"),
       tokenFor("tldv_", "tldv"),
       tokenFor("workable_", "workable"),
@@ -283,6 +286,7 @@ export async function POST(request: NextRequest) {
     rocketreachToken,
     smartleadToken,
     smartrecruitersToken,
+    snovToken,
     teamtailorToken,
     tldvToken,
     workableToken,
