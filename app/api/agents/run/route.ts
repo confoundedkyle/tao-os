@@ -121,6 +121,7 @@ export async function POST(request: NextRequest) {
   let ashbyToken: string | null = null;
   let breezyhrToken: string | null = null;
   let brightdataToken: string | null = null;
+  let catsToken: string | null = null;
   let contactoutToken: string | null = null;
   let coresignalToken: string | null = null;
   let greenhouseToken: string | null = null;
@@ -145,6 +146,7 @@ export async function POST(request: NextRequest) {
       ashbyToken,
       breezyhrToken,
       brightdataToken,
+      catsToken,
       contactoutToken,
       coresignalToken,
       greenhouseToken,
@@ -168,6 +170,7 @@ export async function POST(request: NextRequest) {
       tokenFor("ashby_", "ashby"),
       tokenFor("breezyhr_", "breezyhr"),
       tokenFor("brightdata_", "brightdata"),
+      tokenFor("cats_", "cats"),
       tokenFor("contactout_", "contactout"),
       tokenFor("coresignal_", "coresignal"),
       tokenFor("greenhouse_", "greenhouse"),
@@ -227,6 +230,7 @@ export async function POST(request: NextRequest) {
     ashbyToken,
     breezyhrToken,
     brightdataToken,
+    catsToken,
     contactoutToken,
     coresignalToken,
     greenhouseToken,

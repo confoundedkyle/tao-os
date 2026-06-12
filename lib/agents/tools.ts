@@ -8,6 +8,7 @@ import { apolloAdapter } from "../integrations/apollo";
 import { ashbyAdapter } from "../integrations/ashby";
 import { breezyhrAdapter } from "../integrations/breezyhr";
 import { brightdataAdapter } from "../integrations/brightdata";
+import { catsAdapter } from "../integrations/cats";
 import { contactoutAdapter } from "../integrations/contactout";
 import { coresignalAdapter } from "../integrations/coresignal";
 import { greenhouseAdapter } from "../integrations/greenhouse";
@@ -42,6 +43,7 @@ export interface ToolContext {
   ashbyToken: string | null;
   breezyhrToken: string | null;
   brightdataToken: string | null;
+  catsToken: string | null;
   contactoutToken: string | null;
   coresignalToken: string | null;
   greenhouseToken: string | null;
@@ -574,6 +576,33 @@ function buildAll(ctx: ToolContext): ToolSet {
       execute: async ({ snapshotId }) => {
         if (!ctx.brightdataToken) return { error: notConnected("Bright Data") };
         return brightdataAdapter.getSnapshot(ctx.brightdataToken, snapshotId);
+      },
+    }),
+
+    cats_list_jobs: tool({
+      description:
+        "List jobs in the connected CATS ATS (title, location, created date, job id). Paginate with page. Use to find the role you are sourcing for.",
+      inputSchema: z.object({
+        page: z.number().int().positive().optional(),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.catsToken) return { error: notConnected("CATS") };
+        return catsAdapter.listJobs(ctx.catsToken, args);
+      },
+    }),
+
+    cats_list_candidates: tool({
+      description:
+        "List candidates in the connected CATS ATS as a Markdown table (name, email, phone, title). Pass query to search by name or email; omit it to list recent candidates. Paginate with page.",
+      inputSchema: z.object({
+        query: z.string().optional().describe("Search by name or email."),
+        page: z.number().int().positive().optional(),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.catsToken) return { error: notConnected("CATS") };
+        return catsAdapter.listCandidates(ctx.catsToken, args);
       },
     }),
 
@@ -1217,6 +1246,8 @@ export const ALL_TOOL_NAMES = [
   "brightdata_scrape_linkedin_profiles",
   "brightdata_scrape_linkedin_companies",
   "brightdata_get_snapshot",
+  "cats_list_jobs",
+  "cats_list_candidates",
   "contactout_people_search",
   "contactout_linkedin_enrich",
   "contactout_person_enrich",
