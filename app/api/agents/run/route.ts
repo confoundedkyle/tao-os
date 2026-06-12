@@ -132,6 +132,7 @@ export async function POST(request: NextRequest) {
   let loxoToken: string | null = null;
   let lushaToken: string | null = null;
   let manatalToken: string | null = null;
+  let pinpointToken: string | null = null;
   let pipedriveToken: string | null = null;
   let recruiteeToken: string | null = null;
   let recruiterflowToken: string | null = null;
@@ -157,6 +158,7 @@ export async function POST(request: NextRequest) {
       loxoToken,
       lushaToken,
       manatalToken,
+      pinpointToken,
       pipedriveToken,
       recruiteeToken,
       recruiterflowToken,
@@ -181,6 +183,7 @@ export async function POST(request: NextRequest) {
       tokenFor("loxo_", "loxo"),
       tokenFor("lusha_", "lusha"),
       tokenFor("manatal_", "manatal"),
+      tokenFor("pinpoint_", "pinpoint"),
       tokenFor("pipedrive_", "pipedrive"),
       tokenFor("recruitee_", "recruitee"),
       tokenFor("recruiterflow_", "recruiterflow"),
@@ -241,6 +244,7 @@ export async function POST(request: NextRequest) {
     loxoToken,
     lushaToken,
     manatalToken,
+    pinpointToken,
     pipedriveToken,
     recruiteeToken,
     recruiterflowToken,

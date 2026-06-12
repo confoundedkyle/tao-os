@@ -19,6 +19,7 @@ import { leverAdapter } from "../integrations/lever";
 import { loxoAdapter } from "../integrations/loxo";
 import { lushaAdapter } from "../integrations/lusha";
 import { manatalAdapter } from "../integrations/manatal";
+import { pinpointAdapter } from "../integrations/pinpoint";
 import { pipedriveAdapter } from "../integrations/pipedrive";
 import { recruiteeAdapter } from "../integrations/recruitee";
 import { recruiterflowAdapter } from "../integrations/recruiterflow";
@@ -54,6 +55,7 @@ export interface ToolContext {
   loxoToken: string | null;
   lushaToken: string | null;
   manatalToken: string | null;
+  pinpointToken: string | null;
   pipedriveToken: string | null;
   recruiteeToken: string | null;
   recruiterflowToken: string | null;
@@ -962,6 +964,32 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    pinpoint_list_jobs: tool({
+      description:
+        "List jobs in the connected Pinpoint ATS (title, status, visibility, workplace type, job id). Paginate with page; no server-side filters.",
+      inputSchema: z.object({
+        page: z.number().int().positive().optional(),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.pinpointToken) return { error: notConnected("Pinpoint") };
+        return pinpointAdapter.listJobs(ctx.pinpointToken, args);
+      },
+    }),
+
+    pinpoint_list_candidates: tool({
+      description:
+        "List candidates in the connected Pinpoint ATS as a Markdown table (name, email, phone). No server-side search — paginate with page and scan; be economical.",
+      inputSchema: z.object({
+        page: z.number().int().positive().optional(),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.pinpointToken) return { error: notConnected("Pinpoint") };
+        return pinpointAdapter.listCandidates(ctx.pinpointToken, args);
+      },
+    }),
+
     pipedrive_search_persons: tool({
       description:
         "Search persons in the connected Pipedrive CRM by name, email, or phone (term must be 2+ characters). Returns name, email, phone, and organization.",
@@ -1289,6 +1317,8 @@ export const ALL_TOOL_NAMES = [
   "manatal_list_jobs",
   "manatal_search_candidates",
   "manatal_list_job_candidates",
+  "pinpoint_list_jobs",
+  "pinpoint_list_candidates",
   "pipedrive_search_persons",
   "pipedrive_search_organizations",
   "pipedrive_search_deals",
