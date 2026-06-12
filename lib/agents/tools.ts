@@ -17,6 +17,7 @@ import { leverAdapter } from "../integrations/lever";
 import { loxoAdapter } from "../integrations/loxo";
 import { lushaAdapter } from "../integrations/lusha";
 import { manatalAdapter } from "../integrations/manatal";
+import { pipedriveAdapter } from "../integrations/pipedrive";
 import { teamtailorAdapter } from "../integrations/teamtailor";
 import { workableAdapter } from "../integrations/workable";
 import type { Doc } from "../types";
@@ -45,6 +46,7 @@ export interface ToolContext {
   loxoToken: string | null;
   lushaToken: string | null;
   manatalToken: string | null;
+  pipedriveToken: string | null;
   teamtailorToken: string | null;
   workableToken: string | null;
   /** Documents the agent created this run (mutated by calyflow_create_document). */
@@ -871,6 +873,45 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    pipedrive_search_persons: tool({
+      description:
+        "Search persons in the connected Pipedrive CRM by name, email, or phone (term must be 2+ characters). Returns name, email, phone, and organization.",
+      inputSchema: z.object({
+        term: z.string().describe("Search term, e.g. a name or email."),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.pipedriveToken) return { error: notConnected("Pipedrive") };
+        return pipedriveAdapter.searchPersons(ctx.pipedriveToken, args);
+      },
+    }),
+
+    pipedrive_search_organizations: tool({
+      description:
+        "Search organizations in the connected Pipedrive CRM by name (term must be 2+ characters). Returns organization name and address.",
+      inputSchema: z.object({
+        term: z.string().describe("Search term, e.g. a company name."),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.pipedriveToken) return { error: notConnected("Pipedrive") };
+        return pipedriveAdapter.searchOrganizations(ctx.pipedriveToken, args);
+      },
+    }),
+
+    pipedrive_search_deals: tool({
+      description:
+        "Search deals in the connected Pipedrive CRM by title (term must be 2+ characters). Returns deal title, value, status, and the linked organization/person.",
+      inputSchema: z.object({
+        term: z.string().describe("Search term, e.g. a deal or client name."),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.pipedriveToken) return { error: notConnected("Pipedrive") };
+        return pipedriveAdapter.searchDeals(ctx.pipedriveToken, args);
+      },
+    }),
+
     teamtailor_list_jobs: tool({
       description:
         "List jobs in the connected Teamtailor ATS (title, status, remote status, job id). Filter by status: published, draft, archived, scheduled, internal.",
@@ -1029,6 +1070,9 @@ export const ALL_TOOL_NAMES = [
   "manatal_list_jobs",
   "manatal_search_candidates",
   "manatal_list_job_candidates",
+  "pipedrive_search_persons",
+  "pipedrive_search_organizations",
+  "pipedrive_search_deals",
   "teamtailor_list_jobs",
   "teamtailor_list_candidates",
   "teamtailor_list_job_candidates",

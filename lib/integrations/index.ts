@@ -16,6 +16,7 @@ import { leverAdapter } from "./lever";
 import { loxoAdapter } from "./loxo";
 import { lushaAdapter } from "./lusha";
 import { manatalAdapter } from "./manatal";
+import { pipedriveAdapter } from "./pipedrive";
 import { teamtailorAdapter } from "./teamtailor";
 import { workableAdapter } from "./workable";
 import type { ConnectorAdapter } from "./types";
@@ -39,6 +40,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   loxo: loxoAdapter,
   lusha: lushaAdapter,
   manatal: manatalAdapter,
+  pipedrive: pipedriveAdapter,
   teamtailor: teamtailorAdapter,
   workable: workableAdapter,
 };

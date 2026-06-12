@@ -44,7 +44,7 @@ export const CONNECTORS: Connector[] = [
   { name: "Airtable", category: "crm", blurb: "Sync the flexible candidate and client bases you already run.", provider: "airtable", live: true, auth: "oauth" },
   { name: "Dripify", category: "crm", blurb: "Pull LinkedIn outreach campaigns and replies automatically." },
   { name: "HubSpot", category: "crm", blurb: "Sync client companies, deals, and contacts effortlessly.", provider: "hubspot", live: true, auth: "apikey" },
-  { name: "Pipedrive", category: "crm", blurb: "Pull your BD pipeline and client deals into Calyflow." },
+  { name: "Pipedrive", category: "crm", blurb: "Pull your BD pipeline and client deals into Calyflow.", provider: "pipedrive", live: true, auth: "apikey" },
   { name: "Zoho CRM", category: "crm", blurb: "Sync clients and deals from Zoho's sales suite." },
 
   // Tools (sourcing & outreach)

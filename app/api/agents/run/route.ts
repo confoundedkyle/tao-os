@@ -130,6 +130,7 @@ export async function POST(request: NextRequest) {
   let loxoToken: string | null = null;
   let lushaToken: string | null = null;
   let manatalToken: string | null = null;
+  let pipedriveToken: string | null = null;
   let teamtailorToken: string | null = null;
   let workableToken: string | null = null;
   try {
@@ -148,6 +149,7 @@ export async function POST(request: NextRequest) {
       loxoToken,
       lushaToken,
       manatalToken,
+      pipedriveToken,
       teamtailorToken,
       workableToken,
     ] = await Promise.all([
@@ -165,6 +167,7 @@ export async function POST(request: NextRequest) {
       tokenFor("loxo_", "loxo"),
       tokenFor("lusha_", "lusha"),
       tokenFor("manatal_", "manatal"),
+      tokenFor("pipedrive_", "pipedrive"),
       tokenFor("teamtailor_", "teamtailor"),
       tokenFor("workable_", "workable"),
     ]);
@@ -218,6 +221,7 @@ export async function POST(request: NextRequest) {
     loxoToken,
     lushaToken,
     manatalToken,
+    pipedriveToken,
     teamtailorToken,
     workableToken,
     createdDocIds: [],
