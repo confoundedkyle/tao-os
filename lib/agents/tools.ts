@@ -13,6 +13,7 @@ import { coresignalAdapter } from "../integrations/coresignal";
 import { greenhouseAdapter } from "../integrations/greenhouse";
 import { hubspotAdapter } from "../integrations/hubspot";
 import { hunterAdapter } from "../integrations/hunter";
+import { jazzhrAdapter } from "../integrations/jazzhr";
 import { lemlistAdapter } from "../integrations/lemlist";
 import { leverAdapter } from "../integrations/lever";
 import { loxoAdapter } from "../integrations/loxo";
@@ -47,6 +48,7 @@ export interface ToolContext {
   greenhouseToken: string | null;
   hubspotToken: string | null;
   hunterToken: string | null;
+  jazzhrToken: string | null;
   lemlistToken: string | null;
   leverToken: string | null;
   loxoToken: string | null;
@@ -739,6 +741,48 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    jazzhr_list_jobs: tool({
+      description:
+        "List jobs in the connected JazzHR ATS (title, status, department, location, job id). Filter by status, e.g. open. 100 rows per page; paginate with page.",
+      inputSchema: z.object({
+        status: z.string().optional().describe('Job status filter, e.g. "open".'),
+        page: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.jazzhrToken) return { error: notConnected("JazzHR") };
+        return jazzhrAdapter.listJobs(ctx.jazzhrToken, args);
+      },
+    }),
+
+    jazzhr_list_applicants: tool({
+      description:
+        "List applicants in the connected JazzHR ATS as a Markdown table (name, phone, job applied for, apply date). Filters combine: jobId scopes to one role, name finds a person. Emails are not in list rows — use jazzhr_get_applicant for full contact details.",
+      inputSchema: z.object({
+        jobId: z
+          .string()
+          .optional()
+          .describe("Job id (from jazzhr_list_jobs) to scope to one role."),
+        name: z.string().optional().describe("Filter by applicant name."),
+        page: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.jazzhrToken) return { error: notConnected("JazzHR") };
+        return jazzhrAdapter.listApplicants(ctx.jazzhrToken, args);
+      },
+    }),
+
+    jazzhr_get_applicant: tool({
+      description:
+        "Get one JazzHR applicant's full details — email, phone, address, apply date — by applicant id (from jazzhr_list_applicants).",
+      inputSchema: z.object({
+        applicantId: z.string().describe("Applicant id."),
+      }),
+      execute: async ({ applicantId }) => {
+        if (!ctx.jazzhrToken) return { error: notConnected("JazzHR") };
+        return jazzhrAdapter.getApplicant(ctx.jazzhrToken, applicantId);
+      },
+    }),
+
     lever_list_postings: tool({
       description:
         "List job postings in the connected Lever ATS (title, state, team, location, posting id). Filter by state, e.g. published. Use to find the role you are sourcing for.",
@@ -1229,6 +1273,9 @@ export const ALL_TOOL_NAMES = [
   "hubspot_search_contacts",
   "hubspot_search_companies",
   "hubspot_search_deals",
+  "jazzhr_list_jobs",
+  "jazzhr_list_applicants",
+  "jazzhr_get_applicant",
   "lever_list_postings",
   "lever_list_opportunities",
   "lemlist_list_campaigns",
