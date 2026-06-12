@@ -6,6 +6,7 @@ import { listDocuments, getDocument } from "../queries";
 import { airtableAdapter } from "../integrations/airtable";
 import { apolloAdapter } from "../integrations/apollo";
 import { ashbyAdapter } from "../integrations/ashby";
+import { attioAdapter } from "../integrations/attio";
 import { bamboohrAdapter } from "../integrations/bamboohr";
 import { breezyhrAdapter } from "../integrations/breezyhr";
 import { brightdataAdapter } from "../integrations/brightdata";
@@ -51,6 +52,7 @@ export interface ToolContext {
   airtableToken: string | null;
   apolloToken: string | null;
   ashbyToken: string | null;
+  attioToken: string | null;
   bamboohrToken: string | null;
   breezyhrToken: string | null;
   brightdataToken: string | null;
@@ -230,6 +232,32 @@ function buildAll(ctx: ToolContext): ToolSet {
       execute: async ({ query }) => {
         if (!ctx.ashbyToken) return { error: notConnected("Ashby") };
         return ashbyAdapter.searchCandidates(ctx.ashbyToken, { query });
+      },
+    }),
+
+    attio_list_objects: tool({
+      description:
+        "List the record objects in the connected Attio CRM (people, companies, deals, plus any custom objects) with the slug each one is queried by.",
+      inputSchema: z.object({}),
+      execute: async () => {
+        if (!ctx.attioToken) return { error: notConnected("Attio") };
+        return attioAdapter.listObjects(ctx.attioToken);
+      },
+    }),
+
+    attio_query_records: tool({
+      description:
+        "List records of one Attio object as a Markdown table (record name plus its first few attribute values and record id). Get the object slug from attio_list_objects (e.g. people, companies); page with offset. No server-side search — scan pages and be economical.",
+      inputSchema: z.object({
+        object: z
+          .string()
+          .describe("Object slug from attio_list_objects, e.g. people."),
+        offset: z.number().int().nonnegative().optional(),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.attioToken) return { error: notConnected("Attio") };
+        return attioAdapter.queryRecords(ctx.attioToken, args);
       },
     }),
 
@@ -1700,6 +1728,8 @@ export const ALL_TOOL_NAMES = [
   "ashby_list_jobs",
   "ashby_list_candidates",
   "ashby_search_candidates",
+  "attio_list_objects",
+  "attio_query_records",
   "bamboohr_list_jobs",
   "bamboohr_list_applications",
   "breezyhr_list_positions",

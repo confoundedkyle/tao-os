@@ -45,6 +45,7 @@ export const CONNECTORS: Connector[] = [
 
   // CRM
   { name: "Airtable", category: "crm", blurb: "Sync the flexible candidate and client bases you already run.", provider: "airtable", live: true, auth: "oauth" },
+  { name: "Attio", category: "crm", blurb: "Query people, companies, and deals from the modern CRM.", provider: "attio", live: true, auth: "apikey" },
   { name: "Dripify", category: "crm", blurb: "Pull LinkedIn outreach campaigns and replies automatically." },
   { name: "HubSpot", category: "crm", blurb: "Sync client companies, deals, and contacts effortlessly.", provider: "hubspot", live: true, auth: "apikey" },
   { name: "Pipedrive", category: "crm", blurb: "Pull your BD pipeline and client deals into Calyflow.", provider: "pipedrive", live: true, auth: "apikey" },
