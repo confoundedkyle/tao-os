@@ -25,6 +25,7 @@ import { peopledatalabsAdapter } from "./peopledatalabs";
 import { pipedriveAdapter } from "./pipedrive";
 import { recruiteeAdapter } from "./recruitee";
 import { recruiterflowAdapter } from "./recruiterflow";
+import { rocketreachAdapter } from "./rocketreach";
 import { smartleadAdapter } from "./smartlead";
 import { smartrecruitersAdapter } from "./smartrecruiters";
 import { teamtailorAdapter } from "./teamtailor";
@@ -61,6 +62,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   pipedrive: pipedriveAdapter,
   recruitee: recruiteeAdapter,
   recruiterflow: recruiterflowAdapter,
+  rocketreach: rocketreachAdapter,
   smartlead: smartleadAdapter,
   smartrecruiters: smartrecruitersAdapter,
   teamtailor: teamtailorAdapter,

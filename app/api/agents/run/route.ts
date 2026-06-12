@@ -139,6 +139,7 @@ export async function POST(request: NextRequest) {
   let pipedriveToken: string | null = null;
   let recruiteeToken: string | null = null;
   let recruiterflowToken: string | null = null;
+  let rocketreachToken: string | null = null;
   let smartleadToken: string | null = null;
   let smartrecruitersToken: string | null = null;
   let teamtailorToken: string | null = null;
@@ -170,6 +171,7 @@ export async function POST(request: NextRequest) {
       pipedriveToken,
       recruiteeToken,
       recruiterflowToken,
+      rocketreachToken,
       smartleadToken,
       smartrecruitersToken,
       teamtailorToken,
@@ -200,6 +202,7 @@ export async function POST(request: NextRequest) {
       tokenFor("pipedrive_", "pipedrive"),
       tokenFor("recruitee_", "recruitee"),
       tokenFor("recruiterflow_", "recruiterflow"),
+      tokenFor("rocketreach_", "rocketreach"),
       tokenFor("smartlead_", "smartlead"),
       tokenFor("smartrecruiters_", "smartrecruiters"),
       tokenFor("teamtailor_", "teamtailor"),
@@ -266,6 +269,7 @@ export async function POST(request: NextRequest) {
     pipedriveToken,
     recruiteeToken,
     recruiterflowToken,
+    rocketreachToken,
     smartleadToken,
     smartrecruitersToken,
     teamtailorToken,
