@@ -24,6 +24,7 @@ import { leverAdapter } from "./lever";
 import { loxoAdapter } from "./loxo";
 import { lushaAdapter } from "./lusha";
 import { manatalAdapter } from "./manatal";
+import { notionAdapter } from "./notion";
 import { peopledatalabsAdapter } from "./peopledatalabs";
 import { pinpointAdapter } from "./pinpoint";
 import { pipedriveAdapter } from "./pipedrive";
@@ -67,6 +68,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   loxo: loxoAdapter,
   lusha: lushaAdapter,
   manatal: manatalAdapter,
+  notion: notionAdapter,
   peopledatalabs: peopledatalabsAdapter,
   pinpoint: pinpointAdapter,
   pipedrive: pipedriveAdapter,
