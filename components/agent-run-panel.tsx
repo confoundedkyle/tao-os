@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { usePersistedSelection } from "@/lib/use-persisted-selection";
 import { deriveAgentGraph } from "@/lib/workflow-graph";
 import { Button } from "./ui";
 import { WorkflowCanvas } from "./workflow-canvas";
@@ -66,7 +67,13 @@ export function AgentRunPanel({
   archived: boolean;
 }) {
   const router = useRouter();
-  const [agentId, setAgentId] = useState(agents[0]?.id ?? "");
+  // Remember the last agent this project ran, so switching tabs/pages doesn't
+  // snap the picker back to the first one.
+  const [agentId, setAgentId] = usePersistedSelection(
+    `calyflow:run-panel:agent:${projectId}`,
+    agents[0]?.id ?? "",
+    (id) => agents.some((a) => a.id === id),
+  );
   // Per-agent connector picks, lazily defaulted — switching agents restores
   // that agent's previous picks instead of resetting them in an effect.
   const [choicesByAgent, setChoicesByAgent] = useState<

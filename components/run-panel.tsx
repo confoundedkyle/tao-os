@@ -7,6 +7,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { uploadInputForRunAction } from "@/lib/actions/documents";
 import { previewRunPromptAction } from "@/lib/actions/runs";
+import { usePersistedSelection } from "@/lib/use-persisted-selection";
 import type { WorkflowGraph } from "@/lib/workflow-graph";
 import { DownloadButtons } from "./download-buttons";
 import { Button } from "./ui";
@@ -21,6 +22,12 @@ const DOC_TYPE_LABELS: Record<string, string> = {
   output: "Output",
   other: "File",
 };
+
+// Attachment limits — mirror the knowledge-base drag & drop upload so the run
+// composer accepts (and rejects) the same files the same way.
+const ATTACH_ACCEPT = ".pdf,.docx,.txt,.md";
+const ATTACH_ALLOWED_EXT = ["pdf", "docx", "txt", "md"];
+const ATTACH_MAX_BYTES = 20 * 1024 * 1024;
 
 /** Turns a readiness string ("Add a Job description first") into a bare
  *  checklist label ("Job description") — the surrounding UI conveys the action. */
@@ -62,9 +69,16 @@ export function RunPanel({
   adminHref: string;
 }) {
   const router = useRouter();
-  const [workflowId, setWorkflowId] = useState(workflows[0]?.id ?? "");
+  // Remember the last workflow this project ran, so navigating away and back
+  // doesn't snap the picker back to the first one.
+  const [workflowId, setWorkflowId] = usePersistedSelection(
+    `calyflow:run-panel:workflow:${projectId}`,
+    workflows[0]?.id ?? "",
+    (id) => workflows.some((w) => w.id === id),
+  );
   const [text, setText] = useState("");
   const [files, setFiles] = useState<File[]>([]);
+  const [attachError, setAttachError] = useState<string | null>(null);
   const [existingIds, setExistingIds] = useState<string[]>([]);
   const [output, setOutput] = useState("");
   const [running, setRunning] = useState(false);
@@ -164,10 +178,77 @@ export function RunPanel({
     setError(null);
   }
 
+  // Attach one or more files (from the picker or a drag & drop). Validates type
+  // and size up front — the same rules as the knowledge-base upload — and
+  // surfaces the rejects in a red alert instead of letting Run fail later.
   function addFiles(list: FileList | null) {
-    if (!list || list.length === 0) return;
-    setFiles((prev) => [...prev, ...Array.from(list)]);
+    const incoming = list ? Array.from(list) : [];
+    if (incoming.length === 0) return;
+
+    const accepted: File[] = [];
+    const unsupported: string[] = [];
+    const tooBig: string[] = [];
+    for (const file of incoming) {
+      const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
+      if (!ATTACH_ALLOWED_EXT.includes(ext)) {
+        unsupported.push(file.name);
+      } else if (file.size > ATTACH_MAX_BYTES) {
+        tooBig.push(file.name);
+      } else {
+        accepted.push(file);
+      }
+    }
+
+    if (accepted.length) setFiles((prev) => [...prev, ...accepted]);
+
+    const problems: string[] = [];
+    if (unsupported.length)
+      problems.push(
+        `${unsupported.join(", ")} — only PDF, DOCX, TXT and MD files are supported`,
+      );
+    if (tooBig.length)
+      problems.push(`${tooBig.join(", ")} — over the 20 MB limit`);
+    setAttachError(
+      problems.length
+        ? `Some files weren't attached: ${problems.join("; ")}.`
+        : null,
+    );
     if (fileRef.current) fileRef.current.value = "";
+  }
+
+  // Drag & drop onto the composer. A depth counter avoids the flicker a plain
+  // dragenter/dragleave pair causes when the pointer crosses child elements.
+  const dragDepth = useRef(0);
+  const [dragOver, setDragOver] = useState(false);
+  const dragHasFiles = (e: React.DragEvent) =>
+    Array.from(e.dataTransfer?.types ?? []).includes("Files");
+
+  function onDragEnter(e: React.DragEvent) {
+    if (busy || !dragHasFiles(e)) return;
+    e.preventDefault();
+    dragDepth.current += 1;
+    setDragOver(true);
+  }
+  function onDragOver(e: React.DragEvent) {
+    if (busy || !dragHasFiles(e)) return;
+    e.preventDefault(); // required so the drop event fires
+  }
+  function onDragLeave(e: React.DragEvent) {
+    if (!dragHasFiles(e)) return;
+    e.preventDefault();
+    dragDepth.current -= 1;
+    if (dragDepth.current <= 0) {
+      dragDepth.current = 0;
+      setDragOver(false);
+    }
+  }
+  function onDrop(e: React.DragEvent) {
+    if (!dragHasFiles(e)) return;
+    e.preventDefault();
+    dragDepth.current = 0;
+    setDragOver(false);
+    if (busy) return;
+    addFiles(e.dataTransfer?.files ?? null);
   }
 
   async function openPreview() {
@@ -236,6 +317,7 @@ export function RunPanel({
       }
       setText("");
       setFiles([]);
+      setAttachError(null);
       setExistingIds([]);
       router.refresh();
     } catch (err) {
@@ -284,8 +366,44 @@ export function RunPanel({
           <p className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-mint-700">
             <span aria-hidden>▶</span> Your input for this run
           </p>
-          {/* Composer: type context, attach files, run — any combination. */}
-          <div className="rounded-card border-[1.5px] border-navy-800/15 bg-white shadow-[0_4px_18px_rgba(19,31,56,0.07)] transition focus-within:border-mint-700">
+          {attachError && (
+            <div
+              role="alert"
+              className="mb-3 flex items-center gap-3 rounded-card border border-coral-400/30 bg-coral-400/10 px-4 py-2.5 text-sm text-coral-400"
+            >
+              <span aria-hidden>⚠</span>
+              <span className="flex-1 text-center">{attachError}</span>
+              <button
+                type="button"
+                onClick={() => setAttachError(null)}
+                aria-label="Dismiss"
+                className="shrink-0 text-coral-400/60 transition hover:text-coral-400"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+          {/* Composer: type context, attach files, drop files, run — any combination. */}
+          <div
+            onDragEnter={onDragEnter}
+            onDragOver={onDragOver}
+            onDragLeave={onDragLeave}
+            onDrop={onDrop}
+            className="relative rounded-card border-[1.5px] border-navy-800/15 bg-white shadow-[0_4px_18px_rgba(19,31,56,0.07)] transition focus-within:border-mint-700"
+          >
+            {dragOver && (
+              <div className="pointer-events-none absolute inset-1.5 z-20 flex flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-sky-300 bg-sky-300/25 text-center backdrop-blur-[1px]">
+                <span aria-hidden className="text-2xl">
+                  ⬇
+                </span>
+                <p className="text-sm font-semibold text-navy-800/80">
+                  Drop files to attach
+                </p>
+                <p className="text-xs text-navy-800/55">
+                  PDF, DOCX, TXT, MD · 20 MB
+                </p>
+              </div>
+            )}
             <textarea
               value={text}
               onChange={(e) => setText(e.target.value)}
@@ -327,7 +445,7 @@ export function RunPanel({
                   ref={fileRef}
                   type="file"
                   multiple
-                  accept=".pdf,.docx,.txt,.md"
+                  accept={ATTACH_ACCEPT}
                   className="sr-only"
                   disabled={busy}
                   onChange={(e) => addFiles(e.target.files)}
