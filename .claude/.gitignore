@@ -1,5 +1,9 @@
-# Commit skills/, ignore local state
+# Commit skills/, hooks/, settings.json — ignore local/runtime state
 settings.local.json
 worktrees/
 scheduled_tasks.lock
 .DS_Store
+# Per-worktree dev-server pid (written by run-app, cleaned up by the SessionEnd hook)
+.dev-server.pid
+# Hook logs
+logs/
