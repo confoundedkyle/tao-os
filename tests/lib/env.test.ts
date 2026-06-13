@@ -108,3 +108,19 @@ describe("defaults", () => {
     expect(env.mockAi).toBe(false);
   });
 });
+
+describe("domain import keys", () => {
+  it("exposes FIRECRAWL_API_KEY, empty when unset", () => {
+    vi.stubEnv("FIRECRAWL_API_KEY", "fc-123");
+    expect(env.firecrawlApiKey).toBe("fc-123");
+    vi.stubEnv("FIRECRAWL_API_KEY", "");
+    expect(env.firecrawlApiKey).toBe("");
+  });
+
+  it("exposes HUNTER_API_KEY, empty when unset", () => {
+    vi.stubEnv("HUNTER_API_KEY", "hk-123");
+    expect(env.hunterApiKey).toBe("hk-123");
+    vi.stubEnv("HUNTER_API_KEY", "");
+    expect(env.hunterApiKey).toBe("");
+  });
+});

@@ -132,7 +132,10 @@ export async function uploadDocumentAction(formData: FormData) {
     .upload(storagePath, Buffer.from(await file.arrayBuffer()), {
       contentType: file.type || "application/octet-stream",
     });
-  if (uploadError) throw uploadError;
+  if (uploadError) {
+    console.error("uploadDocument: storage upload failed", uploadError);
+    throw new Error(`Couldn't store “${file.name}”. Please try again.`);
+  }
 
   if (scopeType === "project" && docType === "jd") {
     await archivePreviousJd(scopeId);
@@ -149,7 +152,12 @@ export async function uploadDocumentAction(formData: FormData) {
     extracted_text: extractedText,
     created_by: session.userId,
   });
-  if (error) throw error;
+  if (error) {
+    console.error("uploadDocument: insert failed", error);
+    throw new Error(
+      `Couldn't save “${file.name}”. The file may be corrupted or its text couldn't be read.`,
+    );
+  }
   revalidateScope(scopeType, scopeId);
 }
 
@@ -318,6 +326,31 @@ export async function createKbNoteAction(
   if (error) throw error;
   revalidateScope(scopeType, scopeId);
   return { docId: id };
+}
+
+/** Returns a short-lived signed URL to download a document's ORIGINAL uploaded
+ *  file (the stored object, not the extracted text). Notes that were pasted or
+ *  created in-app have no original file. */
+export async function getDocumentDownloadUrlAction(
+  docId: string,
+): Promise<{ url: string }> {
+  const session = await requireSession();
+  const doc = await getDocument(session.workspaceId, docId);
+  if (!doc) throw new Error("Document not found");
+  if (!doc.storage_path)
+    throw new Error("This note has no original file to download.");
+  const { data, error } = await db()
+    .storage.from("documents")
+    .createSignedUrl(doc.storage_path, 60, {
+      // Force a download with the original, human-readable filename rather than
+      // the sanitised storage key.
+      download: doc.filename ?? true,
+    });
+  if (error || !data) {
+    console.error("getDocumentDownloadUrl: signing failed", error);
+    throw new Error("Couldn't prepare the download. Please try again.");
+  }
+  return { url: data.signedUrl };
 }
 
 export async function deleteDocumentAction(docId: string) {

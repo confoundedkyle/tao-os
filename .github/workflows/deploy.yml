@@ -16,6 +16,9 @@
 #   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, NEXT_PUBLIC_SUPABASE_ANON_KEY,
 #   APP_ENCRYPTION_KEY, NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY, CLERK_SECRET_KEY,
 #   CLERK_WEBHOOK_SIGNING_SECRET, CALYFLOW_PLATFORM_API_KEY, CRON_SECRET
+# Optional feature SECRETS:
+#   FIRECRAWL_API_KEY (enables client "import from domain"),
+#   HUNTER_API_KEY (optional contact enrichment for domain import)
 # Optional connector OAuth SECRETS (each enables one connector's Connect flow):
 #   AIRTABLE_CLIENT_ID, AIRTABLE_CLIENT_SECRET,
 #   BULLHORN_CLIENT_ID, BULLHORN_CLIENT_SECRET,
@@ -137,6 +140,7 @@ jobs:
               "CALYFLOW_PLATFORM_API_KEY", "CALYFLOW_PLATFORM_PROVIDER",
               "CALYFLOW_PLATFORM_MODEL",
               "ONE_TIME_PLATFORM_CREDIT_DEFAULT_USD", "CRON_SECRET", "MOCK_AI",
+              "FIRECRAWL_API_KEY", "HUNTER_API_KEY",
               "APP_BASE_URL", "AIRTABLE_CLIENT_ID", "AIRTABLE_CLIENT_SECRET",
               "BULLHORN_CLIENT_ID", "BULLHORN_CLIENT_SECRET",
               "BULLHORN_AUTH_BASE", "BULLHORN_REST_LOGIN_BASE",
@@ -169,6 +173,12 @@ jobs:
           ONE_TIME_PLATFORM_CREDIT_DEFAULT_USD: ${{ vars.ONE_TIME_PLATFORM_CREDIT_DEFAULT_USD }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           MOCK_AI: ${{ vars.MOCK_AI }}
+          # Client "import from domain" researcher. FIRECRAWL_API_KEY enables
+          # the feature; HUNTER_API_KEY (optional) adds contact enrichment.
+          # Unset values are filtered out above, so the import option just
+          # stays hidden until FIRECRAWL_API_KEY is provided.
+          FIRECRAWL_API_KEY: ${{ secrets.FIRECRAWL_API_KEY }}
+          HUNTER_API_KEY: ${{ secrets.HUNTER_API_KEY }}
           # OAuth connectors. APP_BASE_URL is the public app URL
           # (e.g. https://app.calyflow.com); each provider's registered redirect
           # URI must be ${APP_BASE_URL}/api/connectors/<provider>/callback.
