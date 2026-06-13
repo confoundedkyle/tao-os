@@ -62,11 +62,20 @@ in first.
 **Auth mode decides whether you can drive it headlessly.** Check `.env.local`:
 
 - `SINGLE_WORKSPACE=true` (no Clerk): the sign-in form logs in by email via a
-  signed cookie — use the email in `ADMIN_EMAILS`. Drive the browser with
-  `chromium-cli` (see the global `/run` `examples/playwright.md`): open
-  `http://localhost:<port>/sign-in`, submit the admin email, navigate to the
-  page under test, and screenshot it. **Look at the screenshot** — a redirect
-  back to `/sign-in` or a blank frame means the session/env isn't right.
+  signed cookie — use the email in `ADMIN_EMAILS`. Drive it with the project's
+  own browser driver (Playwright is a devDependency; there is no `chromium-cli`
+  in this repo):
+
+  ```bash
+  BASE_URL="http://localhost:<port>" npm run drive /workflows
+  # → signs in with the first ADMIN_EMAILS, opens the path, writes
+  #   /tmp/calyflow-<slug>.png, and prints any console errors.
+  # args: npm run drive <path> [outfile];  env: DRIVE_EMAIL, FULL_PAGE=1
+  ```
+
+  Then **look at the screenshot** — the script exits non-zero and warns if it
+  landed back on `/sign-in` (protected page with no session). See
+  `scripts/drive.mjs` to extend it (clicks, fills, multi-step flows).
 - `SINGLE_WORKSPACE=false` (the main repo's `.env.local` default): auth is
   **Clerk**, so protected pages redirect to `…accounts.dev/sign-in` and there's
   no headless login. To drive the UI locally, either log in once in a real
