@@ -324,17 +324,11 @@ function SkillNode({ data }: NodeProps<CanvasNode>) {
         </span>
       </div>
       {highlight && (
-        <>
-          <span className="pointer-events-none absolute left-1/2 top-full mt-1.5 flex -translate-x-1/2 items-center gap-1 whitespace-nowrap rounded-chip bg-coral-400 px-2.5 py-1 text-[11px] font-bold text-white shadow-[0_3px_10px_rgba(232,131,107,0.4)]">
-            💡 Recruiting-tuned prompt
-          </span>
-          {/* Hover/tap explainer — sits above so it never collides with the engine. */}
-          <span className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 w-60 -translate-x-1/2 rounded-card bg-navy-900 px-3 py-2 text-[11px] leading-snug text-white opacity-0 shadow-lift transition-opacity duration-150 group-hover:opacity-100">
-            This isn&apos;t a generic prompt. An expert-written recruiting skill
-            tells the AI exactly how to screen — evidence from the CV, must-have
-            scoring, and red flags — so the output is consistent every time.
-          </span>
-        </>
+        // Always-visible callout below the node (the canvas clips anything above
+        // it, and clicking the node opens the full node-explainer modal).
+        <span className="pointer-events-none absolute left-1/2 top-full mt-1.5 flex -translate-x-1/2 items-center gap-1 whitespace-nowrap rounded-chip bg-coral-400 px-2.5 py-1 text-[11px] font-bold text-white shadow-[0_3px_10px_rgba(232,131,107,0.4)]">
+          💡 Recruiting-tuned prompt
+        </span>
       )}
     </div>
   );

@@ -65,7 +65,12 @@ function Hero() {
       <span className="inline-flex items-center gap-1.5 rounded-chip bg-mint-400/20 px-3 py-1 text-xs font-bold uppercase tracking-wider text-mint-400">
         ✦ Live demo
       </span>
-      <h1 className="mt-3 text-2xl font-bold leading-tight sm:text-[34px]">
+      {/* Inline color: globals.css sets an UNLAYERED `h1 { color: navy }` rule,
+          which beats Tailwind's layered `text-white` utility. Inline style wins. */}
+      <h1
+        style={{ color: "#fff" }}
+        className="mt-3 text-2xl font-bold leading-tight sm:text-[34px]"
+      >
         Screen a stack of CVs in seconds — not hours
       </h1>
       <p className="mt-2 max-w-[60ch] text-white/65">
@@ -322,9 +327,13 @@ function CvScreener({
               )}
             </p>
             {jdMode === "sample" && (
-              <p className="mt-2 line-clamp-5 whitespace-pre-wrap text-[12.5px] leading-relaxed text-navy-800/55">
-                {jd.preview}
-              </p>
+              <div className="prose-calyflow relative mt-2 max-h-44 overflow-hidden text-[12.5px] leading-relaxed text-navy-800/60 [&_h1]:mb-1 [&_h1]:text-base [&_h2]:mb-1 [&_h2]:mt-2 [&_h2]:text-[13px]">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {jd.preview}
+                </ReactMarkdown>
+                {/* Fade the clipped preview so the hard cut isn't jarring. */}
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-linear-to-t from-cream-50 to-transparent" />
+              </div>
             )}
             {jdBusy && (
               <p className="mt-2 text-xs text-navy-800/45">Updating…</p>
