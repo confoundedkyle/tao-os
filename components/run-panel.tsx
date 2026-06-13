@@ -560,9 +560,22 @@ function RunOutput({
             ref={outputRef}
             className="prose-calyflow mt-5 max-h-130 overflow-y-auto rounded-card border border-navy-800/12 bg-white p-6"
           >
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{output}</ReactMarkdown>
             {running && (
-              <span className="ml-1 inline-block h-4 w-2 animate-pulse bg-mint-400" />
+              <div
+                role="status"
+                aria-live="polite"
+                className="mb-3 flex items-center gap-2.5 text-sm font-medium text-navy-800/55"
+              >
+                <span
+                  aria-hidden
+                  className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-mint-400/30 border-t-mint-400"
+                />
+                {output ? "Generating…" : "Working on it — this can take a moment…"}
+              </div>
+            )}
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{output}</ReactMarkdown>
+            {running && output && (
+              <span className="ml-1 inline-block h-4 w-2 animate-pulse bg-mint-400 align-text-bottom" />
             )}
           </div>
           {!running && output && (
