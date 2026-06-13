@@ -574,7 +574,9 @@ export function DocExplorer({
                     )}
                     {isEditable(selected) && (
                       <Button variant="smallSecondary" onClick={startEdit}>
-                        ✎ Edit
+                        <span className="inline-flex items-center gap-1.5">
+                          <PencilIcon /> Edit
+                        </span>
                       </Button>
                     )}
                   </>

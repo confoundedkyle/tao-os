@@ -25,8 +25,10 @@ export async function AccountControls({ session }: { session: Session }) {
   }
 
   const { OrganizationSwitcher, UserButton } = await import("@clerk/nextjs");
+  // Reserve a fixed row height and avatar slot so the header doesn't jump when
+  // Clerk's widgets hydrate (they render nothing until their JS loads).
   return (
-    <div className="flex w-full items-center justify-between gap-3">
+    <div className="flex h-7 w-full items-center justify-between gap-3">
       <div className="min-w-0 flex-1 overflow-hidden">
         <OrganizationSwitcher
           hidePersonal
@@ -44,7 +46,7 @@ export async function AccountControls({ session }: { session: Session }) {
           }}
         />
       </div>
-      <div className="flex-shrink-0">
+      <div className="flex size-7 flex-shrink-0 items-center justify-center">
         <UserButton />
       </div>
     </div>

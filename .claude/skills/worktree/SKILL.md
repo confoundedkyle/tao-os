@@ -7,6 +7,10 @@ description: Create a new git worktree branched from main and switch the session
 
 Create a fresh git worktree branched from `main` and move this session into it.
 
+> **DO THIS FIRST — before anything else.** Entering the worktree is the **first action** of this turn. Run the Steps below and confirm the session is in the worktree (Step 3) **before** you Read, Edit, Write, run a build, or do any other task work.
+>
+> **If a task came bundled with `/worktree`** (e.g. the same message, or the very next message, asks you to build/fix something): that task is meant to happen *inside* the new worktree. Do **not** start it on `main`. Create the worktree first, verify Step 3, *then* do the task. Jumping straight to the task on `main` is the exact blunder this skill exists to prevent — the changes land on `main` and the worktree branch stays empty.
+
 Arguments: `$ARGUMENTS` — optional worktree/branch name (kebab-case). If empty, derive a short name from the task at hand, or let one be generated.
 
 ## Steps
