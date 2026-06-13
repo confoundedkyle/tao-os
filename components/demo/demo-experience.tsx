@@ -34,7 +34,7 @@ export function DemoExperience({
   workflowId: string;
   workflowName: string;
   graph: WorkflowGraph;
-  jd: { id: string; filename: string; preview: string };
+  jd: { id: string; filename: string; text: string };
   cvs: DemoCv[];
 }) {
   const [tab, setTab] = useState<"cv" | "agentic">("cv");
@@ -149,7 +149,7 @@ function CvScreener({
   workflowId: string;
   workflowName: string;
   graph: WorkflowGraph;
-  jd: { id: string; filename: string; preview: string };
+  jd: { id: string; filename: string; text: string };
   cvs: DemoCv[];
 }) {
   const [jdMode, setJdMode] = useState<"sample" | "custom">("sample");
@@ -327,12 +327,10 @@ function CvScreener({
               )}
             </p>
             {jdMode === "sample" && (
-              <div className="prose-calyflow relative mt-2 max-h-44 overflow-hidden text-[12.5px] leading-relaxed text-navy-800/60 [&_h1]:mb-1 [&_h1]:text-base [&_h2]:mb-1 [&_h2]:mt-2 [&_h2]:text-[13px]">
+              <div className="prose-calyflow mt-2 max-h-64 overflow-y-auto rounded-card border border-navy-800/8 bg-white/60 p-3 text-[12.5px] leading-relaxed text-navy-800/65 [&_h1]:mb-1 [&_h1]:text-base [&_h2]:mb-1 [&_h2]:mt-2 [&_h2]:text-[13px]">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {jd.preview}
+                  {jd.text}
                 </ReactMarkdown>
-                {/* Fade the clipped preview so the hard cut isn't jarring. */}
-                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-linear-to-t from-cream-50 to-transparent" />
               </div>
             )}
             {jdBusy && (
