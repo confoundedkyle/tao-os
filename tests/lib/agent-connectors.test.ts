@@ -113,7 +113,7 @@ describe("deriveAgentGraph", () => {
     },
   ];
 
-  it("renders selected and missing connector slots", () => {
+  it("renders selected slots as inputs and the email slot as the output", () => {
     const graph = deriveAgentGraph({
       name: "Candidate Outreach From Sheet via Email",
       connectors: slots,
@@ -126,11 +126,21 @@ describe("deriveAgentGraph", () => {
       parentId: "grp-connectors",
       brandLogos: ["google-sheets"],
     });
-    const email = graph.nodes.find((n) => n.id === "itm-conn-email")!;
-    expect(email).toMatchObject({
-      title: "No Email connected",
-      badge: "Missing",
-      icon: "email",
+    // The email connector is the destination — never an input item.
+    expect(graph.nodes.some((n) => n.id === "itm-conn-email")).toBe(false);
+    const out = graph.nodes.find((n) => n.id === "out")!;
+    expect(out).toMatchObject({ title: "Emails", icon: "email", badge: "Missing" });
+
+    const sent = deriveAgentGraph({
+      name: "Outreach",
+      connectors: [
+        { ...slots[1], selectedProvider: "gmail", selectedLabel: "Gmail" },
+      ],
+      model: null,
+    });
+    expect(sent.nodes.find((n) => n.id === "out")!).toMatchObject({
+      title: "Emails via Gmail",
+      brandLogos: ["gmail"],
     });
 
     // Same skill/engine/output shape as workflows.

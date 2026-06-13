@@ -69,13 +69,16 @@ const TILE_GRADIENTS: Record<WorkflowNodeIcon, string> = {
   output: "from-mint-700 to-navy-800",
 };
 
-function BrandLogo({ provider }: { provider: string }) {
+function BrandLogo({ provider, size = 18 }: { provider: string; size?: number }) {
   const [failed, setFailed] = useState(false);
   const domain = CONNECTOR_DOMAINS[provider];
   if (!domain || failed) {
     return (
-      <span className="grid size-[18px] place-items-center rounded-full bg-cream-100 ring-2 ring-white">
-        <IconIntegrationPlug size={11} className="text-navy-800/50" />
+      <span
+        style={{ width: size, height: size }}
+        className="grid place-items-center rounded-full bg-cream-100 ring-2 ring-white"
+      >
+        <IconIntegrationPlug size={Math.round(size * 0.6)} className="text-navy-800/50" />
       </span>
     );
   }
@@ -85,11 +88,21 @@ function BrandLogo({ provider }: { provider: string }) {
       src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
       alt={provider}
       title={provider}
-      width={18}
-      height={18}
+      width={size}
+      height={size}
       onError={() => setFailed(true)}
-      className="size-[18px] rounded-full bg-white object-contain ring-2 ring-white"
+      className="rounded-full bg-white object-contain ring-2 ring-white"
     />
+  );
+}
+
+/** Main icon tile showing a single known connector's brand logo — replaces
+ *  the generic gradient tile so the brand isn't shown twice on one node. */
+function BrandTile({ provider }: { provider: string }) {
+  return (
+    <span className="grid size-9 shrink-0 place-items-center rounded-[10px] border border-navy-800/10 bg-white shadow-[0_2px_8px_rgba(19,31,56,0.1)]">
+      <BrandLogo provider={provider} size={22} />
+    </span>
   );
 }
 
@@ -145,16 +158,23 @@ function GroupNode({ data }: NodeProps<CanvasNode>) {
 function ItemNode({ data }: NodeProps<CanvasNode>) {
   const { node } = data;
   const Icon = NODE_ICONS[node.icon ?? "doc"];
+  // One known connector → its brand logo IS the tile (no duplicate icons).
+  const soloBrand =
+    node.brandLogos?.length === 1 ? node.brandLogos[0] : undefined;
   return (
     <div
       style={node.size}
       className="flex items-center gap-2.5 rounded-card border border-navy-800/10 bg-white px-3 shadow-[0_2px_10px_rgba(19,31,56,0.06)]"
     >
-      <span
-        className={`grid size-9 shrink-0 place-items-center rounded-[10px] bg-linear-to-br text-white shadow-[0_2px_8px_rgba(19,31,56,0.18)] ${TILE_GRADIENTS[node.icon ?? "doc"]}`}
-      >
-        <Icon size={18} />
-      </span>
+      {soloBrand ? (
+        <BrandTile provider={soloBrand} />
+      ) : (
+        <span
+          className={`grid size-9 shrink-0 place-items-center rounded-[10px] bg-linear-to-br text-white shadow-[0_2px_8px_rgba(19,31,56,0.18)] ${TILE_GRADIENTS[node.icon ?? "doc"]}`}
+        >
+          <Icon size={18} />
+        </span>
+      )}
       <span className="min-w-0 flex-1">
         <span className="flex items-center gap-1.5">
           <span className="truncate text-[13px] font-semibold leading-tight text-navy-900">
@@ -172,7 +192,7 @@ function ItemNode({ data }: NodeProps<CanvasNode>) {
           </span>
         )}
       </span>
-      {node.brandLogos && node.brandLogos.length > 0 && (
+      {node.brandLogos && node.brandLogos.length > 1 && (
         <BrandLogoRow providers={node.brandLogos} />
       )}
     </div>
@@ -287,6 +307,9 @@ function StepNode({ data }: NodeProps<CanvasNode>) {
 
 function OutputNode({ data }: NodeProps<CanvasNode>) {
   const { node } = data;
+  const Icon = NODE_ICONS[node.icon ?? "output"];
+  const soloBrand =
+    node.brandLogos?.length === 1 ? node.brandLogos[0] : undefined;
   return (
     <div className="flex w-60 items-center gap-3 rounded-card border-[1.5px] border-mint-700/35 bg-white px-3.5 py-3 shadow-[0_4px_18px_rgba(19,31,56,0.07)]">
       <Handle
@@ -295,17 +318,33 @@ function OutputNode({ data }: NodeProps<CanvasNode>) {
         isConnectable={false}
         className={handleClass}
       />
-      <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-linear-to-br from-mint-700 to-navy-800 text-white shadow-[0_3px_10px_rgba(19,31,56,0.18)]">
-        <IconRocket size={20} />
-      </span>
-      <span className="min-w-0">
-        <span className="line-clamp-2 text-sm font-semibold leading-snug text-navy-900">
-          {node.title}
+      {soloBrand ? (
+        <BrandTile provider={soloBrand} />
+      ) : (
+        <span
+          className={`grid size-10 shrink-0 place-items-center rounded-xl bg-linear-to-br text-white shadow-[0_3px_10px_rgba(19,31,56,0.18)] ${TILE_GRADIENTS[node.icon ?? "output"]}`}
+        >
+          <Icon size={20} />
+        </span>
+      )}
+      <span className="min-w-0 flex-1">
+        <span className="flex items-center gap-1.5">
+          <span className="line-clamp-2 text-sm font-semibold leading-snug text-navy-900">
+            {node.title}
+          </span>
+          {node.badge && (
+            <span className="shrink-0 rounded-full bg-amber-400/20 px-1.5 py-px text-[9px] font-bold uppercase tracking-wide text-amber-400">
+              {node.badge}
+            </span>
+          )}
         </span>
         <span className="block truncate text-[11px] leading-snug text-navy-800/45">
           {node.subtitle}
         </span>
       </span>
+      {node.brandLogos && node.brandLogos.length > 1 && (
+        <BrandLogoRow providers={node.brandLogos} />
+      )}
     </div>
   );
 }

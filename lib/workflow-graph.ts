@@ -252,7 +252,13 @@ function composeGraph(spec: {
   /** "spark" = workflow engine; "robot" = the advanced agent engine. */
   engineIcon?: WorkflowNodeIcon;
   model: { providerLabel: string; modelId: string } | null;
-  output: { title: string; subtitle: string };
+  output: {
+    title: string;
+    subtitle: string;
+    icon?: WorkflowNodeIcon;
+    badge?: string;
+    brandLogos?: string[];
+  };
 }): WorkflowGraph {
   const nodes: WorkflowGraphNode[] = [];
   const edges: WorkflowGraphEdge[] = [];
@@ -326,7 +332,9 @@ function composeGraph(spec: {
     kind: "output",
     title: spec.output.title,
     subtitle: spec.output.subtitle,
-    icon: "output",
+    icon: spec.output.icon ?? "output",
+    badge: spec.output.badge,
+    brandLogos: spec.output.brandLogos,
     position: { x, y: (maxHeight - OUTPUT_H) / 2 },
   });
   edges.push({ id: "e-out", source: "step", target: "out", kind: "output" });
@@ -381,23 +389,44 @@ export function deriveAgentGraph(args: {
     },
   ];
 
-  const connectorItems: Item[] = args.connectors.map((slot) =>
+  // Email connectors are the agent's DESTINATION, not a source — they render
+  // as the output node ("Emails via Gmail"), not inside the Connectors group.
+  const emailSlot = args.connectors.find((slot) => slot.category === "email");
+  const inputSlots = args.connectors.filter((slot) => slot.category !== "email");
+
+  const connectorItems: Item[] = inputSlots.map((slot) =>
     slot.selectedProvider
       ? {
           id: `itm-conn-${slot.category}`,
           title: slot.selectedLabel ?? slot.selectedProvider,
           subtitle: `${slot.categoryLabel} connector`,
-          icon: slot.category === "email" ? "email" : "connector",
+          icon: "connector",
           brandLogos: [slot.selectedProvider],
         }
       : {
           id: `itm-conn-${slot.category}`,
           title: `No ${slot.categoryLabel} connected`,
           subtitle: "Connect one to run this agent",
-          icon: slot.category === "email" ? "email" : "connector",
+          icon: "connector",
           badge: "Missing",
         },
   );
+
+  const output = emailSlot
+    ? emailSlot.selectedProvider
+      ? {
+          title: `Emails via ${emailSlot.selectedLabel ?? emailSlot.selectedProvider}`,
+          subtitle: "Sent from your own mailbox",
+          icon: "email" as const,
+          brandLogos: [emailSlot.selectedProvider],
+        }
+      : {
+          title: "Emails",
+          subtitle: "Connect an email connector to send",
+          icon: "email" as const,
+          badge: "Missing",
+        }
+    : { title: "Output document", subtitle: "Saved to project files" };
 
   return composeGraph({
     groups: [
@@ -408,6 +437,6 @@ export function deriveAgentGraph(args: {
     engineSubtitle: "Autonomous · multi-step tool loop",
     engineIcon: "robot",
     model: args.model ?? null,
-    output: { title: "Output document", subtitle: "Saved to project files" },
+    output,
   });
 }
