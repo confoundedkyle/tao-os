@@ -19,16 +19,30 @@ Arguments: `$ARGUMENTS` — optional worktree/branch name (kebab-case). If empty
 
 2. Call the `EnterWorktree` tool with `name` set to the requested name (omit it if none was given). By default (`worktree.baseRef` = `fresh`) this creates the worktree under `.claude/worktrees/` on a new branch based on `origin/main` and switches the session's working directory into it.
 
-3. Verify the result: run `git status` and `git log --oneline -1` and confirm the branch is based on the tip of `origin/main`. Capture the **absolute worktree path** (run `pwd`) and report it, along with the branch name, to the user.
+3. Verify the result: run `git status` and `git log --oneline -1` and confirm the branch is based on the tip of `origin/main`. Capture the **absolute worktree path** (run `pwd`, e.g. `/Users/you/Projects/repo/.claude/worktrees/<name>`) — you'll need it for every edit below — and report it, along with the branch name, to the user.
 
 ## Working in the worktree — CRITICAL
 
-Once the session is in the worktree, **every** file read/write/edit and shell command must target the worktree, not the original checkout. The original repo root and the worktree are two separate working trees of the same repo; touching the wrong one silently lands your changes in the wrong place.
+Once the session is in the worktree, **every** file read/write/edit and shell command must target the worktree, not the original checkout. The original repo root and the worktree are two separate working trees of the same repo; touching the wrong one silently lands your changes on the original's branch (usually `main`), leaving the worktree branch empty — and the app you run from the worktree won't have them.
 
-- **Never use an absolute path to the original repo root** (e.g. `/…/calyflow-website/src/…`). Use relative paths, or absolute paths under the worktree (`/…/calyflow-website/.claude/worktrees/<name>/src/…`). A bare absolute path to the project root writes to the *original* checkout, not the worktree.
-- **Never `cd` to the original repo root**, and don't prefix shell commands with `cd /…/calyflow-website && …`. Run commands from the worktree cwd (relative paths), or use `git -C "$(pwd)"` / `git -C <worktree-path>`.
-- The Bash tool resets cwd to the worktree each call — rely on that; do not override it with an absolute `cd` elsewhere.
-- **Guard before any build/commit:** the original repo's working tree should stay clean. If you ran a build or edited files and `git -C <original-repo-root> status --short` shows your changes there instead of in the worktree, your paths were wrong — stop and redo them against the worktree path.
+**The trap:** `Explore`/`Plan` subagents, `Grep`, and `Glob` report paths rooted at the **original repo** (e.g. `/Users/you/Projects/repo/lib/foo.ts`), because that's where they searched. Editing those verbatim writes to the original checkout, not the worktree.
+
+Rules for every Read/Edit/Write and shell command after entering a worktree:
+
+- **Translate reported paths to the worktree.** Replace the repo root with the worktree root: `/Users/you/Projects/repo/lib/foo.ts` → `/…/repo/.claude/worktrees/<name>/lib/foo.ts`, or use a path relative to the worktree cwd (`lib/foo.ts`). Never edit an absolute path that contains the repo root but **not** `/.claude/worktrees/<name>/`.
+- **Never `cd` to the original repo root** or prefix commands with `cd /…/repo && …`. The Bash tool resets cwd to the worktree each call — rely on that (relative paths), or use `git -C "$(pwd)"` / `git -C <worktree-path>`.
+- **Verify before trusting it.** After your first edit, and again before any build/commit or reporting done, run `git -C <worktree-path> status` — your changes must appear there — and confirm `git -C <repo-root> status` is **clean**. If the changes show up in the repo root instead, your paths were wrong; stop and redo them.
+
+### Recovery if edits landed in the original repo
+
+Worktrees share one object store, so the stash list is shared. Move misplaced changes without redoing them:
+
+```bash
+git -C <repo-root> stash push -u -m "misplaced; moving to worktree"   # repo root now clean
+git -C <worktree-path> stash pop                                       # changes appear in the worktree
+```
+
+Then re-run `git -C <worktree-path> status` to confirm, and restart any dev server so it picks up the relocated files.
 
 ## Fallback: base ref is not main
 

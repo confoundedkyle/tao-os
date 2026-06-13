@@ -50,6 +50,17 @@ export const env = {
     return process.env.CRON_SECRET ?? "";
   },
 
+  /** Firecrawl API key — powers the client "import from domain" researcher.
+   *  Import is only offered when this is set. */
+  get firecrawlApiKey() {
+    return process.env.FIRECRAWL_API_KEY ?? "";
+  },
+  /** Hunter.io API key — optional contact enrichment for domain import. When
+   *  unset the agent simply skips the contacts step. */
+  get hunterApiKey() {
+    return process.env.HUNTER_API_KEY ?? "";
+  },
+
   /** Public base URL of this deployment, used to build OAuth redirect URIs
    *  (e.g. https://app.calyflow.com). No trailing slash. */
   get appBaseUrl() {
