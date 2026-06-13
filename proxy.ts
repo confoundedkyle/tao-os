@@ -7,6 +7,7 @@ const singleWorkspace =
 const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)",
   "/sign-up(.*)",
+  "/api/health", // deploy smoke test hits this unauthenticated to verify DB
   "/api/cron(.*)",
   "/api/webhooks(.*)",
   "/api/v1/connectors",
