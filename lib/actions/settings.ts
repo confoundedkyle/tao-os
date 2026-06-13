@@ -7,6 +7,7 @@ import { db } from "../db";
 import { encrypt } from "../crypto";
 import { env } from "../env";
 import { SUPPORTED_PROVIDERS, validateApiKey } from "../providers";
+import { ensureStarterPack } from "../starter-pack";
 import type { WorkspaceType } from "../types";
 
 // All settings mutations require the admin ("Owner") role — enforced
@@ -249,6 +250,8 @@ export async function finishOnboardingAction() {
       .update({ workspace_type: "independent" })
       .eq("id", session.workspaceId);
   }
+  // Give every new workspace the recommended Starter Pack workflows up front.
+  await ensureStarterPack(session.workspaceId);
   // New users land on the Demo page for an instant "aha" (CV Screener), not the
   // empty Dashboard. The demo project is provisioned lazily on first visit.
   revalidatePath("/");

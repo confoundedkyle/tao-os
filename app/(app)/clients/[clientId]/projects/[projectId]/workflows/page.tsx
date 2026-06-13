@@ -13,6 +13,7 @@ import {
 import { checkBudgets } from "@/lib/budgets";
 import { env } from "@/lib/env";
 import { preflightWorkflow } from "@/lib/readiness";
+import { ensureStarterPack, STARTER_PACK_SLUGS } from "@/lib/starter-pack";
 import { deriveWorkflowGraph } from "@/lib/workflow-graph";
 import { DocList } from "@/components/doc-list";
 import { RunPanel, type RunPanelWorkflow } from "@/components/run-panel";
@@ -29,6 +30,10 @@ export default async function ProjectWorkflowsPage({
   const project = await getProject(session.workspaceId, projectId);
   if (!project || project.client.id !== clientId) notFound();
 
+  // Keep the workspace's Starter Pack in sync with the curated list before we
+  // read the workflows below (newly-added pack workflows auto-install here).
+  await ensureStarterPack(session.workspaceId);
+
   const [docs, allWorkflows, runs, providers, model, connections] =
     await Promise.all([
       listDocuments(session.workspaceId, "project", projectId, "file"),
@@ -40,6 +45,12 @@ export default async function ProjectWorkflowsPage({
     ]);
   const workflows = allWorkflows.filter((wf) => !wf.archived_at);
   const activeConnections = connections.filter((c) => c.status !== "error");
+
+  // Starter Pack cards, in run order — only the ones actually installed/active.
+  const bySlug = new Map(workflows.map((wf) => [wf.library?.slug, wf]));
+  const starterPack = STARTER_PACK_SLUGS.map((slug) => bySlug.get(slug))
+    .filter((wf): wf is NonNullable<typeof wf> => Boolean(wf))
+    .map((wf) => ({ id: wf.id, name: wf.name }));
 
   const panelWorkflows: RunPanelWorkflow[] = workflows.map((wf) => {
     const preflight = preflightWorkflow(wf.library?.input_spec ?? null, docs);
@@ -112,6 +123,7 @@ export default async function ProjectWorkflowsPage({
               }))}
             blockedMessage={blockedMessage}
             adminHref={`/clients/${clientId}/projects/${projectId}/admin`}
+            starterPack={starterPack}
           />
         )}
       </Card>
