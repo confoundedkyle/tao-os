@@ -152,6 +152,17 @@ export async function listLibraryWorkflows(): Promise<LibraryWorkflow[]> {
   return data as LibraryWorkflow[];
 }
 
+export async function getLibraryWorkflowBySlug(
+  slug: string,
+): Promise<LibraryWorkflow | null> {
+  const { data } = await db()
+    .from("library_workflows")
+    .select("*")
+    .eq("slug", slug)
+    .maybeSingle();
+  return (data as LibraryWorkflow) ?? null;
+}
+
 export async function listWorkspaceWorkflows(
   workspaceId: string,
 ): Promise<(WorkspaceWorkflow & { library: LibraryWorkflow | null })[]> {
@@ -325,6 +336,17 @@ export async function listLibraryAgents(): Promise<LibraryAgent[]> {
     .order("name");
   if (error) throw error;
   return data as LibraryAgent[];
+}
+
+export async function getLibraryAgentBySlug(
+  slug: string,
+): Promise<LibraryAgent | null> {
+  const { data } = await db()
+    .from("library_agents")
+    .select("*")
+    .eq("slug", slug)
+    .maybeSingle();
+  return (data as LibraryAgent) ?? null;
 }
 
 export async function listWorkspaceAgents(

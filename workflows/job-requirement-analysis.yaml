@@ -6,6 +6,33 @@ description: >-
   process and more. Every dimension is either extracted or marked "TO ASK"
   with a question, so nothing is missed before sourcing. Feeds the ICP Builder.
 category: intake
+og_description: >-
+  Use this free Calyflow workflow to break a role down into every requirement
+  that matters — and flag the gaps to ask about.
+lead: >-
+  Know a role inside out before you source. This workflow breaks hiring-manager
+  notes into every requirement that matters and flags what's still missing.
+long_description: |
+  ## What it does
+  The Job Requirement Analysis turns raw hiring-manager notes into a complete,
+  structured breakdown of the role — from technical skills and seniority to
+  culture, compensation, and the hiring process.
+
+  ## Why recruiters use it
+  - Spot missing or vague requirements before they derail a search.
+  - Have a sharper, better-prepared conversation with the hiring manager.
+  - Build a solid foundation for the Candidate ICP and your sourcing strategy.
+
+  ## What you get
+  A breakdown across roughly 18 dimensions. Anything the notes don't cover is
+  clearly marked "to ask", with a suggested question, so nothing slips through.
+
+  ## What you need
+  - Hiring-manager notes, an existing job description, or intake notes.
+
+  ## How to run it
+  Add your notes to the project and run. The analysis is saved to your project
+  files.
 version: 1
 input_spec:
   inputs: [document]

@@ -1,10 +1,39 @@
 slug: cv-screener
+featured: true
 name: CV Screener
 description: >-
   Screen CVs against the project's job description and get an evidence-based
   scorecard: fit score, must-haves table with CV quotes as proof, red flags,
   and five screening-call questions specific to this candidate.
 category: screening
+og_description: >-
+  Use this free Calyflow workflow to screen a CV against the job description
+  and get an evidence-based scorecard in seconds.
+lead: >-
+  Screen CVs in seconds, not hours. Get an evidence-based scorecard that quotes
+  the CV and flags exactly what to ask on the screening call.
+long_description: |
+  ## What it does
+  The CV Screener compares a candidate's CV against the role's job description
+  and produces a structured scorecard — so you can decide who to call without
+  reading every CV line by line.
+
+  ## Why recruiters use it
+  - Cut screening time dramatically while staying thorough.
+  - Back every decision with evidence quoted straight from the CV.
+  - Walk into the screening call already knowing what to probe.
+
+  ## What you get
+  A fit score, a must-haves table with CV quotes as proof, a list of red flags
+  or gaps, and five screening-call questions tailored to this candidate.
+
+  ## What you need
+  - A job description saved in the project.
+  - The candidate's CV.
+
+  ## How to run it
+  Attach the CV and run. The scorecard is saved to your project files, and its
+  output feeds the Candidate Submission Pack.
 version: 1
 input_spec:
   inputs: [document]

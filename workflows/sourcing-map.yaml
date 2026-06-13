@@ -5,6 +5,33 @@ description: >-
   search steps from exact-match booleans to creative passive sourcing, plus a
   full channel checklist tailored to this exact role and market.
 category: sourcing
+og_description: >-
+  Use this free Calyflow workflow to turn a job description into a step-by-step
+  sourcing plan with searches and channels for the exact role.
+lead: >-
+  Know where to look before you start sourcing. Turn a job description into a
+  phased plan of searches and channels tailored to the role and market.
+long_description: |
+  ## What it does
+  The Sourcing Map turns a job description into a practical, phased sourcing
+  strategy — so you start a search with a clear plan instead of a blank search
+  bar.
+
+  ## Why recruiters use it
+  - Source faster with ready-made search steps and channels.
+  - Reach passive candidates your competitors miss.
+  - Give junior sourcers a repeatable playbook for any role.
+
+  ## What you get
+  Five search steps that move from exact-match boolean strings to creative
+  passive-sourcing ideas, plus a full channel checklist tailored to the
+  specific role and market.
+
+  ## What you need
+  - A job description saved in the project.
+
+  ## How to run it
+  Pick the workflow and run. The sourcing map is saved to your project files.
 version: 2
 input_spec:
   inputs: []
