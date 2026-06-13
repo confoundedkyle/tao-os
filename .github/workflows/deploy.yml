@@ -111,7 +111,12 @@ jobs:
             exit 1
           fi
 
+      # Pin to the CLI version the repo's supabase/config.toml targets — an
+      # older default rejects newer config keys (oauth_server, web3, s3_protocol,
+      # db.migrations.enabled, …). Bump this alongside local CLI upgrades.
       - uses: supabase/setup-cli@v1
+        with:
+          version: 2.105.0
 
       - name: Apply Supabase migrations (also verifies DB connectivity)
         run: |
