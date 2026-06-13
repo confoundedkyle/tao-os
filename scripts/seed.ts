@@ -31,6 +31,10 @@ interface WorkflowYaml {
   input_spec: unknown;
   output_spec: unknown;
   prompt_template: string;
+  featured?: boolean;
+  og_description?: string;
+  lead?: string;
+  long_description?: string;
 }
 
 async function seedWorkflows() {
@@ -48,6 +52,10 @@ async function seedWorkflows() {
         input_spec: wf.input_spec,
         output_spec: wf.output_spec,
         prompt_template: wf.prompt_template,
+        featured: wf.featured ?? false,
+        og_description: wf.og_description ?? null,
+        lead: wf.lead ?? null,
+        long_description: wf.long_description ?? null,
       },
       { onConflict: "slug" },
     );
@@ -65,6 +73,10 @@ interface AgentYaml {
   model: string | null;
   max_steps: number;
   version?: number;
+  featured?: boolean;
+  og_description?: string;
+  lead?: string;
+  long_description?: string;
 }
 
 async function seedAgents() {
@@ -107,6 +119,10 @@ async function seedAgents() {
         model: a.model ?? null,
         max_steps: a.max_steps ?? 12,
         version: a.version ?? 1,
+        featured: a.featured ?? false,
+        og_description: a.og_description ?? null,
+        lead: a.lead ?? null,
+        long_description: a.long_description ?? null,
       },
       { onConflict: "slug" },
     );

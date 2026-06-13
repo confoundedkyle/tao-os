@@ -6,6 +6,35 @@ description: >-
   nice-to-have (1) criteria, each with a concrete "how to evaluate" cue, plus a
   max-score guide. The rubric that drives consistent candidate screening.
 category: icp
+og_description: >-
+  Use this free Calyflow workflow to turn a job description into a clear,
+  weighted scorecard for ranking candidates consistently.
+lead: >-
+  Score every candidate the same way. This workflow turns a job description
+  into a weighted rubric your whole team can screen against.
+long_description: |
+  ## What it does
+  The Candidate ICP Builder reads the job description for a role and turns it
+  into an Ideal Candidate Profile — a structured scorecard that spells out
+  exactly what "a strong fit" means for this job.
+
+  ## Why recruiters use it
+  - Screen every candidate against the same criteria, so shortlists are
+    consistent and easy to defend to the client.
+  - Get aligned with the hiring manager up front on what actually matters.
+  - Spend less time on gut feel and more on real evidence.
+
+  ## What you get
+  A weighted rubric with must-have (3), important (2) and nice-to-have (1)
+  criteria. Each criterion comes with a plain-language cue for how to judge it,
+  plus a maximum-score guide so any recruiter applies it the same way.
+
+  ## What you need
+  - A job description saved in the project.
+
+  ## How to run it
+  Pick the workflow in your project and run it. The scorecard is saved to your
+  project files and feeds straight into CV screening.
 version: 1
 input_spec:
   inputs: []

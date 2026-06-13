@@ -5,6 +5,36 @@ description: >-
   candidates from the tracker you already run in Google Sheets, Excel, or
   Airtable, ranks them against the role, and writes a shortlist back into the
   project. Pick the data source when you run it.
+og_description: >-
+  Use this free Calyflow agent to turn a candidate spreadsheet into a ranked
+  shortlist for your role — no manual sorting.
+lead: >-
+  Already track candidates in a spreadsheet? This agent reads it, ranks
+  everyone against the role, and writes back a shortlist.
+long_description: |
+  ## What it does
+  The Sourcing Shortlist From Sheet agent reads the candidate tracker you
+  already keep in a spreadsheet, scores everyone against the role, and writes a
+  ranked shortlist back into your project.
+
+  ## Why recruiters use it
+  - Put the spreadsheet you already maintain to work, without copy-pasting.
+  - Rank candidates against the real requirements, with the reasoning shown.
+  - No new system to learn — it reads your existing sheet.
+
+  ## Connect your data source
+  Pick any one of your connected data connectors when you run it:
+  - Google Sheets
+  - Microsoft Excel
+  - Airtable
+
+  ## What you get
+  A ranked shortlist document with a short rationale for each candidate and a
+  note on who didn't make the cut.
+
+  ## How to run it
+  Open a project with a role brief, choose your spreadsheet source, and run.
+  The shortlist is saved to your project files.
 allowed_tools:
   - calyflow_search_documents
   - calyflow_read_document

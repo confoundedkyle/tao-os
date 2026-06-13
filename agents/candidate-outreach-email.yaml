@@ -1,4 +1,5 @@
 slug: candidate-outreach-email
+featured: true
 name: Candidate Outreach From Sheet via Email
 description: >-
   An outreach agent that reads candidates from the tracker you run in Google
@@ -6,6 +7,44 @@ description: >-
   grounded in the role and your tone of voice, sends them from your own
   mailbox (Gmail or Outlook), and saves a send log into the project. Pick the
   data source and the mailbox when you run it.
+og_description: >-
+  Use this free Calyflow agent to email candidates from your spreadsheet —
+  personalized, from your own mailbox, with one send log.
+lead: >-
+  Reach a whole list of candidates without the copy-paste. This agent reads
+  your spreadsheet, writes a personal email to each, and sends them from your
+  own inbox.
+long_description: |
+  ## What it does
+  The Candidate Outreach agent reads candidates from your spreadsheet, writes a
+  short, personalized email to each one based on the role and your tone of
+  voice, and sends them from your own mailbox. It keeps a log of everything it
+  sent.
+
+  ## Why recruiters use it
+  - Reach an entire candidate list in one run, with each email genuinely
+    personalized.
+  - Send from your own address, so replies come straight back to you.
+  - Stay safe — it only emails people listed in your sheet, never invented
+    addresses, and caps how many it sends.
+
+  ## Connect your tools
+  Pick one data source and one mailbox when you run it.
+
+  Read candidates from:
+  - Google Sheets, Microsoft Excel, or Airtable
+
+  Send from:
+  - Gmail or Microsoft Outlook
+
+  ## What you get
+  A personal email sent to each chosen candidate, plus a send-log document
+  recording who was contacted, the subject used, and anyone skipped.
+
+  ## How to run it
+  Open a project with a role brief, choose your spreadsheet and mailbox,
+  describe who to contact, and run. Emails go out from your inbox and the log
+  is saved to your project files.
 allowed_tools:
   - calyflow_search_documents
   - calyflow_read_document

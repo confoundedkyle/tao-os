@@ -6,6 +6,36 @@ description: >-
   blind teaser for cold campaigns, and pitch sound bites for hiring managers.
   Every claim is grounded in the CV, never invented.
 category: marketing
+og_description: >-
+  Use this free Calyflow workflow to turn a candidate's CV into a polished,
+  ready-to-market profile that sells their strengths.
+lead: >-
+  Market your best candidates without writing a word. Turn a CV into a sharp,
+  ready-to-send profile that leads with what makes them stand out.
+long_description: |
+  ## What it does
+  The Candidate Marketing Profile turns a candidate's CV into a compelling,
+  ready-to-market profile (an MPC) you can use to spark client interest — even
+  before you have a specific role to pitch.
+
+  ## Why recruiters use it
+  - Get candidates in front of clients faster, with a profile that leads with
+    real, quantified wins.
+  - Reuse one profile across multiple outreach campaigns.
+  - Keep candidate details anonymous when you want to tease the market.
+
+  ## What you get
+  A positioning headline, a short biography in your tone of voice, quantified
+  highlights, an anonymized "blind" teaser for cold campaigns, and a few pitch
+  sound bites for hiring managers. Every claim is grounded in the CV — nothing
+  invented.
+
+  ## What you need
+  - The candidate's CV.
+
+  ## How to run it
+  Attach the CV in your project and run. The profile is saved to your project
+  files, ready to copy into emails or your CRM.
 version: 1
 input_spec:
   inputs: [document]

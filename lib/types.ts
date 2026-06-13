@@ -75,6 +75,12 @@ export interface LibraryWorkflow {
   input_spec: InputSpec;
   output_spec: OutputSpec;
   version: number;
+  /** Highlighted on the public marketing homepage. */
+  featured: boolean;
+  /** Public marketing copy (see migration 0010). */
+  og_description: string | null;
+  lead: string | null;
+  long_description: string | null;
 }
 
 export interface WorkspaceWorkflow {
@@ -281,6 +287,12 @@ export interface LibraryAgent {
   model: string | null;
   max_steps: number;
   version: number;
+  /** Highlighted on the public marketing homepage. */
+  featured: boolean;
+  /** Public marketing copy (see migration 0010). */
+  og_description: string | null;
+  lead: string | null;
+  long_description: string | null;
 }
 
 export interface WorkspaceAgent {

@@ -6,6 +6,36 @@ description: >-
   voice, references concrete details (never flattery or buzzwords), and sells
   the client company specifically using its deck and benefits docs.
 category: outreach
+og_description: >-
+  Use this free Calyflow workflow to write personalized candidate outreach —
+  LinkedIn, InMail, and email — that references real details and gets replies.
+lead: >-
+  Write outreach that sounds like you, not a mail merge. Personalized LinkedIn,
+  InMail, and email — with A/B versions and follow-ups — built from the
+  candidate's real profile.
+long_description: |
+  ## What it does
+  The Outreach Writer drafts personalized candidate outreach across LinkedIn,
+  InMail, and email. It references concrete details from the candidate's
+  profile and sells the specific role and company — no generic templates.
+
+  ## Why recruiters use it
+  - Get higher reply rates with messages that feel personal and specific.
+  - Save the time you'd spend writing every message by hand.
+  - Stay on-brand — it writes in your tone of voice, with no flattery or
+    buzzwords.
+
+  ## What you get
+  A LinkedIn connection note, an InMail or first message, and an email — each
+  with two A/B variants — plus a two-step follow-up sequence.
+
+  ## What you need
+  - A job description saved in the project.
+  - The candidate's CV or profile.
+
+  ## How to run it
+  Attach the candidate's profile and run. The messages are saved to your
+  project files, ready to send.
 version: 2
 input_spec:
   inputs: [document]
