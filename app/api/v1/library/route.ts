@@ -3,7 +3,9 @@ import { env } from "@/lib/env";
 import { listLibraryAgents, listLibraryWorkflows } from "@/lib/queries";
 import {
   CONNECTOR_CATEGORY_LABELS,
+  connectorsForCategory,
   requiredConnectorCategories,
+  type ConnectorCategory,
 } from "@/lib/connectors";
 import type { LibraryAgent, LibraryWorkflow } from "@/lib/types";
 
@@ -19,6 +21,15 @@ const CORS_HEADERS = {
 
 const CACHE = "public, max-age=300, s-maxage=3600, stale-while-revalidate=86400";
 
+/** A connector category the item works with, plus the named connectors that
+ *  satisfy it — e.g. category "ATS" → ["Ashby", "Greenhouse", "Lever", …].
+ *  A category-generic agent works with any one of these interchangeably. */
+export interface ConnectorRequirement {
+  category: string;
+  label: string;
+  connectors: string[];
+}
+
 export interface PublicLibraryItem {
   type: "workflow" | "agent";
   slug: string;
@@ -27,8 +38,8 @@ export interface PublicLibraryItem {
   category: string | null;
   version: number;
   featured: boolean;
-  /** Connector categories the item needs (agents) or can use (workflows). */
-  connectors: string[];
+  /** Connector categories the agent needs, each with its compatible connectors. */
+  connectors: ConnectorRequirement[];
   /** Human label of what it produces. */
   output: string;
   /** Absolute URL of the 16:9 SVG cover diagram. */
@@ -44,6 +55,14 @@ export interface PublicLibraryItem {
 function coverUrl(type: "workflow" | "agent", slug: string): string {
   const base = env.appBaseUrl || "";
   return `${base}/api/v1/library/${type}/${slug}/cover`;
+}
+
+function connectorRequirement(category: ConnectorCategory): ConnectorRequirement {
+  return {
+    category,
+    label: CONNECTOR_CATEGORY_LABELS[category],
+    connectors: connectorsForCategory(category).map((c) => c.name),
+  };
 }
 
 function workflowItem(wf: LibraryWorkflow): PublicLibraryItem {
@@ -74,7 +93,7 @@ function agentItem(a: LibraryAgent): PublicLibraryItem {
     category: null,
     version: a.version,
     featured: a.featured ?? false,
-    connectors: categories.map((c) => CONNECTOR_CATEGORY_LABELS[c]),
+    connectors: categories.map(connectorRequirement),
     output: categories.includes("email") ? "Emails" : "Document",
     coverUrl: coverUrl("agent", a.slug),
     ogDescription: a.og_description ?? null,

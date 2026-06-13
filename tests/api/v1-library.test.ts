@@ -70,6 +70,7 @@ describe("GET /api/v1/library", () => {
       output: "Submission pack",
     });
     expect(wf.coverUrl).toContain("/api/v1/library/workflow/submission-pack/cover");
+    expect(wf.connectors).toEqual([]); // workflows need no connectors
     expect(wf.ogDescription).toContain("free workflow");
     expect(wf.lead).toContain("hiring manager");
     expect(wf.longDescription?.startsWith("## ")).toBe(true);
@@ -82,7 +83,17 @@ describe("GET /api/v1/library", () => {
       category: null,
       output: "Emails",
     });
-    expect(agent.connectors).toEqual(["Data", "Email"]);
+    // Categories expand to their compatible connector names.
+    expect(agent.connectors.map((c) => c.category)).toEqual(["data", "email"]);
+    const dataReq = agent.connectors.find((c) => c.category === "data")!;
+    expect(dataReq.label).toBe("Data");
+    expect(dataReq.connectors).toEqual(
+      expect.arrayContaining(["Google Sheets", "Airtable", "Microsoft Excel"]),
+    );
+    const emailReq = agent.connectors.find((c) => c.category === "email")!;
+    expect(emailReq.connectors).toEqual(
+      expect.arrayContaining(["Gmail", "Microsoft Outlook"]),
+    );
     expect(agent.coverUrl).toContain(
       "/api/v1/library/agent/candidate-outreach-email/cover",
     );
