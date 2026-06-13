@@ -35,15 +35,17 @@ export default async function DemoPage() {
     connections: connections.filter((c) => c.status !== "error"),
   });
 
-  const jdPreview = (jdDoc?.extracted_text ?? "").slice(0, 700);
-
   return (
     <DemoExperience
       projectId={demo.projectId}
       workflowId={demo.workflowId}
       workflowName={workflow.name}
       graph={graph}
-      jd={{ id: demo.jd.id, filename: demo.jd.filename, preview: jdPreview }}
+      jd={{
+        id: demo.jd.id,
+        filename: demo.jd.filename,
+        text: jdDoc?.extracted_text ?? "",
+      }}
       cvs={demo.cvs}
     />
   );

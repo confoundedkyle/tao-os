@@ -22,7 +22,7 @@ import {
   ButtonLink,
   PageHeader,
 } from "@/components/ui";
-import { IconWorkflowNodes } from "@/components/icons";
+import { IconRobot, IconWorkflowNodes } from "@/components/icons";
 import { ImportedToast } from "@/components/imported-toast";
 
 export default async function WorkflowsPage({
@@ -79,43 +79,57 @@ export default async function WorkflowsPage({
           }
         />
       ) : (
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {workflows.map((wf) => {
             const upgradeAvailable =
               wf.library && wf.imported_version != null
                 ? wf.library.version > wf.imported_version
                 : false;
+            const tagline =
+              wf.library?.lead ?? wf.library?.description ?? "Custom workflow";
             return (
               <Card
                 key={wf.id}
-                className={`flex h-full flex-col hover:shadow-lift ${
+                className={`group flex h-full flex-col p-5 hover:shadow-lift ${
                   wf.id === imported ? "ring-2 ring-mint-400" : ""
                 }`}
               >
-                <Link
-                  href={`/workflows/${wf.id}`}
-                  className="group block flex-1"
-                >
-                  <div className="mb-2 flex items-start justify-between gap-2">
-                    <h3 className="text-xl font-semibold transition group-hover:text-mint-700">
-                      {wf.name}
-                    </h3>
-                    {upgradeAvailable && (
-                      <Chip tone="amber">v{wf.library!.version} available</Chip>
-                    )}
+                <Link href={`/workflows/${wf.id}`} className="flex-1">
+                  <div className="mb-2.5 flex items-start gap-3">
+                    <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-linear-to-br from-coral-400 to-[#c4523a] text-white shadow-[0_2px_8px_rgba(19,31,56,0.15)]">
+                      <IconWorkflowNodes size={20} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="truncate text-[17px] font-semibold leading-tight transition group-hover:text-mint-700">
+                        {wf.name}
+                      </h3>
+                      <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                        {wf.library?.category && (
+                          <span className="rounded-full bg-navy-800/8 px-2 py-0.5 text-[11px] font-semibold capitalize text-navy-800/65">
+                            {wf.library.category}
+                          </span>
+                        )}
+                        {upgradeAvailable && (
+                          <Chip tone="amber">v{wf.library!.version} available</Chip>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <p className="text-[15px] text-navy-800/55">
-                    {wf.library?.description ?? "Custom workflow"}
+                  <p className="line-clamp-2 text-sm leading-relaxed text-navy-800/55">
+                    {tagline}
                   </p>
                 </Link>
-                <div className="mt-3 flex items-center justify-between gap-3">
-                  <span className="font-mono text-[13px] text-navy-800/45">
-                    imported v{wf.imported_version ?? "—"}
+                <div className="mt-3 flex items-center justify-between gap-2 border-t border-navy-800/8 pt-3">
+                  <span className="text-xs text-navy-800/45">
+                    {wf.library ? "Calyflow" : "Custom"} ·{" "}
+                    <span className="font-mono">
+                      v{wf.imported_version ?? "—"}
+                    </span>
                   </span>
                   <form action={archiveWorkflowAction.bind(null, wf.id)}>
                     <button
                       type="submit"
-                      className="rounded-chip border border-navy-800/15 px-3 py-1 text-xs font-semibold text-navy-800/55 transition hover:border-navy-800/40 hover:text-navy-800"
+                      className="rounded-chip border border-navy-800/12 px-2.5 py-1 text-xs font-medium text-navy-800/45 transition hover:border-navy-800/40 hover:text-navy-800"
                     >
                       Archive
                     </button>
@@ -171,39 +185,50 @@ export default async function WorkflowsPage({
           connector you pick.
         </p>
       ) : (
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {agents.map((agent) => {
             const categories = requiredConnectorCategories(
               agent.allowed_tools ?? [],
             );
             return (
-              <Card key={agent.id} className="flex h-full flex-col">
-                <div className="mb-2 flex items-start justify-between gap-2">
-                  <h3 className="text-xl font-semibold">{agent.name}</h3>
-                  <Chip tone="sky">agent</Chip>
-                </div>
-                <p className="flex-1 text-[15px] text-navy-800/55">
-                  {agent.library?.description ?? "Custom agent"}
-                </p>
-                <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5">
-                  <span className="font-mono text-[13px] text-navy-800/45">
-                    imported v{agent.imported_version ?? "—"}
-                  </span>
-                  {categories.map((category) => (
-                    <span
-                      key={category}
-                      className="rounded-full bg-navy-800/8 px-2 py-0.5 text-xs font-semibold text-navy-800/70"
-                    >
-                      any {CONNECTOR_CATEGORY_LABELS[category]}
+              <Card key={agent.id} className="group flex h-full flex-col p-5">
+                <div className="flex-1">
+                  <div className="mb-2.5 flex items-start gap-3">
+                    <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-linear-to-br from-navy-900 to-navy-800 text-mint-400 shadow-[0_2px_8px_rgba(19,31,56,0.18)]">
+                      <IconRobot size={20} />
                     </span>
-                  ))}
-                  <form
-                    action={archiveAgentAction.bind(null, agent.id)}
-                    className="ml-auto"
-                  >
+                    <div className="min-w-0 flex-1">
+                      <h3 className="truncate text-[17px] font-semibold leading-tight">
+                        {agent.name}
+                      </h3>
+                      <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                        <Chip tone="sky">agent</Chip>
+                        {categories.map((category) => (
+                          <span
+                            key={category}
+                            className="rounded-full bg-navy-800/8 px-2 py-0.5 text-[11px] font-semibold text-navy-800/65"
+                          >
+                            any {CONNECTOR_CATEGORY_LABELS[category]}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <p className="line-clamp-2 text-sm leading-relaxed text-navy-800/55">
+                    {agent.library?.description ?? "Custom agent"}
+                  </p>
+                </div>
+                <div className="mt-3 flex items-center justify-between gap-2 border-t border-navy-800/8 pt-3">
+                  <span className="text-xs text-navy-800/45">
+                    {agent.library ? "Calyflow" : "Custom"} ·{" "}
+                    <span className="font-mono">
+                      v{agent.imported_version ?? "—"}
+                    </span>
+                  </span>
+                  <form action={archiveAgentAction.bind(null, agent.id)}>
                     <button
                       type="submit"
-                      className="rounded-chip border border-navy-800/15 px-3 py-1 text-xs font-semibold text-navy-800/55 transition hover:border-navy-800/40 hover:text-navy-800"
+                      className="rounded-chip border border-navy-800/12 px-2.5 py-1 text-xs font-medium text-navy-800/45 transition hover:border-navy-800/40 hover:text-navy-800"
                     >
                       Archive
                     </button>
