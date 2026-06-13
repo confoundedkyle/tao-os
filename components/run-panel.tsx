@@ -10,7 +10,7 @@ import { previewRunPromptAction } from "@/lib/actions/runs";
 import { usePersistedSelection } from "@/lib/use-persisted-selection";
 import type { WorkflowGraph } from "@/lib/workflow-graph";
 import { DownloadButtons } from "./download-buttons";
-import { Button } from "./ui";
+import { Button, Card } from "./ui";
 import { WorkflowCanvas } from "./workflow-canvas";
 import {
   WorkflowStarterPack,
@@ -358,187 +358,190 @@ export function RunPanel({
         />
       )}
 
-      <WorkflowSelector
-        workflows={workflows}
-        value={workflowId}
-        onChange={selectWorkflow}
-        disabled={busy}
-      />
+      <Card featured>
+        <h2 className="mb-4 text-xl font-semibold">Run a workflow</h2>
+        <WorkflowSelector
+          workflows={workflows}
+          value={workflowId}
+          onChange={selectWorkflow}
+          disabled={busy}
+        />
 
-      {workflow && (
-        <div className="mt-4">
-          <button
-            type="button"
-            onClick={() => setDiagramOpen((open) => !open)}
-            aria-expanded={diagramOpen}
-            className="flex items-center gap-1.5 text-sm font-semibold text-navy-800/60 transition hover:text-navy-800"
-          >
-            <span
-              aria-hidden
-              className={`inline-block text-[11px] transition-transform ${diagramOpen ? "rotate-90" : ""}`}
+        {workflow && (
+          <div className="mt-4">
+            <button
+              type="button"
+              onClick={() => setDiagramOpen((open) => !open)}
+              aria-expanded={diagramOpen}
+              className="flex items-center gap-1.5 text-sm font-semibold text-navy-800/60 transition hover:text-navy-800"
             >
-              ▶
-            </span>
-            How this works
-          </button>
-          {diagramOpen && (
-            <WorkflowCanvas graph={workflow.graph} className="mt-3" />
-          )}
-        </div>
-      )}
-
-      {setupBlocked ? (
-        <div className="mt-4">{blockNode}</div>
-      ) : (
-        <div className="mt-5 rounded-panel border border-mint-400/40 bg-mint-400/8 p-4">
-          <p className="mb-3 text-xs font-bold uppercase tracking-wider text-mint-700">
-            Your input for this run
-          </p>
-          {attachError && (
-            <div
-              role="alert"
-              className="mb-3 flex items-center gap-3 rounded-card border border-coral-400/30 bg-coral-400/10 px-4 py-2.5 text-sm text-coral-400"
-            >
-              <span aria-hidden>⚠</span>
-              <span className="flex-1 text-center">{attachError}</span>
-              <button
-                type="button"
-                onClick={() => setAttachError(null)}
-                aria-label="Dismiss"
-                className="shrink-0 text-coral-400/60 transition hover:text-coral-400"
+              <span
+                aria-hidden
+                className={`inline-block text-[11px] transition-transform ${diagramOpen ? "rotate-90" : ""}`}
               >
-                ✕
-              </button>
-            </div>
-          )}
-          {/* Composer: type context, attach files, drop files, run — any combination. */}
-          <div
-            onDragEnter={onDragEnter}
-            onDragOver={onDragOver}
-            onDragLeave={onDragLeave}
-            onDrop={onDrop}
-            className="relative rounded-card border-[1.5px] border-navy-800/15 bg-white shadow-[0_4px_18px_rgba(19,31,56,0.07)] transition focus-within:border-mint-700"
-          >
-            {dragOver && (
-              <div className="pointer-events-none absolute inset-1.5 z-20 flex flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-sky-300 bg-sky-300/25 text-center backdrop-blur-[1px]">
-                <span aria-hidden className="text-2xl">
-                  ⬇
-                </span>
-                <p className="text-sm font-semibold text-navy-800/80">
-                  Drop files to attach
-                </p>
-                <p className="text-xs text-navy-800/55">
-                  PDF, DOCX, TXT, MD · 20 MB
-                </p>
-              </div>
+                ▶
+              </span>
+              How this works
+            </button>
+            {diagramOpen && (
+              <WorkflowCanvas graph={workflow.graph} className="mt-3" />
             )}
-            <textarea
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              rows={4}
-              disabled={busy}
-              placeholder={`Add context for this run — e.g. "Name: John, role: Project Manager, I like that he led a fintech migration…"`}
-              className="block w-full resize-y border-0 bg-transparent px-4 py-3 text-sm leading-relaxed outline-none placeholder:text-navy-800/35"
-            />
+          </div>
+        )}
 
-            {(attachedExisting.length > 0 || files.length > 0) && (
-              <div className="flex flex-wrap gap-2 px-4 pb-3">
-                {attachedExisting.map((doc) => (
-                  <AttachmentChip
-                    key={doc.id}
-                    label={doc.filename}
-                    generated={doc.source === "workflow" || doc.docType === "output"}
-                    disabled={busy}
-                    onRemove={() =>
-                      setExistingIds((prev) => prev.filter((id) => id !== doc.id))
-                    }
-                  />
-                ))}
-                {files.map((file, i) => (
-                  <AttachmentChip
-                    key={`${file.name}-${i}`}
-                    label={file.name}
-                    disabled={busy}
-                    onRemove={() =>
-                      setFiles((prev) => prev.filter((_, j) => j !== i))
-                    }
-                  />
-                ))}
-              </div>
-            )}
-
-            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-navy-800/8 px-3 py-2.5">
-              <label className="flex cursor-pointer items-center gap-1.5 rounded-chip px-2 py-1.5 text-sm font-semibold text-navy-800/55 transition hover:bg-cream-100 hover:text-navy-800">
-                <input
-                  ref={fileRef}
-                  type="file"
-                  multiple
-                  accept={ATTACH_ACCEPT}
-                  className="sr-only"
-                  disabled={busy}
-                  onChange={(e) => addFiles(e.target.files)}
-                />
-                <span aria-hidden>📎</span> Attach files
-                <span className="font-normal text-navy-800/35">
-                  PDF, DOCX, TXT, MD · 20 MB
-                </span>
-              </label>
-              <div className="flex items-center gap-2">
+        {setupBlocked ? (
+          <div className="mt-4">{blockNode}</div>
+        ) : (
+          <div className="mt-5 rounded-panel border border-mint-400/40 bg-mint-400/8 p-4">
+            <p className="mb-3 text-xs font-bold uppercase tracking-wider text-mint-700">
+              Your input for this run
+            </p>
+            {attachError && (
+              <div
+                role="alert"
+                className="mb-3 flex items-center gap-3 rounded-card border border-coral-400/30 bg-coral-400/10 px-4 py-2.5 text-sm text-coral-400"
+              >
+                <span aria-hidden>⚠</span>
+                <span className="flex-1 text-center">{attachError}</span>
                 <button
                   type="button"
-                  onClick={openPreview}
-                  disabled={busy || !workflow}
-                  className="rounded-chip border border-navy-800/15 px-4 py-2 text-sm font-medium text-navy-800/50 transition hover:border-navy-800/35 hover:text-navy-800 disabled:opacity-40"
+                  onClick={() => setAttachError(null)}
+                  aria-label="Dismiss"
+                  className="shrink-0 text-coral-400/60 transition hover:text-coral-400"
                 >
-                  Preview prompt
+                  ✕
                 </button>
-                <Button onClick={run} disabled={busy || !canRun}>
-                  {busy ? (uploading ? "Uploading…" : "Running…") : "▶ Run"}
-                </Button>
               </div>
-            </div>
-          </div>
+            )}
+            {/* Composer: type context, attach files, drop files, run — any combination. */}
+            <div
+              onDragEnter={onDragEnter}
+              onDragOver={onDragOver}
+              onDragLeave={onDragLeave}
+              onDrop={onDrop}
+              className="relative rounded-card border-[1.5px] border-navy-800/15 bg-white shadow-[0_4px_18px_rgba(19,31,56,0.07)] transition focus-within:border-mint-700"
+            >
+              {dragOver && (
+                <div className="pointer-events-none absolute inset-1.5 z-20 flex flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-sky-300 bg-sky-300/25 text-center backdrop-blur-[1px]">
+                  <span aria-hidden className="text-2xl">
+                    ⬇
+                  </span>
+                  <p className="text-sm font-semibold text-navy-800/80">
+                    Drop files to attach
+                  </p>
+                  <p className="text-xs text-navy-800/55">
+                    PDF, DOCX, TXT, MD · 20 MB
+                  </p>
+                </div>
+              )}
+              <textarea
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                rows={4}
+                disabled={busy}
+                placeholder={`Add context for this run — e.g. "Name: John, role: Project Manager, I like that he led a fintech migration…"`}
+                className="block w-full resize-y border-0 bg-transparent px-4 py-3 text-sm leading-relaxed outline-none placeholder:text-navy-800/35"
+              />
 
-          {!canRun && !busy && (
-            <p className="mt-3 inline-block rounded-chip bg-amber-400/15 px-3 py-2 text-sm font-medium text-navy-800/80">
-              ☝️ Type some context or attach a file (e.g.{" "}
-              {inputLabel.toLowerCase()}) to run this workflow.
-            </p>
-          )}
-
-          {availableExisting.length > 0 && (
-            <div className="mt-3">
-              <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-navy-800/35">
-                Attach from this project
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {availableExisting.map((doc) => {
-                  const generated =
-                    doc.source === "workflow" || doc.docType === "output";
-                  return (
-                    <button
+              {(attachedExisting.length > 0 || files.length > 0) && (
+                <div className="flex flex-wrap gap-2 px-4 pb-3">
+                  {attachedExisting.map((doc) => (
+                    <AttachmentChip
                       key={doc.id}
-                      type="button"
+                      label={doc.filename}
+                      generated={doc.source === "workflow" || doc.docType === "output"}
                       disabled={busy}
-                      onClick={() => setExistingIds((prev) => [...prev, doc.id])}
-                      className="inline-flex items-center gap-1.5 rounded-chip border border-navy-800/20 px-3 py-1.5 text-sm text-navy-800/70 transition hover:border-mint-700 hover:text-mint-700 disabled:opacity-40"
-                    >
-                      + {doc.filename}
-                      {generated && (
-                        <span className="rounded-full bg-sky-300/30 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-navy-800/70">
-                          AI output
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
+                      onRemove={() =>
+                        setExistingIds((prev) => prev.filter((id) => id !== doc.id))
+                      }
+                    />
+                  ))}
+                  {files.map((file, i) => (
+                    <AttachmentChip
+                      key={`${file.name}-${i}`}
+                      label={file.name}
+                      disabled={busy}
+                      onRemove={() =>
+                        setFiles((prev) => prev.filter((_, j) => j !== i))
+                      }
+                    />
+                  ))}
+                </div>
+              )}
+
+              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-navy-800/8 px-3 py-2.5">
+                <label className="flex cursor-pointer items-center gap-1.5 rounded-chip px-2 py-1.5 text-sm font-semibold text-navy-800/55 transition hover:bg-cream-100 hover:text-navy-800">
+                  <input
+                    ref={fileRef}
+                    type="file"
+                    multiple
+                    accept={ATTACH_ACCEPT}
+                    className="sr-only"
+                    disabled={busy}
+                    onChange={(e) => addFiles(e.target.files)}
+                  />
+                  <span aria-hidden>📎</span> Attach files
+                  <span className="font-normal text-navy-800/35">
+                    PDF, DOCX, TXT, MD · 20 MB
+                  </span>
+                </label>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={openPreview}
+                    disabled={busy || !workflow}
+                    className="rounded-chip border border-navy-800/15 px-4 py-2 text-sm font-medium text-navy-800/50 transition hover:border-navy-800/35 hover:text-navy-800 disabled:opacity-40"
+                  >
+                    Preview prompt
+                  </button>
+                  <Button onClick={run} disabled={busy || !canRun}>
+                    {busy ? (uploading ? "Uploading…" : "Running…") : "▶ Run"}
+                  </Button>
+                </div>
               </div>
             </div>
-          )}
-        </div>
-      )}
 
-      <RunOutput output={output} running={running} error={error} outputRef={outputRef} />
+            {!canRun && !busy && (
+              <p className="mt-3 inline-block rounded-chip bg-amber-400/15 px-3 py-2 text-sm font-medium text-navy-800/80">
+                ☝️ Type some context or attach a file (e.g.{" "}
+                {inputLabel.toLowerCase()}) to run this workflow.
+              </p>
+            )}
+
+            {availableExisting.length > 0 && (
+              <div className="mt-3">
+                <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-navy-800/35">
+                  Attach from this project
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {availableExisting.map((doc) => {
+                    const generated =
+                      doc.source === "workflow" || doc.docType === "output";
+                    return (
+                      <button
+                        key={doc.id}
+                        type="button"
+                        disabled={busy}
+                        onClick={() => setExistingIds((prev) => [...prev, doc.id])}
+                        className="inline-flex items-center gap-1.5 rounded-chip border border-navy-800/20 px-3 py-1.5 text-sm text-navy-800/70 transition hover:border-mint-700 hover:text-mint-700 disabled:opacity-40"
+                      >
+                        + {doc.filename}
+                        {generated && (
+                          <span className="rounded-full bg-sky-300/30 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-navy-800/70">
+                            AI output
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        <RunOutput output={output} running={running} error={error} outputRef={outputRef} />
+      </Card>
 
       {previewOpen && (
         <div

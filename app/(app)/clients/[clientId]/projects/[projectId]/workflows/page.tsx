@@ -100,33 +100,33 @@ export default async function ProjectWorkflowsPage({
 
   return (
     <div className="space-y-6">
-      <Card featured>
-        <h2 className="mb-4 text-xl font-semibold">Run a workflow</h2>
-        {workflows.length === 0 ? (
+      {workflows.length === 0 ? (
+        <Card featured>
+          <h2 className="mb-4 text-xl font-semibold">Run a workflow</h2>
           <p className="text-navy-800/55">
             No workflows imported yet.{" "}
             <ButtonLink href="/library" variant="small" className="ml-2">
               Browse the library
             </ButtonLink>
           </p>
-        ) : (
-          <RunPanel
-            projectId={project.id}
-            workflows={panelWorkflows}
-            inputCandidates={docs
-              .filter((d) => d.is_active)
-              .map((d) => ({
-                id: d.id,
-                filename: d.filename ?? "Untitled",
-                docType: d.doc_type,
-                source: d.source,
-              }))}
-            blockedMessage={blockedMessage}
-            adminHref={`/clients/${clientId}/projects/${projectId}/admin`}
-            starterPack={starterPack}
-          />
-        )}
-      </Card>
+        </Card>
+      ) : (
+        <RunPanel
+          projectId={project.id}
+          workflows={panelWorkflows}
+          inputCandidates={docs
+            .filter((d) => d.is_active)
+            .map((d) => ({
+              id: d.id,
+              filename: d.filename ?? "Untitled",
+              docType: d.doc_type,
+              source: d.source,
+            }))}
+          blockedMessage={blockedMessage}
+          adminHref={`/clients/${clientId}/projects/${projectId}/admin`}
+          starterPack={starterPack}
+        />
+      )}
 
       {outputDocs.length > 0 && (
         <Card>
