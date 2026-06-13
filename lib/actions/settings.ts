@@ -249,8 +249,10 @@ export async function finishOnboardingAction() {
       .update({ workspace_type: "independent" })
       .eq("id", session.workspaceId);
   }
+  // New users land on the Demo page for an instant "aha" (CV Screener), not the
+  // empty Dashboard. The demo project is provisioned lazily on first visit.
   revalidatePath("/");
-  redirect("/");
+  redirect("/demo");
 }
 
 export async function platformProviderAvailable() {

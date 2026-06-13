@@ -34,7 +34,7 @@ import {
   IconWorkflowNodes,
 } from "@/components/icons";
 
-type CanvasNodeData = { node: WorkflowGraphNode };
+type CanvasNodeData = { node: WorkflowGraphNode; highlight?: boolean };
 type CanvasNode = Node<CanvasNodeData>;
 
 const NODE_ICONS: Record<
@@ -200,26 +200,55 @@ function ItemNode({ data }: NodeProps<CanvasNode>) {
 }
 
 function SkillNode({ data }: NodeProps<CanvasNode>) {
-  const { node } = data;
+  const { node, highlight } = data;
   return (
-    <div className="flex h-[76px] w-[264px] items-center gap-3 rounded-card border-[1.5px] border-coral-400/50 bg-white px-3.5 shadow-[0_4px_18px_rgba(19,31,56,0.07)]">
-      <Handle
-        type="source"
-        position={Position.Bottom}
-        isConnectable={false}
-        className={handleClass}
-      />
-      <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-linear-to-br from-coral-400 to-[#c4523a] text-white shadow-[0_3px_10px_rgba(19,31,56,0.18)]">
-        <IconWorkflowNodes size={20} />
-      </span>
-      <span className="min-w-0">
-        <span className="line-clamp-2 text-sm font-semibold leading-snug text-navy-900">
-          {node.title}
+    <div className="group relative">
+      {/* Demo highlight: a pulsing coral halo + callout draws the eye to the
+          recruiting-tuned prompt — the "secret sauce" of the workflow. */}
+      {highlight && (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -inset-1.5 animate-pulse rounded-[18px] bg-coral-400/25 blur-[2px]"
+        />
+      )}
+      <div
+        className={`relative flex h-[76px] w-[264px] items-center gap-3 rounded-card bg-white px-3.5 ${
+          highlight
+            ? "border-2 border-coral-400 shadow-[0_6px_24px_rgba(232,131,107,0.35)]"
+            : "border-[1.5px] border-coral-400/50 shadow-[0_4px_18px_rgba(19,31,56,0.07)]"
+        }`}
+      >
+        <Handle
+          type="source"
+          position={Position.Bottom}
+          isConnectable={false}
+          className={handleClass}
+        />
+        <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-linear-to-br from-coral-400 to-[#c4523a] text-white shadow-[0_3px_10px_rgba(19,31,56,0.18)]">
+          <IconWorkflowNodes size={20} />
         </span>
-        <span className="block truncate text-[11px] leading-snug text-navy-800/45">
-          {node.subtitle}
+        <span className="min-w-0">
+          <span className="line-clamp-2 text-sm font-semibold leading-snug text-navy-900">
+            {node.title}
+          </span>
+          <span className="block truncate text-[11px] leading-snug text-navy-800/45">
+            {node.subtitle}
+          </span>
         </span>
-      </span>
+      </div>
+      {highlight && (
+        <>
+          <span className="pointer-events-none absolute left-1/2 top-full mt-1.5 flex -translate-x-1/2 items-center gap-1 whitespace-nowrap rounded-chip bg-coral-400 px-2.5 py-1 text-[11px] font-bold text-white shadow-[0_3px_10px_rgba(232,131,107,0.4)]">
+            💡 Recruiting-tuned prompt
+          </span>
+          {/* Hover/tap explainer — sits above so it never collides with the engine. */}
+          <span className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 w-60 -translate-x-1/2 rounded-card bg-navy-900 px-3 py-2 text-[11px] leading-snug text-white opacity-0 shadow-lift transition-opacity duration-150 group-hover:opacity-100">
+            This isn&apos;t a generic prompt. An expert-written recruiting skill
+            tells the AI exactly how to screen — evidence from the CV, must-have
+            scoring, and red flags — so the output is consistent every time.
+          </span>
+        </>
+      )}
     </div>
   );
 }
@@ -386,9 +415,12 @@ const MAX_ZOOM = 2;
 export function WorkflowCanvas({
   graph,
   className,
+  highlightSkill = false,
 }: {
   graph: WorkflowGraph;
   className?: string;
+  /** Demo only: pulse the Skill node to spotlight the recruiting-tuned prompt. */
+  highlightSkill?: boolean;
 }) {
   // null = "fit to container" (the default); buttons switch to explicit zoom.
   const [zoomOverride, setZoomOverride] = useState<number | null>(null);
@@ -436,12 +468,12 @@ export function WorkflowCanvas({
         type: `wf-${node.kind}`,
         position: node.position,
         parentId: node.parentId,
-        data: { node },
+        data: { node, highlight: highlightSkill && node.kind === "skill" },
         draggable: false,
         selectable: false,
         connectable: false,
       })),
-    [graph],
+    [graph, highlightSkill],
   );
 
   const edges = useMemo<Edge[]>(

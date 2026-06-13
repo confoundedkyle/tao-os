@@ -17,6 +17,8 @@ export interface Client {
   workspace_id: string;
   name: string;
   status: string;
+  /** Hidden demo client backing the /demo page (kept out of normal lists). */
+  is_demo: boolean;
   created_at: string;
 }
 
@@ -25,6 +27,8 @@ export interface Project {
   client_id: string;
   name: string;
   status: "active" | "archived";
+  /** Hidden demo project backing the /demo page (kept out of normal lists). */
+  is_demo: boolean;
   created_at: string;
 }
 
