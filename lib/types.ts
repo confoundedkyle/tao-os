@@ -39,7 +39,7 @@ export interface Doc {
   workspace_id: string;
   kind: DocKind;
   doc_type: DocType | null;
-  source: "upload" | "pasted" | "workflow" | "agent" | null;
+  source: "upload" | "pasted" | "workflow" | "agent" | "url" | null;
   filename: string | null;
   storage_path: string | null;
   extracted_text: string | null;

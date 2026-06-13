@@ -4,7 +4,9 @@ import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
 import { requireSession } from "../auth";
 import { db } from "../db";
+import { env } from "../env";
 import { extractTextFromFile } from "../extract";
+import { firecrawlScrape } from "../integrations/firecrawl";
 import { getClient, getDocument, getProject, getProspect } from "../queries";
 import type { DocKind, DocScope, DocType, Session } from "../types";
 
@@ -105,6 +107,61 @@ export async function createPastedDocumentAction(formData: FormData) {
     source: "pasted",
     filename: filename || autoFilename(docType, "pasted"),
     extracted_text: text,
+    created_by: session.userId,
+  });
+  if (error) throw error;
+  revalidateScope(scopeType, scopeId);
+}
+
+/**
+ * Import a document by scraping a single web page to markdown (Firecrawl).
+ * Mirrors the paste flow — the page is fetched by Firecrawl's API, not by us,
+ * so there's no direct server-side SSRF surface; we still require a valid
+ * http(s) URL. The scraped markdown is stored as the doc's text (no original
+ * file, so no storage object).
+ */
+export async function importDocumentFromUrlAction(formData: FormData) {
+  const session = await requireSession();
+  const scopeType = String(formData.get("scopeType")) as DocScope;
+  const scopeId = String(formData.get("scopeId"));
+  const kind = (String(formData.get("kind") ?? "file") as DocKind) || "file";
+  const docType = (String(formData.get("docType") ?? "other") ||
+    "other") as DocType;
+  const url = String(formData.get("url") ?? "").trim();
+  const filename = String(formData.get("filename") ?? "").trim();
+
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    throw new Error("Enter a valid URL (starting with https://).");
+  }
+  if (parsed.protocol !== "https:" && parsed.protocol !== "http:")
+    throw new Error("Only http(s) URLs can be imported.");
+
+  if (!env.firecrawlApiKey)
+    throw new Error("URL import isn't configured on this deployment.");
+
+  await assertScope(session, scopeType, scopeId);
+
+  const { markdown, title } = await firecrawlScrape(env.firecrawlApiKey, {
+    url,
+  });
+  if (!markdown.trim())
+    throw new Error("Couldn't read any text from that page.");
+
+  if (scopeType === "project" && docType === "jd") {
+    await archivePreviousJd(scopeId);
+  }
+  const { error } = await db().from("documents").insert({
+    scope_type: scopeType,
+    scope_id: scopeId,
+    workspace_id: session.workspaceId,
+    kind,
+    doc_type: docType,
+    source: "url",
+    filename: filename || title || autoFilename(docType, "pasted"),
+    extracted_text: markdown,
     created_by: session.userId,
   });
   if (error) throw error;

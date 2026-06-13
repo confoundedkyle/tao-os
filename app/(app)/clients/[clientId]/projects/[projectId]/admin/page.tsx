@@ -1,8 +1,7 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { listDocuments } from "@/lib/queries";
-import { AddDocument } from "@/components/add-document";
-import { DocList } from "@/components/doc-list";
+import { ProjectFilesManager } from "@/components/project-files-manager";
 import { Card } from "@/components/ui";
 
 export default async function ProjectAdminPage({
@@ -16,8 +15,9 @@ export default async function ProjectAdminPage({
 
   const docs = await listDocuments(session.workspaceId, "project", projectId, "file");
 
-  const projectDocs = docs.filter((d) => d.doc_type !== "cv");
-  const inputDocs = docs.filter(
+  // All project file docs (active + archived JD history), excluding CVs (a
+  // per-run input) and workflow outputs (shown on the Workflows tab).
+  const projectDocs = docs.filter(
     (d) => d.doc_type !== "cv" && d.doc_type !== "output",
   );
 
@@ -29,17 +29,7 @@ export default async function ProjectAdminPage({
           JD, intake notes, scorecard — set once, reused on every run. A new JD
           automatically archives the old one.
         </p>
-        <AddDocument
-          scopeType="project"
-          scopeId={projectId}
-          docTypes={["jd", "intake_notes", "scorecard", "other"]}
-          existingDocs={projectDocs.filter((d) => d.doc_type !== "output")}
-        />
-        {inputDocs.filter((d) => d.is_active).length > 0 && (
-          <div className="mt-5 border-t border-navy-800/8 pt-4">
-            <DocList docs={inputDocs} />
-          </div>
-        )}
+        <ProjectFilesManager scopeId={projectId} docs={projectDocs} />
       </Card>
     </div>
   );
