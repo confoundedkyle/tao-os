@@ -1,15 +1,54 @@
 slug: cv-screener
+featured: true
 name: CV Screener
 description: >-
-  Screen CVs against the project's job description and get an evidence-based
-  scorecard: fit score, must-haves table with CV quotes as proof, red flags,
-  and five screening-call questions specific to this candidate.
+  Screen one or more CVs against the project's job description — plus optional
+  intake notes and a scorecard — and get an evidence-based report per candidate:
+  fit score, must-haves table with CV quotes as proof, red flags, and five
+  screening-call questions specific to that candidate.
 category: screening
-version: 1
+og_description: >-
+  Use this free Calyflow workflow to screen one or more CVs against the job
+  description and get an evidence-based scorecard per candidate in seconds.
+lead: >-
+  Screen a whole batch of CVs in seconds, not hours. Get an evidence-based
+  report per candidate that quotes the CV and flags exactly what to ask on the
+  screening call.
+long_description: |
+  ## What it does
+  The CV Screener compares one or more candidate CVs against the role's job
+  description and produces a structured report for each one — so you can decide
+  who to call without reading every CV line by line. Give it your intake notes
+  and a scorecard too, and it screens against exactly the criteria you and the
+  hiring manager agreed on.
+
+  ## Why recruiters use it
+  - Screen a batch of CVs in one run and rank them consistently.
+  - Cut screening time dramatically while staying thorough.
+  - Back every decision with evidence quoted straight from the CV.
+  - Score against your own rubric when you attach a scorecard.
+  - Walk into the screening call already knowing what to probe.
+
+  ## What you get
+  Per candidate: a fit score, a must-haves table with CV quotes as proof, a
+  list of red flags or gaps, and five screening-call questions tailored to that
+  candidate. Screen several at once and you get a ranked summary up top.
+
+  ## What you need
+  - A job description saved in the project.
+  - One or more candidate CVs.
+  - Optional: intake notes from the hiring-manager call, and a scorecard or
+    rubric to score against.
+
+  ## How to run it
+  Attach the CVs — and, if you have them, the intake notes and scorecard — then
+  run. The report is saved to your project files, and its output feeds the
+  Candidate Submission Pack.
+version: 2
 input_spec:
   inputs: [document]
   required_doc_types: [jd]
-  input_doc_types: [cv]
+  input_doc_types: [cv, intake_notes, scorecard]
   knowledge: [workspace, client]
 output_spec:
   output: document
@@ -18,17 +57,29 @@ prompt_template: |
   ## System prompt
   You are an expert technical recruiter performing a structured CV screen.
   You are thorough, evidence-based, and honest about gaps. You never invent
-  facts not present in the CV. When information is missing, you say
+  facts not present in a CV. When information is missing, you say
   "not evident from CV" rather than guessing.
 
   ## Context injection (in this order)
   <workspace_context>{{workspace_kb}}</workspace_context>
   <client_context>{{client_kb}} {{client_files}}</client_context>
   <project_context>{{project_files}}</project_context>
-  <candidate_cv>{{input_document}}</candidate_cv>
+  <run_inputs>{{input_documents}}</run_inputs>
+
+  ## How to read the run inputs
+  The <run_inputs> block contains one or more documents, each under its own
+  `## filename` heading. Sort them yourself:
+  - **CVs** — each is one candidate. Screen every CV you find.
+  - **Intake notes** (optional) — the hiring manager's priorities and context
+    from the briefing call. Use them to weight what matters most, beyond what
+    the JD states.
+  - **Scorecard** (optional) — a scoring rubric. When present, score each
+    candidate against ITS criteria and weighting; treat the JD must-haves as
+    supporting evidence. When absent, derive must-haves from the JD.
 
   ## Task
-  Screen the candidate against the role defined in project context.
+  Screen every CV in the run inputs against the role defined in project context,
+  guided by the intake notes and scorecard when provided.
   If no JD is found, stop and return only:
   "⚠️ No job description found in this project. Upload a JD or run the
   Intake-to-JD Builder first."
@@ -36,29 +87,40 @@ prompt_template: |
 
   ## Output format (return exactly this structure)
 
-  # Screening Report: {{candidate_name}}
-  **Role:** [title from JD] · **Date:** [today]
+  # Screening Report
+  **Role:** [title from JD] · **Date:** {{today}}
+  [If a scorecard was provided, add: **Scored against:** attached scorecard]
 
-  ## Verdict
+  ## Ranked shortlist
+  [Only include this section when there is more than one CV. Rank candidates
+  best-fit first as a table: | Rank | Candidate | Fit score | One-line verdict |.
+  For a single candidate, omit this section.]
+
+  ---
+
+  [Then, for EACH candidate, repeat the block below:]
+
+  ## {{candidate_name}}
   **Fit score:** X/10 — [Strong fit / Possible fit / Weak fit / Reject]
   [2-sentence summary a hiring manager could read in 10 seconds]
 
-  ## Must-have requirements
+  ### Must-have requirements
   | Requirement | Evidence from CV | Met? |
   |---|---|---|
-  [one row per must-have — quote the CV line as evidence]
+  [one row per must-have (from the scorecard if provided, else the JD) —
+  quote the CV line as evidence]
 
-  ## Strengths
+  ### Strengths
   [3–5 bullets, each tied to a specific CV claim]
 
-  ## Red flags & gaps
+  ### Red flags & gaps
   [employment gaps, short tenures, missing must-haves, vague claims;
   if none: "No significant red flags."]
 
-  ## Questions for the screening call
+  ### Questions for the screening call
   [5 questions targeting the weakest evidence above — specific to THIS
   candidate, never generic]
 
-  ## Notes for client submission
+  ### Notes for client submission
   [2–3 sentences positioning the candidate, in the agency's tone of voice
   from workspace context]

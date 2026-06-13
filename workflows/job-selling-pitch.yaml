@@ -6,6 +6,34 @@ description: >-
   rewritten job post that leads with what excites candidates, ready-to-use
   outreach hooks, and the questions to ask the hiring manager to uncover more.
 category: selling
+og_description: >-
+  Use this free Calyflow workflow to turn a job description into a candidate
+  magnet — selling points, a rewritten job post, and outreach hooks.
+lead: >-
+  Make candidates actually want the job. Turn a dry job description into selling
+  points, a rewritten post, and outreach hooks that get replies.
+long_description: |
+  ## What it does
+  The Job Selling Pitch turns a standard job description into materials that
+  make candidates want to apply — by reframing duties into benefits and
+  surfacing what's genuinely attractive about the role.
+
+  ## Why recruiters use it
+  - Get more responses to outreach by leading with what excites candidates.
+  - Rewrite weak job posts into ones that convert.
+  - Uncover selling points the hiring manager forgot to mention.
+
+  ## What you get
+  A selling-points analysis across ten angles, a "so what?" feature-to-benefit
+  reframe, a rewritten job post, ready-to-use outreach hooks, and questions to
+  ask the hiring manager to dig up more.
+
+  ## What you need
+  - A job description saved in the project.
+
+  ## How to run it
+  Pick the workflow and run. The pitch is saved to your project files, ready to
+  use in posts and outreach.
 version: 1
 input_spec:
   inputs: []

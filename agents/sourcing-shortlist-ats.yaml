@@ -1,10 +1,42 @@
 slug: sourcing-shortlist-ats
+featured: true
 name: Sourcing Shortlist From ATS
 description: >-
   A sourcing agent that reads the role's brief from your knowledge base, pulls
   candidates from whichever ATS you connect (Greenhouse, Bullhorn, Lever,
   Workable and 15 more), ranks them against the role, and writes a shortlist
   back into the project. Pick the ATS when you run it.
+og_description: >-
+  Use this free Calyflow agent to pull candidates from your ATS, rank them
+  against the role, and get a ready-to-review shortlist.
+lead: >-
+  Let an agent do your first pass. It reads the role, pulls candidates from
+  whichever ATS you use, and hands back a ranked shortlist.
+long_description: |
+  ## What it does
+  The Sourcing Shortlist agent reads the role's brief from your project, pulls
+  candidates from your connected applicant tracking system, ranks them against
+  the requirements, and writes a shortlist back into the project.
+
+  ## Why recruiters use it
+  - Get a first-pass shortlist in minutes instead of clicking through your ATS
+    by hand.
+  - Rank candidates against the actual role, with the reasoning shown.
+  - Works with whatever ATS your agency already runs — no switching tools.
+
+  ## Connect your ATS
+  Pick any one of your connected ATS connectors when you run it, including:
+  - Greenhouse, Lever, Workable, Ashby
+  - Bullhorn, JobAdder, Loxo, Recruiterflow
+  - Teamtailor, SmartRecruiters, Recruitee, and more
+
+  ## What you get
+  A ranked shortlist document with a one-line rationale for each candidate and
+  a note on who was ruled out and why.
+
+  ## How to run it
+  Open a project with a role brief, choose your ATS, describe what you want,
+  and run. The shortlist is saved to your project files.
 allowed_tools:
   - calyflow_search_documents
   - calyflow_read_document

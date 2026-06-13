@@ -1,10 +1,46 @@
 slug: submission-pack
+featured: true
 name: Candidate Submission Pack
 description: >-
   Combine a CV with its screening report into a polished, client-ready
   candidate presentation in your tone of voice — ready to send to the hiring
   manager.
 category: submission
+og_description: >-
+  Use this free Calyflow workflow to turn a CV and screening notes into a
+  polished, client-ready candidate write-up in your own tone of voice.
+lead: >-
+  Send the hiring manager a candidate write-up that actually gets read — a
+  clear, honest summary built from the CV and your screening notes, in your
+  agency's voice.
+long_description: |
+  ## What it does
+  The Candidate Submission Pack turns a candidate's CV and your screening
+  notes into a single, client-ready presentation you can send straight to the
+  hiring manager. It pulls the role's requirements from the job description,
+  matches the candidate against them, and writes the summary in your agency's
+  tone of voice.
+
+  ## Why recruiters use it
+  - Stop rewriting the same submission email from scratch for every candidate.
+  - Present candidates consistently, so every client sees the same standard.
+  - Lead with evidence — each claim is backed by something in the CV or your
+    notes, so you stay credible.
+  - Be honest about gaps in a constructive way, which builds client trust.
+
+  ## What you get
+  A formatted submission document with a headline summary, a
+  requirement-by-requirement match table, career highlights, points to discuss
+  at interview, logistics (availability, notice, location), and a recommended
+  next step.
+
+  ## What you need
+  - A job description saved in the project, so the workflow knows the role.
+  - The candidate's CV, and optionally the report from the CV Screener.
+
+  ## How to run it
+  Open the project, pick this workflow, attach the CV, and run. The finished
+  pack is saved to your project files in seconds, ready to download or send.
 version: 1
 input_spec:
   inputs: [document]

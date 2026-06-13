@@ -10,7 +10,11 @@
 // what the engine produces; the engine shows the provider · model.
 
 import type { InputSpec, OutputSpec } from "./types";
-import { CONNECTORS } from "./connectors";
+import {
+  CONNECTORS,
+  CONNECTOR_CATEGORY_LABELS,
+  requiredConnectorCategories,
+} from "./connectors";
 
 export type WorkflowNodeKind = "group" | "item" | "skill" | "step" | "output";
 
@@ -89,12 +93,12 @@ const ITEM_GAP = 10;
 const GROUP_PAD = 14;
 const GROUP_HEADER = 42;
 export const GROUP_W = ITEM_W + GROUP_PAD * 2;
-const STEP_W = 264;
-const STEP_H = 96;
-const SKILL_H = 76;
+export const STEP_W = 264;
+export const STEP_H = 96;
+export const SKILL_H = 76;
 const SKILL_GAP = 52; // vertical gap for the skill → engine edge
-const OUTPUT_W = 240;
-const OUTPUT_H = 64;
+export const OUTPUT_W = 240;
+export const OUTPUT_H = 64;
 const COL_GAP = 72;
 
 function groupHeight(itemCount: number): number {
@@ -373,7 +377,11 @@ export function deriveAgentGraph(args: {
   name: string;
   connectors: AgentConnectorSlot[];
   model?: { providerLabel: string; modelId: string } | null;
+  /** "live" = the run panel (unselected → "No X connected · Missing");
+   *  "catalog" = the public marketing cover (unselected → "Any X connector"). */
+  variant?: "live" | "catalog";
 }): WorkflowGraph {
+  const catalog = args.variant === "catalog";
   const knowledgeItems: Item[] = [
     {
       id: "itm-workspace",
@@ -403,13 +411,20 @@ export function deriveAgentGraph(args: {
           icon: "connector",
           brandLogos: [slot.selectedProvider],
         }
-      : {
-          id: `itm-conn-${slot.category}`,
-          title: `No ${slot.categoryLabel} connected`,
-          subtitle: "Connect one to run this agent",
-          icon: "connector",
-          badge: "Missing",
-        },
+      : catalog
+        ? {
+            id: `itm-conn-${slot.category}`,
+            title: `Any ${slot.categoryLabel}`,
+            subtitle: `${slot.categoryLabel} connector`,
+            icon: "connector",
+          }
+        : {
+            id: `itm-conn-${slot.category}`,
+            title: `No ${slot.categoryLabel} connected`,
+            subtitle: "Connect one to run this agent",
+            icon: "connector",
+            badge: "Missing",
+          },
   );
 
   const output = emailSlot
@@ -420,12 +435,18 @@ export function deriveAgentGraph(args: {
           icon: "email" as const,
           brandLogos: [emailSlot.selectedProvider],
         }
-      : {
-          title: "Emails",
-          subtitle: "Connect an email connector to send",
-          icon: "email" as const,
-          badge: "Missing",
-        }
+      : catalog
+        ? {
+            title: "Emails",
+            subtitle: "Sent from a connected mailbox",
+            icon: "email" as const,
+          }
+        : {
+            title: "Emails",
+            subtitle: "Connect an email connector to send",
+            icon: "email" as const,
+            badge: "Missing",
+          }
     : { title: "Output document", subtitle: "Saved to project files" };
 
   return composeGraph({
@@ -439,4 +460,20 @@ export function deriveAgentGraph(args: {
     model: args.model ?? null,
     output,
   });
+}
+
+/** Catalog-mode agent graph straight from a library agent's allowed_tools —
+ *  no workspace, so connectors render generically ("Any ATS connector"). */
+export function deriveLibraryAgentGraph(args: {
+  name: string;
+  allowedTools: string[];
+}): WorkflowGraph {
+  const connectors: AgentConnectorSlot[] = requiredConnectorCategories(
+    args.allowedTools,
+  ).map((category) => ({
+    category,
+    categoryLabel: CONNECTOR_CATEGORY_LABELS[category],
+    selectedProvider: null,
+  }));
+  return deriveAgentGraph({ name: args.name, connectors, variant: "catalog" });
 }

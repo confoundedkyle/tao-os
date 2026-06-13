@@ -5,6 +5,35 @@ description: >-
   connect (HubSpot, Attio, Pipedrive, monday.com, Notion, Zoho CRM), maps the
   accounts, contacts, and deals that match your target brief, and writes a
   prospecting report back into the project. Pick the CRM when you run it.
+og_description: >-
+  Use this free Calyflow agent to research target client accounts in your CRM
+  and get a prioritized prospecting report.
+lead: >-
+  Find your next client in the data you already have. This agent digs through
+  your CRM and hands back a prioritized list of accounts worth pursuing.
+long_description: |
+  ## What it does
+  The Client Prospecting Research agent digs through your CRM, finds the
+  accounts, contacts, and deals that match your target brief, and writes a
+  prospecting report back into your project.
+
+  ## Why recruiters and BD teams use it
+  - Turn a messy CRM into a clear, prioritized list of who to pursue.
+  - See decision-makers and relationship history without manual digging.
+  - Spot the gaps — accounts and contacts your CRM is missing.
+
+  ## Connect your CRM
+  Pick any one of your connected CRM connectors when you run it:
+  - HubSpot, Pipedrive, Attio
+  - monday.com, Notion, Zoho CRM
+
+  ## What you get
+  A report ranking target accounts by how attractive they are, with key
+  contacts, relationship status, and a one-line "why now" for each.
+
+  ## How to run it
+  Open a project, describe the kind of clients you're after, choose your CRM,
+  and run. The report is saved to your project files.
 allowed_tools:
   - calyflow_search_documents
   - calyflow_read_document

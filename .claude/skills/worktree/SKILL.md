@@ -19,19 +19,19 @@ Arguments: `$ARGUMENTS` — optional worktree/branch name (kebab-case). If empty
 
 2. Call the `EnterWorktree` tool with `name` set to the requested name (omit it if none was given). By default (`worktree.baseRef` = `fresh`) this creates the worktree under `.claude/worktrees/` on a new branch based on `origin/main` and switches the session's working directory into it.
 
-3. Verify the result: run `git status` and `git log --oneline -1` and confirm the branch is based on the tip of `origin/main`. **Note the absolute worktree path** (e.g. `/Users/you/Projects/repo/.claude/worktrees/<name>`) — you'll need it for every edit below. Report the worktree path and branch name to the user.
+3. Verify the result: run `git status` and `git log --oneline -1` and confirm the branch is based on the tip of `origin/main`. Capture the **absolute worktree path** (run `pwd`, e.g. `/Users/you/Projects/repo/.claude/worktrees/<name>`) — you'll need it for every edit below — and report it, along with the branch name, to the user.
 
-## Critical: edit INSIDE the worktree, never the original repo
+## Working in the worktree — CRITICAL
 
-After `EnterWorktree`, the session works in the worktree, but the **original repo checkout still exists** at the repo root. Both contain the same file tree, so it's easy to edit the wrong copy. If you write to the original repo's paths, your changes land on its branch (usually `main`) and the worktree branch stays empty — the app you run from the worktree won't have them.
+Once the session is in the worktree, **every** file read/write/edit and shell command must target the worktree, not the original checkout. The original repo root and the worktree are two separate working trees of the same repo; touching the wrong one silently lands your changes on the original's branch (usually `main`), leaving the worktree branch empty — and the app you run from the worktree won't have them.
 
-**The trap:** `Explore`/`Plan` subagents, `Grep`, and `Glob` report paths rooted at the **original repo** (e.g. `/Users/you/Projects/repo/lib/foo.ts`), because that's where they searched. Those paths point at the *original checkout*, not the worktree. Editing them verbatim is the mistake.
+**The trap:** `Explore`/`Plan` subagents, `Grep`, and `Glob` report paths rooted at the **original repo** (e.g. `/Users/you/Projects/repo/lib/foo.ts`), because that's where they searched. Editing those verbatim writes to the original checkout, not the worktree.
 
-Rules for every Read/Edit/Write after entering a worktree:
+Rules for every Read/Edit/Write and shell command after entering a worktree:
 
-- **Translate reported paths to the worktree.** Replace the repo root with the worktree root: `/Users/you/Projects/repo/lib/foo.ts` → `/Users/you/Projects/repo/.claude/worktrees/<name>/lib/foo.ts`. Or use a path relative to the worktree cwd (`lib/foo.ts`). Never edit a path that contains the repo root but **not** `/.claude/worktrees/<name>/`.
-- **Any absolute path you edit must contain `/.claude/worktrees/<name>/`.** If it doesn't, stop and re-point it.
-- **Verify before trusting it.** After your first edit and again before reporting done, run `git -C <worktree-path> status` — your changes must appear there. Also confirm `git -C <repo-root> status` is **clean**. If the changes show up in the repo root instead, they're misplaced.
+- **Translate reported paths to the worktree.** Replace the repo root with the worktree root: `/Users/you/Projects/repo/lib/foo.ts` → `/…/repo/.claude/worktrees/<name>/lib/foo.ts`, or use a path relative to the worktree cwd (`lib/foo.ts`). Never edit an absolute path that contains the repo root but **not** `/.claude/worktrees/<name>/`.
+- **Never `cd` to the original repo root** or prefix commands with `cd /…/repo && …`. The Bash tool resets cwd to the worktree each call — rely on that (relative paths), or use `git -C "$(pwd)"` / `git -C <worktree-path>`.
+- **Verify before trusting it.** After your first edit, and again before any build/commit or reporting done, run `git -C <worktree-path> status` — your changes must appear there — and confirm `git -C <repo-root> status` is **clean**. If the changes show up in the repo root instead, your paths were wrong; stop and redo them.
 
 ### Recovery if edits landed in the original repo
 
@@ -53,7 +53,7 @@ git fetch origin main
 git worktree add .claude/worktrees/<name> -b <name> origin/main
 ```
 
-Then call `EnterWorktree` with `path: .claude/worktrees/<name>`.
+Then call `EnterWorktree` with `path: .claude/worktrees/<name>`. After entering, run `pwd` and treat that path as the only place you work — the **Working in the worktree** rules above apply with extra care here, since a path-entered worktree lives beside the original checkout and absolute project-root paths are an easy mistake.
 
 Note: a worktree entered via `path` is not removed by `ExitWorktree` — exit with `action: "keep"` and clean up with `git worktree remove` when the work is merged or abandoned.
 

@@ -1,0 +1,5 @@
+# Commit skills/, ignore local state
+settings.local.json
+worktrees/
+scheduled_tasks.lock
+.DS_Store
