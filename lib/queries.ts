@@ -47,12 +47,14 @@ export async function listClientsWithProjects(
     .select("*, projects(*)")
     .eq("workspace_id", workspaceId)
     .eq("status", "active")
+    .eq("is_demo", false)
     .order("created_at", { ascending: false });
   if (error) throw error;
   return (data ?? []).map((c) => ({
     ...c,
     projects: ((c.projects ?? []) as Project[])
-      .filter((p) => p.status === "active")
+      // The demo project is hidden even if it ever lands under a real client.
+      .filter((p) => p.status === "active" && !p.is_demo)
       .sort(
         (a, b) =>
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
@@ -65,6 +67,7 @@ export async function listClients(workspaceId: string): Promise<Client[]> {
     .from("clients")
     .select("*")
     .eq("workspace_id", workspaceId)
+    .eq("is_demo", false)
     .order("created_at", { ascending: false });
   if (error) throw error;
   return data as Client[];

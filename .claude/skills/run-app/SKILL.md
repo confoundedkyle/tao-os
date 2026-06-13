@@ -17,9 +17,10 @@ in first.
 
 ## Steps
 
-1. **Get `.env.local`.** If the current directory is a worktree (its path
-   contains `/.claude/worktrees/`) and there's no local `.env.local`, copy it
-   from the main repo:
+1. **Get `.env.local`.** In a worktree this is normally **already done for you**:
+   the `sync-worktree-env.sh` hook copies `.env.local` from the main checkout on
+   worktree creation and on session start (see `.claude/settings.json`). The copy
+   below is just an idempotent fallback in case the hook didn't run:
 
    ```bash
    MAIN=/Users/michaljuhas/Projects/calyflow-app
@@ -36,11 +37,16 @@ in first.
    [ -d node_modules ] || npm ci
    ```
 
-3. **Start the dev server** in the background and wait for "Ready". Next picks
-   an open port (3000, else 3002, …) — read the actual URL from the log:
+3. **Start the dev server** in the background and wait for "Ready". Record its
+   PID in `.claude/.dev-server.pid` so the SessionEnd hook
+   (`stop-worktree-server.sh`) can stop it automatically when the session ends.
+   Next picks an open port (3000, else 3002, …) — read the actual URL from the
+   log:
 
    ```bash
+   mkdir -p .claude
    npm run dev > /tmp/calyflow-dev.log 2>&1 &
+   echo $! > .claude/.dev-server.pid
    for i in $(seq 1 40); do grep -q "Ready in" /tmp/calyflow-dev.log && break; sleep 1; done
    grep -E "Local:|Ready in" /tmp/calyflow-dev.log
    ```
@@ -94,5 +100,9 @@ progress steps stream in.
 - `MOCK_AI=true` in `.env.local` streams a canned AI response (no provider
   call) — handy for UI work, but the import agent won't really scrape. Unset it
   (or set `false`) to drive the real agent loop.
-- Stop the server when done: `pkill -f "next dev"`.
+- Stop the server when done. The SessionEnd hook stops it automatically (via the
+  recorded pidfile) when the session ends, but to stop it mid-session use the
+  pidfile so you only kill THIS worktree's server (not another worktree's):
+  `kill "$(cat .claude/.dev-server.pid)" 2>/dev/null; rm -f .claude/.dev-server.pid`.
+  Falls back to `pkill -f "next dev"` if no pidfile exists.
 - The "multiple lockfiles" Turbopack warning is benign in a worktree.
