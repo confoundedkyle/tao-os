@@ -60,6 +60,10 @@ export default async function WorkflowsPage({
           </ButtonLink>
         </div>
       </div>
+      <p className="mb-4 -mt-2 text-[15px] text-navy-800/55">
+        Workflows run a single prompt in one step, while agents work through a
+        task autonomously across multiple steps using tools.
+      </p>
       {workflows.length === 0 ? (
         <EmptyState
           icon={<IconWorkflowNodes size={48} className="text-navy-800/60" />}

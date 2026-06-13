@@ -12,7 +12,8 @@
     "test:watch": "vitest",
     "seed": "tsx scripts/seed.ts",
     "sync-models": "tsx scripts/sync-models.ts",
-    "seed-default-kb": "tsx scripts/seed-default-kb.ts"
+    "seed-default-kb": "tsx scripts/seed-default-kb.ts",
+    "drive": "node scripts/drive.mjs"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.82",
@@ -46,6 +47,7 @@
     "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
+    "playwright": "^1.60.0",
     "tailwindcss": "^4",
     "tsx": "^4.22.4",
     "typescript": "^5",
