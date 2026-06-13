@@ -12,6 +12,12 @@ import type { WorkflowGraph } from "@/lib/workflow-graph";
 import { DownloadButtons } from "./download-buttons";
 import { Button } from "./ui";
 import { WorkflowCanvas } from "./workflow-canvas";
+import {
+  WorkflowStarterPack,
+  type StarterPackItem,
+} from "./workflow-starter-pack";
+
+const STARTER_PACK_DISMISSED_KEY = "calyflow:starterpack:dismissed";
 
 const DOC_TYPE_LABELS: Record<string, string> = {
   cv: "CV",
@@ -61,12 +67,15 @@ export function RunPanel({
   inputCandidates,
   blockedMessage,
   adminHref,
+  starterPack = [],
 }: {
   projectId: string;
   workflows: RunPanelWorkflow[];
   inputCandidates: RunPanelDoc[];
   blockedMessage: string | null;
   adminHref: string;
+  /** Ordered recommended workflows shown as the "Starter Pack" hint up top. */
+  starterPack?: StarterPackItem[];
 }) {
   const router = useRouter();
   // Remember the last workflow this project ran, so navigating away and back
@@ -89,6 +98,13 @@ export function RunPanel({
   const [previewPrompt, setPreviewPrompt] = useState("");
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [diagramOpen, setDiagramOpen] = useState(true);
+  // Dismissed in localStorage so the hint stays gone once a user closes it.
+  const [packDismissedFlag, setPackDismissedFlag] = usePersistedSelection(
+    STARTER_PACK_DISMISSED_KEY,
+    "",
+    () => true,
+  );
+  const packDismissed = packDismissedFlag === "1";
   const fileRef = useRef<HTMLInputElement>(null);
   const outputRef = useRef<HTMLDivElement>(null);
 
@@ -330,6 +346,18 @@ export function RunPanel({
 
   return (
     <div>
+      {starterPack.length > 0 && !packDismissed && (
+        <WorkflowStarterPack
+          items={starterPack}
+          selectedId={workflowId}
+          onSelect={(id) => {
+            selectWorkflow(id);
+            setDiagramOpen(true); // expand the canvas so the pick is visible
+          }}
+          onDismiss={() => setPackDismissedFlag("1")}
+        />
+      )}
+
       <WorkflowSelector
         workflows={workflows}
         value={workflowId}
@@ -363,8 +391,8 @@ export function RunPanel({
         <div className="mt-4">{blockNode}</div>
       ) : (
         <div className="mt-5 rounded-panel border border-mint-400/40 bg-mint-400/8 p-4">
-          <p className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-mint-700">
-            <span aria-hidden>▶</span> Your input for this run
+          <p className="mb-3 text-xs font-bold uppercase tracking-wider text-mint-700">
+            Your input for this run
           </p>
           {attachError && (
             <div

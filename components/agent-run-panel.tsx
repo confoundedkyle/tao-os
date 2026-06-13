@@ -299,8 +299,8 @@ export function AgentRunPanel({
         </div>
       ) : (
         <div className="mt-4 rounded-panel border border-mint-400/40 bg-mint-400/8 p-4">
-          <p className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-mint-700">
-            <span aria-hidden>▶</span> Your task for this run
+          <p className="mb-3 text-xs font-bold uppercase tracking-wider text-mint-700">
+            Your task for this run
           </p>
           <div className="rounded-card border-[1.5px] border-navy-800/15 bg-white shadow-[0_4px_18px_rgba(19,31,56,0.07)] transition focus-within:border-mint-700">
             <textarea
