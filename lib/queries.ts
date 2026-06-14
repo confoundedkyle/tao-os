@@ -209,18 +209,20 @@ export async function listProviders(
  *  Display-only — unlike resolveRunProviders it never decrypts API keys. */
 export async function getPrimaryRunModel(
   workspaceId: string,
-): Promise<{ providerLabel: string; modelId: string } | null> {
+): Promise<{ provider: string; providerLabel: string; modelId: string } | null> {
   const providers = await listProviders(workspaceId);
   for (const row of providers) {
     if (row.provider === "calyflow") {
       if (!env.platformProviderEnabled) continue;
       return {
+        provider: env.platformProvider,
         providerLabel: providerLabel(env.platformProvider),
         modelId: env.platformModel,
       };
     }
     if (!row.api_key_cipher || !row.default_model) continue;
     return {
+      provider: row.provider,
       providerLabel: providerLabel(row.provider),
       modelId: row.default_model,
     };

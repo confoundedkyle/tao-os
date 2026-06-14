@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ModuleKey, Session } from "@/lib/types";
 import { IconAiSpark } from "./icons";
 import { AccountControls } from "./account-controls";
+import { PoweredBy } from "./powered-by";
 import { MobileNav } from "./mobile-nav";
 import type { ClientWithProjects } from "./sidebar-nav";
 
@@ -27,7 +28,8 @@ export function AppTopbar({
         </span>
       </Link>
 
-      <div className="hidden w-auto lg:block">
+      <div className="hidden w-auto items-center gap-4 lg:flex">
+        <PoweredBy workspaceId={session.workspaceId} />
         <AccountControls session={session} />
       </div>
 
