@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getSession } from "@/lib/auth";
+import { rateLimit } from "@/lib/ratelimit";
 import {
   Document,
   Paragraph,
@@ -146,9 +148,30 @@ function inlineRuns(text: string): TextRun[] {
   return runs.length ? runs : [new TextRun({ text, size: 22 })];
 }
 
+// Cap on the text we'll turn into a document — large bodies make docx
+// generation CPU/memory-heavy, so bound it (1 MB of text is a huge document).
+const MAX_TEXT_BYTES = 1024 * 1024;
+
 export async function POST(req: NextRequest) {
+  // Authenticated users only — this runs server-side document generation.
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+
+  const allowed = await rateLimit(`download:${session.workspaceId}`, {
+    limit: 30,
+    windowSeconds: 60,
+  });
+  if (!allowed) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
+
   const { text, filename, format } = await req.json();
   if (!text || !format) return NextResponse.json({ error: "Missing params" }, { status: 400 });
+  if (typeof text !== "string" || Buffer.byteLength(text, "utf8") > MAX_TEXT_BYTES) {
+    return NextResponse.json({ error: "Text too large" }, { status: 413 });
+  }
 
   const safeName = (filename ?? "document")
     .replace(/[^\x20-\x7E]/g, "-")

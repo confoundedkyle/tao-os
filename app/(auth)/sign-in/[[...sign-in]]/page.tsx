@@ -10,6 +10,15 @@ export default async function SignInPage({
 }) {
   const { error } = await searchParams;
 
+  const errorMessage =
+    error === "rate-limited"
+      ? "Too many attempts. Wait a minute and try again."
+      : error === "invalid-password"
+        ? "Incorrect password."
+        : error
+          ? "Please enter a valid email address."
+          : null;
+
   if (!env.singleWorkspace) {
     const { SignIn } = await import("@clerk/nextjs");
     return (
@@ -32,9 +41,9 @@ export default async function SignInPage({
         <p className="mb-6 mt-1 text-navy-800/55">
           Single-workspace mode — enter your email to continue.
         </p>
-        {error ? (
+        {errorMessage ? (
           <p className="mb-4 rounded-chip bg-coral-400/15 px-3 py-2 text-sm text-coral-400">
-            Please enter a valid email address.
+            {errorMessage}
           </p>
         ) : null}
         <form action={signInSingleWorkspace} className="space-y-4">
@@ -47,6 +56,17 @@ export default async function SignInPage({
               className={inputClass}
             />
           </Field>
+          {env.requireSingleWorkspacePassword ? (
+            <Field label="Password">
+              <input
+                type="password"
+                name="password"
+                required
+                placeholder="Workspace password"
+                className={inputClass}
+              />
+            </Field>
+          ) : null}
           <Button type="submit" className="w-full justify-center">
             Continue
           </Button>
