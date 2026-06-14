@@ -20,6 +20,7 @@ import type {
   ModuleKey,
   Project,
   TalentProspect,
+  UserPreferences,
   WorkflowRun,
   WorkspaceAgent,
   WorkspaceModule,
@@ -60,6 +61,21 @@ export async function listClientsWithProjects(
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
       ),
   }));
+}
+
+/** A user's personal preferences (Settings > Personal) for this workspace, or
+ *  null if they haven't saved any yet. */
+export async function getUserPreferences(
+  workspaceId: string,
+  userId: string,
+): Promise<UserPreferences | null> {
+  const { data } = await db()
+    .from("user_preferences")
+    .select("*")
+    .eq("workspace_id", workspaceId)
+    .eq("user_id", userId)
+    .maybeSingle();
+  return data as UserPreferences | null;
 }
 
 export async function listClients(workspaceId: string): Promise<Client[]> {

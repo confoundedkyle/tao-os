@@ -9,7 +9,12 @@ import {
   getLanguageModel,
   resolveRunProviders,
 } from "@/lib/providers";
-import { getConnection, getProject, getWorkspaceAgent } from "@/lib/queries";
+import {
+  getConnection,
+  getProject,
+  getUserPreferences,
+  getWorkspaceAgent,
+} from "@/lib/queries";
 import { getValidAccessToken } from "@/lib/integrations";
 import {
   CONNECTOR_CATEGORY_LABELS,
@@ -21,7 +26,7 @@ import {
 } from "@/lib/connectors";
 import { assembleContext, type AssembledContext } from "@/lib/context";
 import { ALL_TOOL_NAMES, buildTools, type ToolContext } from "@/lib/agents/tools";
-import type { AgentRunStep } from "@/lib/types";
+import type { AgentRunStep, UserPreferences } from "@/lib/types";
 
 export const maxDuration = 600; // multi-step tool loops can run long
 
@@ -96,6 +101,35 @@ function attachmentsBlock(attachments: RunAttachment[]): string {
     "text is included here, so don't call the search/read tools to find them.\n\n" +
     body
   );
+}
+
+/** The recruiter's own details from Settings > Personal, folded into every
+ *  agent run as HIGHER-priority context than the knowledge base — so an agent
+ *  uses the recruiter's real name, company, and signature, and these win over
+ *  any conflicting KB info. */
+function personalBlock(p: UserPreferences | null): string {
+  if (!p) return "";
+  const name = [p.first_name, p.last_name].filter(Boolean).join(" ").trim();
+  const lines: string[] = [];
+  if (name) lines.push(`- Recruiter's name: ${name}`);
+  if (p.company_name) lines.push(`- Recruiter's company name: ${p.company_name}`);
+  if (p.company_website)
+    lines.push(`- Recruiter's company website: ${p.company_website}`);
+  const sig = p.email_signature?.trim();
+  if (lines.length === 0 && !sig) return "";
+  let out =
+    "# Recruiter & sender details\n" +
+    "These are the recruiter's own details from their Calyflow settings. They " +
+    "take precedence over anything in the knowledge base or project context " +
+    "above — if a detail here conflicts with the KB, use THIS one.\n";
+  if (lines.length > 0) out += `\n${lines.join("\n")}\n`;
+  if (sig)
+    out +=
+      "\n## Email signature\n" +
+      "Use this verbatim when signing off emails; do not alter or reformat it.\n" +
+      sig +
+      "\n";
+  return out.trim();
 }
 
 function summarize(value: unknown): string {
@@ -485,6 +519,16 @@ export async function POST(request: NextRequest) {
     if (block) systemPrompt = `${systemPrompt}\n\n${block}`;
   } catch (err) {
     console.warn("Agent context assembly failed:", err);
+  }
+
+  // Fold in the recruiter's own details (Settings > Personal) AFTER the project
+  // context so it reads as the higher-priority override for every agent.
+  try {
+    const prefs = await getUserPreferences(session.workspaceId, session.userId);
+    const block = personalBlock(prefs);
+    if (block) systemPrompt = `${systemPrompt}\n\n${block}`;
+  } catch (err) {
+    console.warn("Personal preferences load failed:", err);
   }
 
   // Fold in any files the user attached for this run only (extracted text;

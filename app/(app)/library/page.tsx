@@ -44,7 +44,7 @@ const WORKFLOW_ICONS: Record<string, IconComponent> = {
   "intake-to-jd-builder": IconDocumentCheck,
   "job-requirement-analysis": IconWorkflowNodes,
   "candidate-icp-builder": IconCheck,
-  "sourcing-map": IconMagnet,
+  "sourcing-strategy-map": IconMagnet,
   "job-selling-pitch": IconAiSpark,
   "outreach-writer": IconEnvelope,
   "cv-screener": IconScorecard,

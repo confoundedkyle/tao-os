@@ -90,18 +90,24 @@ export default async function DashboardPage() {
 
   return (
     <>
-      <div className="relative mb-10 overflow-hidden rounded-panel">
+      <div className="relative mb-10">
+        {/* Decorative glow, clipped to its own rounded layer BEHIND the text so
+            the rounded corners never clip the heading/description themselves. */}
         <div
           aria-hidden
-          className="pointer-events-none absolute -top-24 right-0 h-72 w-105 rounded-full opacity-15 blur-[80px]"
-          style={{
-            background: "linear-gradient(135deg, #5bc8a8, #9cc3f0)",
-          }}
-        />
-        <h1 className="text-2xl font-bold sm:text-[32px]">
+          className="pointer-events-none absolute inset-0 overflow-hidden rounded-panel"
+        >
+          <div
+            className="absolute -top-20 right-0 h-56 w-80 max-w-[50%] rounded-full opacity-20 blur-[64px]"
+            style={{
+              background: "linear-gradient(135deg, #5bc8a8, #9cc3f0)",
+            }}
+          />
+        </div>
+        <h1 className="relative text-2xl font-bold sm:text-[32px]">
           Welcome back to {session.workspace.name}
         </h1>
-        <p className="max-w-[68ch] text-navy-800/55">
+        <p className="relative max-w-[68ch] text-navy-800/55">
           Browse the library, import an agent, attach your documents, and
           run — output docs land right back in your project.
         </p>

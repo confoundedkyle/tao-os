@@ -28,6 +28,11 @@ tables stay for possible future complex multi-step workflows). An **agent** =
 Before an agent runs, the runtime prepends a **"# Project context"** block to the
 system prompt: workspace KB + client KB + client files + project files (active,
 **CVs excluded**) — `assembleContext` + `contextBlock` in `app/api/agents/run/route.ts`.
+After project context, the runtime appends a **"# Recruiter & sender details"**
+block from the running user's **Settings > Personal** prefs (`personalBlock` +
+`getUserPreferences`), explicitly marked as **higher priority than the KB**
+(overrides on conflict). Every agent gets it; the **Outreach Writer** uses it to
+personalize and sign off (company name/website + verbatim signature).
 So agent instructions should **use that provided context directly** and only call
 the read tools for what's not in it (CVs, a specific/large doc).
 `calyflow_search_documents` matches content **+ filename + doc_type**, returns
@@ -60,6 +65,11 @@ library instructions into the copy. A library row retired from YAML orphans copi
 - **Agents (top nav, `/workflows` route)**: workspace-level "My agents" manage list;
   each card → agent edit page (`/agents/[agentId]`: name + instructions, archive,
   upgrade, delete).
+- **Settings > Personal** (`/settings/personal`): per-user prefs in
+  `user_preferences` (keyed by workspace_id + user_id). First/last name **sync to
+  Clerk** (source of truth; mirrored to the table for run-time reads). Email
+  section — company name, company website (bare domain), plaintext signature —
+  feeds the recruiter/sender context block above. Per-user, so no admin gate.
 - **Library (`/library`)**: curated catalog to import from.
 - **Demo (`/demo`)**: the real CV Screener agent, end-to-end.
 - **Run detail**: `/runs/[id]` (workflow), `/agent-runs/[id]` (agent). Usage at
