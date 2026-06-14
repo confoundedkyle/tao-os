@@ -26,6 +26,19 @@ Inter (sans), JetBrains Mono. UI should be modern/colorful/screenshot-worthy.
 Tailwind gotcha: to override a same-property utility, **swap the class
 conditionally** (e.g. `max-w-none` vs `max-w-[68ch]`) — appending won't win.
 
+## Loading indicators (waiting on an agent)
+Any UI that waits for an agent's output **must show a loading indicator** inside
+the output area — never leave a blank box while running. Canonical impl is shared
+between the demo (`components/demo/demo-experience.tsx`, `RunOutput`) and the real
+project run page (`components/agent-run-panel.tsx`):
+- Spinner at the top of the output box: a `h-4 w-4 animate-spin rounded-full
+  border-2 border-mint-400/30 border-t-mint-400` circle with `role="status"` /
+  `aria-live="polite"`.
+- Contextual message next to it: `"Generating…"` once output is streaming,
+  `"Working on it — this can take a moment…"` while still empty.
+- Once tokens stream, append a blinking mint caret
+  (`animate-pulse bg-mint-400`) after the markdown.
+
 ## File attachments (drag & drop UX)
 Canonical impl: `components/agent-run-panel.tsx` (per-run files) + `run-panel.tsx`
 (workflow inputs). UX expectations for any new dropzone:
