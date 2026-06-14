@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ModuleKey } from "@/lib/types";
 import { SidebarNav, type ClientWithProjects } from "./sidebar-nav";
@@ -75,7 +76,21 @@ export function MobileNav({
             <div className="min-h-0 flex-1 overflow-y-auto">
               <SidebarNav clients={clients} modules={modules} />
             </div>
-            <div className="flex-shrink-0 border-t border-navy-800/10 px-4 py-3">
+            <div className="flex-shrink-0 space-y-3 border-t border-navy-800/10 px-4 py-3">
+              <div className="grid grid-cols-2 gap-2">
+                <Link
+                  href="/demo"
+                  className="block rounded-chip border border-mint-400/50 px-3 py-2 text-center text-sm font-semibold text-mint-700 transition hover:bg-mint-400/10"
+                >
+                  Demo
+                </Link>
+                <Link
+                  href="/setup-help"
+                  className="block rounded-chip border border-mint-400/50 px-3 py-2 text-center text-sm font-semibold text-mint-700 transition hover:bg-mint-400/10"
+                >
+                  Setup Help
+                </Link>
+              </div>
               {children}
             </div>
           </div>
