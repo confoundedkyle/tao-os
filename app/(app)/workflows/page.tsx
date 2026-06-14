@@ -6,7 +6,11 @@ import {
   CONNECTOR_CATEGORY_LABELS,
   requiredConnectorCategories,
 } from "@/lib/connectors";
-import { archiveAgentAction, restoreAgentAction } from "@/lib/actions/agents";
+import {
+  archiveAgentAction,
+  restoreAgentAction,
+  upgradeAgentAction,
+} from "@/lib/actions/agents";
 import { Button, Card, ButtonLink, PageHeader } from "@/components/ui";
 import { AgentContextBadge } from "@/components/agent-context-badge";
 import { ImportedToast } from "@/components/imported-toast";
@@ -54,6 +58,10 @@ export default async function AgentsPage({
             const categories = requiredConnectorCategories(
               agent.allowed_tools ?? [],
             );
+            const upgradeAvailable =
+              agent.library != null && agent.imported_version != null
+                ? agent.library.version > agent.imported_version
+                : false;
             return (
               <Card
                 key={agent.id}
@@ -67,6 +75,11 @@ export default async function AgentsPage({
                   </h3>
                   <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                     <AgentContextBadge context={agent.library?.context} />
+                    {upgradeAvailable && (
+                      <span className="rounded-full bg-mint-400/20 px-2 py-0.5 text-[11px] font-semibold text-mint-700">
+                        v{agent.library!.version} available
+                      </span>
+                    )}
                     {categories.map((category) => (
                       <span
                         key={category}
@@ -87,14 +100,26 @@ export default async function AgentsPage({
                       v{agent.imported_version ?? "—"}
                     </span>
                   </span>
-                  <form action={archiveAgentAction.bind(null, agent.id)}>
-                    <button
-                      type="submit"
-                      className="rounded-chip border border-navy-800/12 px-2.5 py-1 text-xs font-medium text-navy-800/45 transition hover:border-navy-800/40 hover:text-navy-800"
-                    >
-                      Archive
-                    </button>
-                  </form>
+                  <div className="flex items-center gap-2">
+                    {upgradeAvailable && (
+                      <form action={upgradeAgentAction.bind(null, agent.id)}>
+                        <button
+                          type="submit"
+                          className="rounded-chip border border-mint-400/60 bg-mint-400/10 px-2.5 py-1 text-xs font-semibold text-mint-700 transition hover:bg-mint-400/20"
+                        >
+                          Upgrade to v{agent.library!.version}
+                        </button>
+                      </form>
+                    )}
+                    <form action={archiveAgentAction.bind(null, agent.id)}>
+                      <button
+                        type="submit"
+                        className="rounded-chip border border-navy-800/12 px-2.5 py-1 text-xs font-medium text-navy-800/45 transition hover:border-navy-800/40 hover:text-navy-800"
+                      >
+                        Archive
+                      </button>
+                    </form>
+                  </div>
                 </div>
               </Card>
             );
