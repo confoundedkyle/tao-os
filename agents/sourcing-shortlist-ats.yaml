@@ -6,6 +6,7 @@ description: >-
   candidates from whichever ATS you connect (Greenhouse, Bullhorn, Lever,
   Workable and 15 more), ranks them against the role, and writes a shortlist
   back into the project. Pick the ATS when you run it.
+summary: Pull candidates from your ATS, rank them against the role, and write a shortlist back to the project.
 og_description: >-
   Use this free Calyflow agent to pull candidates from your ATS, rank them
   against the role, and get a ready-to-review shortlist.

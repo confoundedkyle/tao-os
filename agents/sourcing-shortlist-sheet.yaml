@@ -5,6 +5,7 @@ description: >-
   candidates from the tracker you already run in Google Sheets, Excel, or
   Airtable, ranks them against the role, and writes a shortlist back into the
   project. Pick the data source when you run it.
+summary: Pull candidates from your tracker sheet, rank them against the role, and write a shortlist back to the project.
 og_description: >-
   Use this free Calyflow agent to turn a candidate spreadsheet into a ranked
   shortlist for your role — no manual sorting.

@@ -5,6 +5,7 @@ description: >-
   connect (HubSpot, Attio, Pipedrive, monday.com, Notion, Zoho CRM), maps the
   accounts, contacts, and deals that match your target brief, and writes a
   prospecting report back into the project. Pick the CRM when you run it.
+summary: Search your CRM for accounts and contacts that match your target brief and write up a prospecting report.
 og_description: >-
   Use this free Calyflow agent to research target client accounts in your CRM
   and get a prioritized prospecting report.

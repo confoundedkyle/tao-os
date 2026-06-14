@@ -141,7 +141,7 @@ export default async function RunItemPage({
     .map((t) => ({ docType: t, label: DOC_TYPE_LABELS[t] ?? t }));
 
   const agentLead =
-    agent!.library?.og_description ??
+    agent!.library?.summary ??
     agent!.library?.description ??
     "Reads your knowledge base, queries connected data sources, and writes a result back into this project.";
 

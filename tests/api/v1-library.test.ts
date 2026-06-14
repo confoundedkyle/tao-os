@@ -32,6 +32,7 @@ const AGENTS: LibraryAgent[] = [
     context: "recruiting-project",
     version: 1,
     featured: false,
+    summary: "Email candidates from your tracker, sent from your own mailbox.",
     og_description: "Use this free agent to email candidates from a sheet.",
     lead: "Reach a whole list without the copy-paste.",
     long_description: "## What it does\nEmails candidates from your sheet.",

@@ -7,6 +7,7 @@ description: >-
   grounded in the role and your tone of voice, sends them from your own
   mailbox (Gmail or Outlook), and saves a send log into the project. Pick the
   data source and the mailbox when you run it.
+summary: Email candidates from your tracker, personalized and sent from your own mailbox, logged to the project.
 og_description: >-
   Use this free Calyflow agent to email candidates from your spreadsheet —
   personalized, from your own mailbox, with one send log.

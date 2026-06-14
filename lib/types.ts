@@ -295,6 +295,8 @@ export interface LibraryAgent {
   version: number;
   /** Highlighted on the public marketing homepage. */
   featured: boolean;
+  /** Short in-app task summary shown under the title on the run page (0014). */
+  summary: string | null;
   /** Public marketing copy (see migration 0010). */
   og_description: string | null;
   lead: string | null;

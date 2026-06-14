@@ -104,6 +104,7 @@ interface AgentYaml {
   context?: string;
   version?: number;
   featured?: boolean;
+  summary?: string;
   og_description?: string;
   lead?: string;
   long_description?: string;
@@ -151,6 +152,7 @@ async function seedAgents() {
         context: a.context ?? "recruiting-project",
         version: a.version ?? 1,
         featured: a.featured ?? false,
+        summary: a.summary ?? null,
         og_description: a.og_description ?? null,
         lead: a.lead ?? null,
         long_description: a.long_description ?? null,
