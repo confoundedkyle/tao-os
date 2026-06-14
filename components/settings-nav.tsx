@@ -7,6 +7,7 @@ const tabs = [
   { href: "/settings", label: "General" },
   { href: "/settings/providers", label: "AI Providers" },
   { href: "/settings/usage", label: "Usage" },
+  { href: "/settings/subscription", label: "Subscription" },
   { href: "/settings/connectors", label: "Connectors" },
   { href: "/settings/modules", label: "Modules" },
   { href: "/settings/members", label: "Members" },
