@@ -11,7 +11,7 @@ workspace KB ("how WE work"), client KB ("how THEY work"), project files
 (JD, intake notes, CVs). Every run injects that context automatically and
 streams the result back as a new project document.
 
-**Launch workflows:** Intake-to-JD Builder · Sourcing Map · Outreach Writer ·
+**Launch workflows:** Intake-to-JD Builder · Sourcing Strategy Map · Outreach Writer ·
 CV Screener · Candidate Submission Pack — a full search lifecycle.
 
 ## Stack

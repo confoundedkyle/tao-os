@@ -11,7 +11,7 @@ import { getLibraryAgentBySlug, listWorkspaceAgents } from "./queries";
 export const STARTER_PACK_SLUGS = [
   "job-requirement-analysis",
   "candidate-icp-builder",
-  "sourcing-map",
+  "sourcing-strategy-map",
   "outreach-writer",
 ] as const;
 
