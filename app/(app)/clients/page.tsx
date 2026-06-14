@@ -1,12 +1,12 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { listClients } from "@/lib/queries";
-import { createClientAction } from "@/lib/actions/clients";
 import {
   ArchivedClientActions,
   ClientCardActions,
 } from "@/components/client-actions";
-import { Button, Card, EmptyState, inputClass, PageHeader } from "@/components/ui";
+import { Card, EmptyState, PageHeader } from "@/components/ui";
+import { AddClient } from "@/components/add-client";
 import { IconClientsBuilding } from "@/components/icons";
 
 export default async function ClientsPage() {
@@ -21,29 +21,17 @@ export default async function ClientsPage() {
       <PageHeader
         title="Clients & Projects"
         description="Each client has its own knowledge base, files, and projects."
+        action={
+          active.length > 0 || archived.length > 0 ? <AddClient /> : undefined
+        }
       />
-      <Card className="mb-8">
-        <form action={createClientAction} className="flex flex-wrap items-end gap-3">
-          <label className="min-w-60 flex-1">
-            <span className="mb-1.5 block text-sm font-semibold text-navy-800/80">
-              New client
-            </span>
-            <input
-              name="name"
-              required
-              placeholder="e.g. Acme GmbH"
-              className={inputClass}
-            />
-          </label>
-          <Button type="submit">Create a client</Button>
-        </form>
-      </Card>
 
       {active.length === 0 && archived.length === 0 ? (
         <EmptyState
           icon={<IconClientsBuilding size={48} className="text-navy-800/60" />}
           title="No clients yet"
-          description="Create your first client above, then open a new project for each position you're filling."
+          description="Create your first client, then open a new project for each position you're filling."
+          action={<AddClient>＋ Create your first client</AddClient>}
         />
       ) : (
         <>
@@ -63,7 +51,8 @@ export default async function ClientsPage() {
             ))}
             {active.length === 0 && (
               <p className="text-sm text-navy-800/45 sm:col-span-2 lg:col-span-3">
-                No active clients — restore one below or create a new one above.
+                No active clients — restore one below or create a new one with
+                “New client”.
               </p>
             )}
           </div>
