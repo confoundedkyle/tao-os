@@ -32,7 +32,7 @@ long_description: |
 
   ## How to run it
   Add your notes to the project and run. The job description is saved to your
-  project files and unlocks the ICP Builder, CV Screener, and more.
+  project files and unlocks the Candidate Scorecard Rubric, CV Screener, and more.
 allowed_tools:
   - calyflow_search_documents
   - calyflow_read_document

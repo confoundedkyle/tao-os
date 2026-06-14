@@ -43,7 +43,7 @@ type IconComponent = React.ComponentType<{ size?: number; className?: string }>;
 const WORKFLOW_ICONS: Record<string, IconComponent> = {
   "intake-to-jd-builder": IconDocumentCheck,
   "job-requirement-analysis": IconWorkflowNodes,
-  "candidate-icp-builder": IconCheck,
+  "candidate-scorecard-rubric": IconCheck,
   "sourcing-strategy-map": IconMagnet,
   "job-selling-pitch": IconAiSpark,
   "outreach-writer": IconEnvelope,

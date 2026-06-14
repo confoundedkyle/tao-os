@@ -4,7 +4,8 @@ description: >-
   Turn raw hiring-manager notes into a complete 18-dimension requirement
   breakdown — technical stack, seniority, culture fit, compensation, hiring
   process and more. Every dimension is either extracted or marked "TO ASK"
-  with a question, so nothing is missed before sourcing. Feeds the ICP Builder.
+  with a question, so nothing is missed before sourcing. Feeds the Candidate
+  Scorecard Rubric.
 summary: Turn hiring-manager notes into a complete requirement breakdown, flagging the gaps to ask about.
 og_description: >-
   Use this free Calyflow agent to break a role down into every requirement
@@ -21,7 +22,7 @@ long_description: |
   ## Why recruiters use it
   - Spot missing or vague requirements before they derail a search.
   - Have a sharper, better-prepared conversation with the hiring manager.
-  - Build a solid foundation for the Candidate ICP and your sourcing strategy.
+  - Build a solid foundation for the candidate scorecard and your sourcing strategy.
 
   ## What you get
   A breakdown across roughly 18 dimensions. Anything the notes don't cover is
@@ -153,7 +154,7 @@ instructions: |
   each gap blocks sourcing. Specific to THIS role, never generic.]
 
   ## What's next
-  - Build a weighted scoring rubric from this analysis with **Candidate ICP Builder**.
+  - Build a weighted scoring rubric from this analysis with **Candidate Scorecard Rubric**.
   - Draft the job description with **Intake-to-JD Builder**.
 
   ## Rules

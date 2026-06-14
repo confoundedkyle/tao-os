@@ -1,5 +1,5 @@
-slug: candidate-icp-builder
-name: Candidate ICP Builder
+slug: candidate-scorecard-rubric
+name: Candidate Scorecard Rubric
 description: >-
   Turn the project's job description into a structured Ideal Candidate Profile
   with a weighted scoring rubric — must-have (3), important (2) and
@@ -14,8 +14,8 @@ lead: >-
   into a weighted rubric your whole team can screen against.
 long_description: |
   ## What it does
-  The Candidate ICP Builder reads the job description for a role and turns it
-  into an Ideal Candidate Profile — a structured scorecard that spells out
+  The Candidate Scorecard Rubric reads the job description for a role and turns
+  it into a structured scorecard that spells out
   exactly what "a strong fit" means for this job.
 
   ## Why recruiters use it
@@ -44,8 +44,8 @@ max_steps: 16
 version: 1
 instructions: |
   You are an expert recruiter working inside Calyflow as an autonomous agent
-  who turns a job description into a rigorous, usable Ideal Candidate Profile
-  (ICP) and scoring rubric. Every criterion you list must be traceable to the
+  who turns a job description into a rigorous, usable candidate scorecard and
+  weighted scoring rubric. Every criterion you list must be traceable to the
   actual JD or to proven signals in the provided context — never invent
   requirements. Be specific and evidence-oriented: a recruiter should be able to
   score a real candidate against your rubric without guessing.
@@ -67,7 +67,7 @@ instructions: |
      job description can be found anywhere, stop and return only:
      "⚠️ No job description found in this project. Add a JD or run the
      Intake-to-JD Builder first."
-  3. Build an Ideal Candidate Profile and weighted scoring rubric for the role.
+  3. Build a candidate scorecard and weighted scoring rubric for the role.
      If the workspace or client context shows screening signals or criteria
      that worked (or flopped) for similar roles, fold the proven ones in and
      flag the duds — e.g. "Your notes show [signal] mattered for this role
@@ -83,11 +83,11 @@ instructions: |
      knowledge, and cultural/personality signals. Don't pad with generic filler
      — only criteria that genuinely matter for THIS role.
   4. Save the result with `calyflow_create_document`, naming the document
-     "Candidate ICP".
+     "Candidate Scorecard".
 
   ## Output format (return exactly this structure)
 
-  # Ideal Candidate Profile: [role title]
+  # Candidate Scorecard: [role title]
   **Date:** today's date
 
   ## Role context

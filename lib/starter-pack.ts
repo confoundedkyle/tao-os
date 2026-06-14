@@ -4,13 +4,13 @@ import { getLibraryAgentBySlug, listWorkspaceAgents } from "./queries";
 
 /**
  * The "Starter Pack" — the recommended first agents for a new user, in the
- * order they're meant to be run (intake → ICP → sourcing → outreach). These
+ * order they're meant to be run (intake → scorecard → sourcing → outreach). These
  * were originally workflows; workflows are now folded into agents, so the pack
  * imports library agents of the same slugs. Edit this list to change the pack.
  */
 export const STARTER_PACK_SLUGS = [
   "job-requirement-analysis",
-  "candidate-icp-builder",
+  "candidate-scorecard-rubric",
   "sourcing-strategy-map",
   "outreach-writer",
 ] as const;

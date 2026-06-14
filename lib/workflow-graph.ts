@@ -107,7 +107,7 @@ const AGENT_DOCUMENTS: Record<string, AgentDocSpec> = {
     required: ["intake_notes"],
     optional: ["jd"],
   },
-  "candidate-icp-builder": { required: ["jd"], optional: [] },
+  "candidate-scorecard-rubric": { required: ["jd"], optional: [] },
   "sourcing-strategy-map": { required: ["jd"], optional: [] },
   "job-selling-pitch": { required: ["jd"], optional: [] },
   "outreach-writer": { required: ["jd"], optional: ["cv"] },
