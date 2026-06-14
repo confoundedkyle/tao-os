@@ -14,9 +14,9 @@ export function ClientTabNav({ basePath }: { basePath: string }) {
       active: pathname.startsWith(`${basePath}/knowledge`),
     },
     {
-      href: `${basePath}/files`,
-      label: "Client files",
-      active: pathname.startsWith(`${basePath}/files`),
+      href: `${basePath}/documents`,
+      label: "Documents",
+      active: pathname.startsWith(`${basePath}/documents`),
     },
   ];
 

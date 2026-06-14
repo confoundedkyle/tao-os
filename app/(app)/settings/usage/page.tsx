@@ -15,7 +15,10 @@ interface RecentRow {
   cost: number | null;
   status: string;
   createdAt: string;
+  /** Link to the run's detail page. */
   href: string | null;
+  /** Link to the document the run produced, if any. */
+  docHref: string | null;
 }
 
 function Meter({ fraction }: { fraction: number }) {
@@ -50,6 +53,7 @@ export default async function UsagePage() {
       status: r.status,
       createdAt: r.created_at,
       href: `/runs/${r.id}`,
+      docHref: r.output_doc_id ? `/docs/${r.output_doc_id}` : null,
     })),
     ...agentRuns.map((r) => ({
       id: r.id,
@@ -60,8 +64,8 @@ export default async function UsagePage() {
       cost: r.cost_usd != null ? Number(r.cost_usd) : null,
       status: r.status,
       createdAt: r.created_at,
-      // Agent runs have no detail page; deep-link to the saved output if any.
-      href: r.output_doc_id ? `/docs/${r.output_doc_id}` : null,
+      href: `/agent-runs/${r.id}`,
+      docHref: r.output_doc_id ? `/docs/${r.output_doc_id}` : null,
     })),
   ]
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
@@ -77,7 +81,7 @@ export default async function UsagePage() {
       : null;
 
   return (
-    <div className="grid max-w-3xl gap-6">
+    <div className="grid max-w-5xl gap-6">
       {env.platformProviderEnabled && budget.platformCreditUsd > 0 && (
         <Card>
           <div className="mb-2 flex items-center justify-between">
@@ -139,6 +143,7 @@ export default async function UsagePage() {
             <thead>
               <tr className="border-b border-navy-800/12 text-left text-navy-800/50">
                 <th className="py-2 font-semibold">Run</th>
+                <th className="py-2 font-semibold">Document</th>
                 <th className="py-2 font-semibold">Model</th>
                 <th className="py-2 text-right font-semibold">Tokens</th>
                 <th className="py-2 text-right font-semibold">Cost</th>
@@ -149,7 +154,7 @@ export default async function UsagePage() {
               {runs.map((run) => (
                 <tr
                   key={`${run.kind}-${run.id}`}
-                  className="relative border-b border-navy-800/6 transition-colors hover:bg-cream-100"
+                  className="border-b border-navy-800/6 transition-colors hover:bg-cream-100"
                 >
                   <td className="py-2">
                     <span className="flex items-center gap-2">
@@ -159,7 +164,7 @@ export default async function UsagePage() {
                       {run.href ? (
                         <Link
                           href={run.href}
-                          className="font-medium hover:text-mint-700 before:absolute before:inset-0 before:content-['']"
+                          className="font-medium hover:text-mint-700"
                         >
                           {run.name}
                         </Link>
@@ -167,6 +172,18 @@ export default async function UsagePage() {
                         <span className="font-medium">{run.name}</span>
                       )}
                     </span>
+                  </td>
+                  <td className="py-2">
+                    {run.docHref ? (
+                      <Link
+                        href={run.docHref}
+                        className="text-[13px] font-medium text-mint-700 hover:underline"
+                      >
+                        View document →
+                      </Link>
+                    ) : (
+                      <span className="text-[13px] text-navy-800/35">—</span>
+                    )}
                   </td>
                   <td className="py-2">
                     <Mono className="!text-[12.5px]">{run.model ?? "—"}</Mono>

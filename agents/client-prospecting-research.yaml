@@ -41,6 +41,7 @@ allowed_tools:
   - calyflow_create_document
 model: null
 max_steps: 14
+context: business-development
 version: 1
 instructions: |
   You are a business-development researcher working inside Calyflow.

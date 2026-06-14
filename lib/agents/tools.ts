@@ -142,12 +142,16 @@ function buildAll(ctx: ToolContext): ToolSet {
         ]);
         const all: Doc[] = [...wsKb, ...clientKb, ...clientFiles, ...projectFiles];
         const q = query.toLowerCase();
+        // Match content, filename, OR doc type — so a search like "CV" finds
+        // documents tagged `cv` even when the resume text never says "CV".
         const hits = all
           .filter(
             (d) =>
               d.is_active &&
-              d.extracted_text &&
-              d.extracted_text.toLowerCase().includes(q),
+              ((d.extracted_text &&
+                d.extracted_text.toLowerCase().includes(q)) ||
+                (d.filename && d.filename.toLowerCase().includes(q)) ||
+                (d.doc_type && d.doc_type.toLowerCase().includes(q))),
           )
           .slice(0, 10)
           .map((d) => ({

@@ -29,6 +29,7 @@ const AGENTS: LibraryAgent[] = [
     allowed_tools: ["connector:data", "connector:email", "calyflow_create_document"],
     model: null,
     max_steps: 24,
+    context: "recruiting-project",
     version: 1,
     featured: false,
     og_description: "Use this free agent to email candidates from a sheet.",
@@ -44,8 +45,10 @@ vi.mock("@/lib/queries", () => ({
 
 import { GET, OPTIONS, type PublicLibraryItem } from "@/app/api/v1/library/route";
 
+const REQ = new Request("http://localhost:3000/api/v1/library");
+
 async function body() {
-  const res = await GET();
+  const res = await GET(REQ);
   return (await res.json()) as {
     workflows: PublicLibraryItem[];
     agents: PublicLibraryItem[];
@@ -69,8 +72,16 @@ describe("GET /api/v1/library", () => {
       featured: true,
       output: "Submission pack",
     });
-    expect(wf.coverUrl).toContain("/api/v1/library/workflow/submission-pack/cover");
+    // Cover URL is built from the request host (not a mismatched APP_BASE_URL).
+    expect(wf.coverUrl).toBe(
+      "http://localhost:3000/api/v1/library/workflow/submission-pack/cover",
+    );
     expect(wf.connectors).toEqual([]); // workflows need no connectors
+    expect(wf.context).toBeNull();
+    expect(wf.documents).toEqual({
+      required: ["Job description"],
+      optional: ["CV"],
+    });
     expect(wf.ogDescription).toContain("free workflow");
     expect(wf.lead).toContain("hiring manager");
     expect(wf.longDescription?.startsWith("## ")).toBe(true);
@@ -97,17 +108,23 @@ describe("GET /api/v1/library", () => {
     expect(agent.coverUrl).toContain(
       "/api/v1/library/agent/candidate-outreach-email/cover",
     );
+    // New: agents expose their context and the documents they read.
+    expect(agent.context).toBe("recruiting-project");
+    expect(agent.documents).toEqual({
+      required: [],
+      optional: ["Job description"],
+    });
   });
 
   it("never leaks prompt_template or instructions", async () => {
-    const res = await GET();
+    const res = await GET(REQ);
     const raw = await res.text();
     expect(raw).not.toContain("SECRET PROMPT");
     expect(raw).not.toContain("SECRET INSTRUCTIONS");
   });
 
   it("sends public CORS and cache headers", async () => {
-    const res = await GET();
+    const res = await GET(REQ);
     expect(res.headers.get("access-control-allow-origin")).toBe("*");
     expect(res.headers.get("cache-control")).toContain("public");
   });

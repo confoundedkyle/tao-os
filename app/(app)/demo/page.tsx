@@ -3,11 +3,12 @@ import { getSession } from "@/lib/auth";
 import { ensureDemoProject } from "@/lib/demo";
 import {
   getDocument,
+  getLibraryAgentBySlug,
   getPrimaryRunModel,
-  getWorkspaceWorkflow,
+  getWorkspaceAgent,
   listConnections,
 } from "@/lib/queries";
-import { deriveWorkflowGraph } from "@/lib/workflow-graph";
+import { deriveAgentGraph } from "@/lib/workflow-graph";
 import { DemoExperience } from "@/components/demo/demo-experience";
 
 export const metadata = { title: "Demo · Calyflow" };
@@ -18,28 +19,32 @@ export default async function DemoPage() {
 
   const demo = await ensureDemoProject(session.workspaceId, session.userId);
 
-  const [workflow, model, connections, jdDoc] = await Promise.all([
-    getWorkspaceWorkflow(session.workspaceId, demo.workflowId),
+  const [agent, model, , jdDoc, libraryAgent] = await Promise.all([
+    getWorkspaceAgent(session.workspaceId, demo.agentId),
     getPrimaryRunModel(session.workspaceId),
     listConnections(session.workspaceId),
     getDocument(session.workspaceId, demo.jd.id),
+    getLibraryAgentBySlug("cv-screener"),
   ]);
-  if (!workflow) redirect("/workflows");
+  if (!agent) redirect("/library?tab=agents");
 
-  const graph = deriveWorkflowGraph({
-    name: workflow.name,
-    promptTemplate: workflow.prompt_template,
-    inputSpec: workflow.library?.input_spec ?? null,
-    outputSpec: workflow.library?.output_spec ?? null,
+  // CV Screener needs no external connectors — a plain knowledge-base agent.
+  // Same derivation (slug + description) as every other surface, so the canvas
+  // is identical across the app and the API export.
+  const graph = deriveAgentGraph({
+    name: agent.name,
+    connectors: [],
     model,
-    connections: connections.filter((c) => c.status !== "error"),
+    slug: "cv-screener",
+    description: libraryAgent?.description,
+    instructions: agent.instructions,
   });
 
   return (
     <DemoExperience
       projectId={demo.projectId}
-      workflowId={demo.workflowId}
-      workflowName={workflow.name}
+      agentId={demo.agentId}
+      agentName={agent.name}
       graph={graph}
       jd={{
         id: demo.jd.id,

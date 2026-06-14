@@ -5,21 +5,15 @@ import { usePathname } from "next/navigation";
 
 export function ProjectTabNav({ basePath }: { basePath: string }) {
   const pathname = usePathname();
-  const isAdmin = pathname.startsWith(`${basePath}/admin`);
-  const isAgents = pathname.startsWith(`${basePath}/agents`);
+  const isDocuments = pathname.startsWith(`${basePath}/documents`);
 
   const tabs = [
-    {
-      href: `${basePath}/workflows`,
-      label: "Workflows",
-      active: !isAdmin && !isAgents,
-    },
-    { href: `${basePath}/agents`, label: "Agents", active: isAgents },
-    { href: `${basePath}/admin`, label: "Admin", active: isAdmin },
+    { href: `${basePath}/agents`, label: "Agents", active: !isDocuments },
+    { href: `${basePath}/documents`, label: "Documents", active: isDocuments },
   ];
 
   return (
-    <nav className="mb-8 flex gap-1 border-b border-navy-800/10">
+    <nav className="mb-6 flex gap-1 border-b border-navy-800/10">
       {tabs.map((tab) => (
         <Link
           key={tab.href}

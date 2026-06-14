@@ -357,7 +357,7 @@ export async function updateDocumentTextAction(docId: string, text: string) {
 /** Creates an empty markdown note in a client or workspace KB and returns its
  *  id so the UI can open it in edit mode straight away. */
 export async function createKbNoteAction(
-  scopeType: "client" | "workspace",
+  scopeType: DocScope,
   scopeId: string,
 ): Promise<{ docId: string }> {
   const session = await requireSession();
@@ -440,4 +440,12 @@ export async function setDocumentActiveAction(docId: string, active: boolean) {
     .eq("id", docId);
   if (error) throw error;
   revalidateScope(doc.scope_type, doc.scope_id);
+}
+
+/** Read a document's extracted text (used by the demo to show an agent's saved
+ *  report once the run finishes). Scoped to the caller's workspace. */
+export async function getDocumentTextAction(docId: string): Promise<string> {
+  const session = await requireSession();
+  const doc = await getDocument(session.workspaceId, docId);
+  return doc?.extracted_text ?? "";
 }

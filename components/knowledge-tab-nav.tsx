@@ -9,9 +9,9 @@ export function KnowledgeTabNav() {
   const tabs = [
     { href: "/knowledge", label: "Knowledge base", active: pathname === "/knowledge" },
     {
-      href: "/knowledge/files",
-      label: "Workspace files",
-      active: pathname.startsWith("/knowledge/files"),
+      href: "/knowledge/documents",
+      label: "Documents",
+      active: pathname.startsWith("/knowledge/documents"),
     },
   ];
 

@@ -703,6 +703,8 @@ function NodeExplanationModal({
   const exp = getNodeExplanation(node);
   const Icon = NODE_ICONS[node.icon ?? "doc"];
   const soloBrand = node.brandLogos?.length === 1 ? node.brandLogos[0] : undefined;
+  // The skill node opens its full instructions (the prompt the agent runs).
+  const showPrompt = node.kind === "skill" && !!node.prompt;
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-navy-900/40 p-4"
@@ -713,7 +715,9 @@ function NodeExplanationModal({
         aria-modal="true"
         aria-label={node.title}
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md overflow-hidden rounded-panel border border-navy-800/12 bg-white shadow-lift"
+        className={`flex max-h-[85vh] w-full flex-col overflow-hidden rounded-panel border border-navy-800/12 bg-white shadow-lift ${
+          showPrompt ? "max-w-3xl" : "max-w-md"
+        }`}
       >
         <div className="flex items-start gap-3.5 border-b border-navy-800/8 px-5 py-4">
           {soloBrand ? (
@@ -740,20 +744,32 @@ function NodeExplanationModal({
             ✕
           </button>
         </div>
-        <div className="px-5 py-4">
-          <p className="text-[13.5px] leading-relaxed text-navy-800/80">{exp.body}</p>
-          {node.modelLine && (
-            <p className="mt-3 inline-block rounded-full bg-navy-800/6 px-2.5 py-1 font-mono text-[11px] text-navy-800/65">
-              {node.modelLine}
+        {showPrompt ? (
+          <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+            <p className="mb-3 text-[13px] leading-relaxed text-navy-800/55">
+              The exact instructions this agent runs. Edit them on the agent&apos;s
+              page.
             </p>
-          )}
-          {exp.configHint && (
-            <div className="mt-4 flex items-start gap-2 rounded-card border border-navy-800/10 bg-cream-50 px-3 py-2.5">
-              <span className="mt-px text-[13px]">⚙️</span>
-              <p className="text-[12px] leading-snug text-navy-800/60">{exp.configHint}</p>
-            </div>
-          )}
-        </div>
+            <pre className="whitespace-pre-wrap font-mono text-[12.5px] leading-relaxed text-navy-800/80">
+              {node.prompt}
+            </pre>
+          </div>
+        ) : (
+          <div className="px-5 py-4">
+            <p className="text-[13.5px] leading-relaxed text-navy-800/80">{exp.body}</p>
+            {node.modelLine && (
+              <p className="mt-3 inline-block rounded-full bg-navy-800/6 px-2.5 py-1 font-mono text-[11px] text-navy-800/65">
+                {node.modelLine}
+              </p>
+            )}
+            {exp.configHint && (
+              <div className="mt-4 flex items-start gap-2 rounded-card border border-navy-800/10 bg-cream-50 px-3 py-2.5">
+                <span className="mt-px text-[13px]">⚙️</span>
+                <p className="text-[12px] leading-snug text-navy-800/60">{exp.configHint}</p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

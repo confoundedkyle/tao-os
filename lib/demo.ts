@@ -2,19 +2,19 @@ import "server-only";
 import { readFileSync } from "fs";
 import { join } from "path";
 import { db } from "./db";
-import { getLibraryWorkflowBySlug } from "./queries";
+import { getLibraryAgentBySlug } from "./queries";
 import type { Doc } from "./types";
 
 /**
  * Provisions (idempotently) the per-workspace scaffolding the /demo page needs
- * to run the real CV Screener workflow end to end:
+ * to run the real CV Screener agent end to end:
  *   - a hidden demo client + project (is_demo, so they stay out of normal lists)
- *   - the CV Screener workflow imported into the workspace (if absent)
+ *   - the CV Screener agent imported into the workspace (if absent)
  *   - a default Job Description as the project's active `jd` file
  *   - three sample CVs as project `cv` files
  *
- * Everything is reused by the live run pipeline (`POST /api/runs`), so the demo
- * is the real product, not a mock. Safe to call on every page load.
+ * Everything is reused by the live run pipeline (`POST /api/agents/run`), so the
+ * demo is the real product, not a mock. Safe to call on every page load.
  */
 
 const DEMO_CLIENT_NAME = "Calyflow Demo";
@@ -34,7 +34,7 @@ function readDemoFile(file: string): string {
 
 export interface DemoContext {
   projectId: string;
-  workflowId: string;
+  agentId: string;
   jd: { id: string; filename: string };
   cvs: { id: string; filename: string }[];
 }
@@ -45,7 +45,7 @@ export async function ensureDemoProject(
 ): Promise<DemoContext> {
   const clientId = await ensureDemoClient(workspaceId);
   const projectId = await ensureDemoProjectRow(workspaceId, clientId);
-  const workflowId = await ensureCvScreenerWorkflow(workspaceId);
+  const agentId = await ensureCvScreenerAgent(workspaceId);
 
   const existing = (await db()
     .from("documents")
@@ -73,7 +73,7 @@ export async function ensureDemoProject(
     cvs.push(doc);
   }
 
-  return { projectId, workflowId, jd, cvs };
+  return { projectId, agentId, jd, cvs };
 }
 
 async function ensureDemoClient(workspaceId: string): Promise<string> {
@@ -117,28 +117,31 @@ async function ensureDemoProjectRow(
   return data.id as string;
 }
 
-/** Find the workspace's CV Screener copy, importing a snapshot if none exists. */
-async function ensureCvScreenerWorkflow(workspaceId: string): Promise<string> {
-  const library = await getLibraryWorkflowBySlug(CV_SCREENER_SLUG);
-  if (!library) throw new Error("CV Screener is not in the workflow library");
+/** Find the workspace's CV Screener agent copy, importing a snapshot if none. */
+async function ensureCvScreenerAgent(workspaceId: string): Promise<string> {
+  const library = await getLibraryAgentBySlug(CV_SCREENER_SLUG);
+  if (!library) throw new Error("CV Screener is not in the agent library");
 
   const { data: existing } = await db()
-    .from("workspace_workflows")
+    .from("workspace_agents")
     .select("id")
     .eq("workspace_id", workspaceId)
-    .eq("library_workflow_id", library.id)
+    .eq("library_agent_id", library.id)
     .is("archived_at", null)
     .limit(1)
     .maybeSingle();
   if (existing) return existing.id as string;
 
   const { data, error } = await db()
-    .from("workspace_workflows")
+    .from("workspace_agents")
     .insert({
       workspace_id: workspaceId,
-      library_workflow_id: library.id,
+      library_agent_id: library.id,
       name: library.name,
-      prompt_template: library.prompt_template,
+      instructions: library.instructions,
+      allowed_tools: library.allowed_tools,
+      model: library.model,
+      max_steps: library.max_steps,
       imported_version: library.version,
     })
     .select("id")

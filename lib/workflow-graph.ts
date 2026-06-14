@@ -41,6 +41,8 @@ export interface WorkflowGraphNode {
   badge?: string;
   /** Provider + model shown on the step node, e.g. "Anthropic · claude-sonnet-4-6". */
   modelLine?: string;
+  /** Full skill instructions — shown scrollable when the skill node is opened. */
+  prompt?: string;
   /** Connector provider slugs rendered as brand-logo avatars. */
   brandLogos?: string[];
   /** Container node this item sits inside (position becomes relative). */
@@ -85,6 +87,45 @@ const DOC_TYPE_ICONS: Record<string, WorkflowNodeIcon> = {
   output: "doc",
   other: "files",
 };
+
+/** Documents an agent reads from the project, split into ones that MUST exist
+ *  before a run (required) and ones it uses when present (optional). */
+export interface AgentDocSpec {
+  required: string[];
+  optional: string[];
+}
+
+/**
+ * Project documents each library agent reads, by slug — curated from the
+ * agents' original input specs. Drives the "Documents" node on the canvas and
+ * the run-panel readiness gate. Agents that work purely from connected data
+ * sources (e.g. client-prospecting-research) are omitted — no documents to show.
+ */
+const AGENT_DOCUMENTS: Record<string, AgentDocSpec> = {
+  "intake-to-jd-builder": { required: ["intake_notes"], optional: ["jd"] },
+  "job-requirement-analysis": {
+    required: ["intake_notes"],
+    optional: ["jd"],
+  },
+  "candidate-icp-builder": { required: ["jd"], optional: [] },
+  "sourcing-map": { required: ["jd"], optional: [] },
+  "job-selling-pitch": { required: ["jd"], optional: [] },
+  "outreach-writer": { required: ["jd"], optional: ["cv"] },
+  "cv-screener": {
+    required: ["jd"],
+    optional: ["cv", "intake_notes", "scorecard"],
+  },
+  "submission-pack": { required: ["jd"], optional: ["cv", "output"] },
+  "candidate-marketing-profile": { required: ["cv"], optional: [] },
+  "sourcing-shortlist-ats": { required: [], optional: ["jd"] },
+  "sourcing-shortlist-sheet": { required: [], optional: ["jd"] },
+  "candidate-outreach-email": { required: [], optional: ["jd"] },
+};
+
+/** The required/optional project documents for an agent slug, or null. */
+export function agentDocSpec(slug?: string): AgentDocSpec | null {
+  return (slug && AGENT_DOCUMENTS[slug]) || null;
+}
 
 // Layout constants — item cards inside group boxes, fixed column grid.
 export const ITEM_W = 236;
@@ -251,7 +292,7 @@ interface GroupSpec {
 /** Shared 4-column layout: group boxes → skill above AI engine → output. */
 function composeGraph(spec: {
   groups: GroupSpec[];
-  skill: { title: string; subtitle: string };
+  skill: { title: string; subtitle: string; prompt?: string };
   engineSubtitle: string;
   /** "spark" = workflow engine; "robot" = the advanced agent engine. */
   engineIcon?: WorkflowNodeIcon;
@@ -314,6 +355,7 @@ function composeGraph(spec: {
     kind: "skill",
     title: spec.skill.title,
     subtitle: spec.skill.subtitle,
+    prompt: spec.skill.prompt,
     icon: "skill",
     position: { x, y: engineY - SKILL_GAP - SKILL_H },
   });
@@ -377,6 +419,12 @@ export function deriveAgentGraph(args: {
   name: string;
   connectors: AgentConnectorSlot[];
   model?: { providerLabel: string; modelId: string } | null;
+  /** Library slug — drives the "Documents" node (JD, intake notes, CVs …). */
+  slug?: string;
+  /** Shown under the "Advanced skill" node — a detailed description of the task. */
+  description?: string;
+  /** The agent's full instructions — shown when the skill node is opened. */
+  instructions?: string;
   /** "live" = the run panel (unselected → "No X connected · Missing");
    *  "catalog" = the public marketing cover (unselected → "Any X connector"). */
   variant?: "live" | "catalog";
@@ -396,6 +444,26 @@ export function deriveAgentGraph(args: {
       icon: "client",
     },
   ];
+
+  // Documents the agent reads from the project (JD, intake notes, CVs …).
+  const docSpec = agentDocSpec(args.slug);
+  const documentItems: Item[] = docSpec
+    ? [
+        ...docSpec.required.map((docType) => ({
+          id: `itm-doc-${docType}`,
+          title: DOC_TYPE_LABELS[docType] ?? docType,
+          subtitle: "Read from the project",
+          icon: DOC_TYPE_ICONS[docType] ?? ("doc" as WorkflowNodeIcon),
+          badge: "Required",
+        })),
+        ...docSpec.optional.map((docType) => ({
+          id: `itm-doc-${docType}`,
+          title: DOC_TYPE_LABELS[docType] ?? docType,
+          subtitle: "Optional · used if present",
+          icon: DOC_TYPE_ICONS[docType] ?? ("doc" as WorkflowNodeIcon),
+        })),
+      ]
+    : [];
 
   // Email connectors are the agent's DESTINATION, not a source — they render
   // as the output node ("Emails via Gmail"), not inside the Connectors group.
@@ -452,9 +520,14 @@ export function deriveAgentGraph(args: {
   return composeGraph({
     groups: [
       { id: "grp-knowledge", title: "Knowledge", items: knowledgeItems, edgeKind: "knowledge" },
+      { id: "grp-documents", title: "Documents", items: documentItems, edgeKind: "project" },
       { id: "grp-connectors", title: "Connectors", items: connectorItems, edgeKind: "project" },
     ],
-    skill: { title: args.name, subtitle: "Skill · defines the task" },
+    skill: {
+      title: "Advanced skill",
+      subtitle: args.description?.trim() || "Defines the task this agent runs",
+      prompt: args.instructions,
+    },
     engineSubtitle: "Autonomous · multi-step tool loop",
     engineIcon: "robot",
     model: args.model ?? null,
@@ -467,6 +540,8 @@ export function deriveAgentGraph(args: {
 export function deriveLibraryAgentGraph(args: {
   name: string;
   allowedTools: string[];
+  slug?: string;
+  description?: string;
 }): WorkflowGraph {
   const connectors: AgentConnectorSlot[] = requiredConnectorCategories(
     args.allowedTools,
@@ -475,5 +550,11 @@ export function deriveLibraryAgentGraph(args: {
     categoryLabel: CONNECTOR_CATEGORY_LABELS[category],
     selectedProvider: null,
   }));
-  return deriveAgentGraph({ name: args.name, connectors, variant: "catalog" });
+  return deriveAgentGraph({
+    name: args.name,
+    connectors,
+    variant: "catalog",
+    slug: args.slug,
+    description: args.description,
+  });
 }
