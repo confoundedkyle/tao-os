@@ -23,6 +23,16 @@ export const env = {
       .map((e) => e.trim().toLowerCase())
       .filter(Boolean);
   },
+  /** Optional shared passphrase gating single-workspace sign-in. When set,
+   *  the sign-in form must submit a matching password before a session is
+   *  issued — closes the "any email becomes admin" path for instances exposed
+   *  to the internet. Leave unset for frictionless local dev. */
+  get singleWorkspacePassword() {
+    return process.env.SINGLE_WORKSPACE_PASSWORD ?? "";
+  },
+  get requireSingleWorkspacePassword() {
+    return !!process.env.SINGLE_WORKSPACE_PASSWORD;
+  },
 
   /** When false, the "Calyflow default" provider row is never created. */
   get platformProviderEnabled() {
