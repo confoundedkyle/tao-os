@@ -115,6 +115,10 @@ const AGENT_DOCUMENTS: Record<string, AgentDocSpec> = {
     required: ["jd"],
     optional: ["cv", "intake_notes", "scorecard"],
   },
+  "screening-call-prep": {
+    required: [],
+    optional: ["cv", "jd", "intake_notes", "scorecard"],
+  },
   "submission-pack": { required: ["jd"], optional: ["cv", "output"] },
   "candidate-marketing-profile": { required: ["cv"], optional: [] },
   "sourcing-shortlist-ats": { required: [], optional: ["jd"] },
