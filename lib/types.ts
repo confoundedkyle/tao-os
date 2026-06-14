@@ -12,6 +12,18 @@ export interface Workspace {
   created_at: string;
 }
 
+export interface UserPreferences {
+  workspace_id: string;
+  user_id: string;
+  first_name: string | null;
+  last_name: string | null;
+  company_name: string | null;
+  company_website: string | null;
+  email_signature: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Client {
   id: string;
   workspace_id: string;

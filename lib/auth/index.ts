@@ -47,6 +47,37 @@ export async function syncClerkOrgName(
   await client.organizations.updateOrganization(clerkOrgId, { name });
 }
 
+/**
+ * The first/last name on the Clerk user record (the source of truth for a
+ * person's name). Returns nulls in single-workspace mode (no Clerk user) — the
+ * caller falls back to the value mirrored in user_preferences.
+ */
+export async function getClerkUserName(
+  userId: string,
+): Promise<{ firstName: string | null; lastName: string | null }> {
+  if (env.singleWorkspace) return { firstName: null, lastName: null };
+  const { clerkClient } = await import("@clerk/nextjs/server");
+  const client = await clerkClient();
+  const user = await client.users.getUser(userId);
+  return { firstName: user.firstName, lastName: user.lastName };
+}
+
+/**
+ * Writes the user's name back to Clerk so it stays in sync with everything that
+ * reads from Clerk (UserButton, emails). No-op in single-workspace mode, where
+ * the name lives only in user_preferences.
+ */
+export async function syncClerkUserName(
+  userId: string,
+  firstName: string,
+  lastName: string,
+): Promise<void> {
+  if (env.singleWorkspace) return;
+  const { clerkClient } = await import("@clerk/nextjs/server");
+  const client = await clerkClient();
+  await client.users.updateUser(userId, { firstName, lastName });
+}
+
 async function getClerkSession(): Promise<Session | null> {
   const { auth, clerkClient } = await import("@clerk/nextjs/server");
   const { userId, orgId, orgRole } = await auth();
