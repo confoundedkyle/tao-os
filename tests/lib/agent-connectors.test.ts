@@ -84,16 +84,17 @@ describe("agent library YAMLs", () => {
     }
   });
 
-  it("every agent declares at least one connector category and the doc tools", () => {
+  it("every agent can save its result and any connector categories are valid", () => {
+    const knownCategories = Object.keys(CONNECTOR_CATEGORY_LABELS);
     for (const file of files) {
       const agent = load(readFileSync(join(dir, file), "utf8")) as {
         allowed_tools: string[];
       };
-      expect(
-        requiredConnectorCategories(agent.allowed_tools).length,
-        file,
-      ).toBeGreaterThan(0);
+      // Agents write a document; connectors are optional (KB-only agents exist).
       expect(agent.allowed_tools, file).toContain("calyflow_create_document");
+      for (const cat of requiredConnectorCategories(agent.allowed_tools)) {
+        expect(knownCategories, `${file}: ${cat}`).toContain(cat);
+      }
     }
   });
 });
@@ -143,9 +144,9 @@ describe("deriveAgentGraph", () => {
       brandLogos: ["gmail"],
     });
 
-    // Same skill/engine/output shape as workflows.
+    // The skill node is labelled generically; the engine/output shape holds.
     expect(graph.nodes.find((n) => n.id === "skill")!.title).toBe(
-      "Candidate Outreach From Sheet via Email",
+      "Advanced skill",
     );
     const step = graph.nodes.find((n) => n.id === "step")!;
     expect(step.title).toBe("AI Engine");
