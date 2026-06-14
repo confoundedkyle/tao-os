@@ -74,13 +74,6 @@ export default async function GeneralSettingsPage() {
             </div>
           </Field>
         </ToastForm>
-        <Field label="Subscription">
-          <p className="text-navy-800/80">
-            {ws.trial_ends_at
-              ? `Trial ends ${new Date(ws.trial_ends_at).toLocaleDateString("en-GB")}`
-              : "Independent is free forever with your own API key."}
-          </p>
-        </Field>
       </Card>
 
       <Card>
