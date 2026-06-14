@@ -116,8 +116,14 @@ export default async function LibraryPage({
   const importedIds = new Set(
     imported.map((w) => w.library_workflow_id).filter(Boolean),
   );
+  // Only an ACTIVE copy counts as "imported". If the workspace's only copy is
+  // archived, the library shows "Import" again so the user can re-import; the
+  // archived copy stays in the Agents overview's Archived section.
   const importedAgentIds = new Set(
-    importedAgents.map((a) => a.library_agent_id).filter(Boolean),
+    importedAgents
+      .filter((a) => !a.archived_at)
+      .map((a) => a.library_agent_id)
+      .filter(Boolean),
   );
   const shown = active
     ? library.filter((wf) => wf.category === active)
