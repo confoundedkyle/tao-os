@@ -58,8 +58,8 @@ export function DemoExperience({
   cvs: DemoCv[];
 }) {
   return (
-    <div>
-      <Hero />
+    <div className="mx-auto max-w-5xl">
+      <Hero agentName={agentName} />
       <CvScreener
         projectId={projectId}
         agentId={agentId}
@@ -72,24 +72,18 @@ export function DemoExperience({
   );
 }
 
-function Hero() {
+/** Deliberately minimal: a one-word headline so the page reads as a thing to
+ *  try, not a wall of marketing copy — the interactive columns below are the
+ *  point. */
+function Hero({ agentName }: { agentName: string }) {
   return (
-    <div className="mb-7 overflow-hidden rounded-card bg-linear-to-br from-navy-900 to-navy-800 p-7 text-white shadow-lift sm:p-9">
-      <span className="inline-flex items-center gap-1.5 rounded-chip bg-mint-400/20 px-3 py-1 text-xs font-bold uppercase tracking-wider text-mint-400">
-        ✦ Live demo
+    <div className="mb-8 flex flex-col items-center text-center">
+      <span className="inline-flex items-center gap-1.5 rounded-chip bg-mint-400/15 px-3 py-1 text-xs font-bold tracking-wide text-mint-700">
+        ✦ {agentName} Agent
       </span>
-      {/* Inline color: globals.css sets an UNLAYERED `h1 { color: navy }` rule,
-          which beats Tailwind's layered `text-white` utility. Inline style wins. */}
-      <h1
-        style={{ color: "#fff" }}
-        className="mt-3 text-2xl font-bold leading-tight sm:text-[34px]"
-      >
-        Screen a stack of CVs in seconds — not hours
-      </h1>
-      <p className="mt-2 max-w-[60ch] text-white/65">
-        This is the real CV Screener agent, tuned for recruiting. Use our
-        sample role and candidates, or drop in your own — then hit run and watch
-        an evidence-based scorecard appear.
+      <h1 className="mt-4 text-5xl font-bold leading-none sm:text-6xl">Demo</h1>
+      <p className="mt-3 text-lg text-navy-800/55">
+        See how this agent screens three CVs against a job description:
       </p>
     </div>
   );
@@ -314,16 +308,6 @@ function CvScreener({
 
   return (
     <div className="space-y-6">
-      {/* Canvas — the agent shape, with the recruiting skill spotlighted. */}
-      <div className="rounded-card border border-navy-800/12 bg-white p-6">
-        <h2 className="mb-1 text-lg font-semibold">How this agent runs</h2>
-        <p className="mb-4 text-sm text-navy-800/55">
-          The agent reads your job description and CVs from the project, screens
-          each candidate, and writes an evidence-based report back.
-        </p>
-        <WorkflowCanvas graph={graph} highlightSkill />
-      </div>
-
       {/* Two columns: Job Description (left) · CVs (right). */}
       <div className="grid gap-5 md:grid-cols-2">
         <ColumnCard
@@ -428,6 +412,29 @@ function CvScreener({
             ? `Screening ${selected.size} CV${selected.size > 1 ? "s" : ""} against the job description`
             : "Pick at least one CV above to begin"}
         </p>
+      </div>
+
+      {/* The agent's shape, kept BELOW the action so people watch how it works
+          while the run happens in the background. The header switches to a live
+          "running" state so it's obvious the work is happening, not stalled. */}
+      <div className="rounded-card border border-navy-800/12 bg-white p-6">
+        <div className="mb-4 flex flex-wrap items-start justify-between gap-2">
+          <div>
+            <h2 className="text-lg font-semibold">How this agent runs</h2>
+            <p className="mt-0.5 max-w-[60ch] text-sm text-navy-800/55">
+              {running
+                ? "Your agent is working in the background — here's what it's doing while you wait. The report appears below as soon as it's done."
+                : "The agent reads your job description and CVs, screens each candidate, and writes an evidence-based report back."}
+            </p>
+          </div>
+          {running && (
+            <span className="inline-flex shrink-0 items-center gap-2 rounded-chip bg-mint-400/15 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-mint-700">
+              <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-mint-700" />
+              Running in the background
+            </span>
+          )}
+        </div>
+        <WorkflowCanvas graph={graph} highlightSkill />
       </div>
 
       {(steps.length > 0 || running) && (
