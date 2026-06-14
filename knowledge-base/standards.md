@@ -26,6 +26,26 @@ Inter (sans), JetBrains Mono. UI should be modern/colorful/screenshot-worthy.
 Tailwind gotcha: to override a same-property utility, **swap the class
 conditionally** (e.g. `max-w-none` vs `max-w-[68ch]`) — appending won't win.
 
+## File attachments (drag & drop UX)
+Canonical impl: `components/agent-run-panel.tsx` (per-run files) + `run-panel.tsx`
+(workflow inputs). UX expectations for any new dropzone:
+- **Make it discoverable at rest.** Always show a visible "📎 Attach files"
+  affordance with a muted "or drag & drop" hint — never rely on drag alone.
+- **Whole composer is the drop target,** not just the button. Handle
+  `onDragOver` (call `e.preventDefault()`, set `dragOver`), `onDragLeave`,
+  `onDrop` (`preventDefault`, clear state, read `e.dataTransfer.files`).
+- **Show an obvious hover state.** On `dragOver`: dashed mint border + ring +
+  a `pointer-events-none` overlay ("Drop files to attach…"). The overlay must
+  not swallow the drop event.
+- **Accept = `.pdf,.docx,.txt,.md`, 20 MB cap** (`ATTACH_MAX_BYTES`), `multiple`.
+  Validate size client-side; surface per-file errors, don't fail silently.
+- **Same path for button + drop** (one `addFiles`/`addAttachments` handler).
+  Show attached files as removable chips; reset the `<input>.value` after.
+- **Say where the file goes.** Per-run-only vs persisted is a real distinction —
+  state it in helper text (e.g. "used for this run only and aren't saved").
+  Per-run files extract text via `/api/agents/extract` (no DB write); persisted
+  files go through `uploadDocumentAction`.
+
 ## State / client patterns
 - localStorage persistence: use `usePersistedSelection` or `useSyncExternalStore`
   (the lint rule `react-hooks/set-state-in-effect` blocks setState-in-effect).
