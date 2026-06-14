@@ -50,6 +50,54 @@ function contextBlock(c: AssembledContext): string {
   );
 }
 
+/** A file the user attached for this run only (extracted client-side text,
+ *  never stored as a project document). */
+interface RunAttachment {
+  name: string;
+  text: string;
+}
+
+const MAX_ATTACHMENTS = 10;
+const MAX_ATTACH_CHARS = 200_000; // keep the injected block within a sane budget
+
+/** Validate + cap the attachments the client sent, trimming the total injected
+ *  text so a few large files can't blow the context window. */
+function parseAttachments(raw: unknown): RunAttachment[] {
+  if (!Array.isArray(raw)) return [];
+  const out: RunAttachment[] = [];
+  let total = 0;
+  for (const item of raw.slice(0, MAX_ATTACHMENTS)) {
+    if (!item || typeof item !== "object") continue;
+    const rec = item as Record<string, unknown>;
+    const text = typeof rec.text === "string" ? rec.text.trim() : "";
+    if (!text) continue;
+    const name =
+      typeof rec.name === "string" && rec.name.trim()
+        ? rec.name.trim().slice(0, 200)
+        : "attachment";
+    const room = MAX_ATTACH_CHARS - total;
+    if (room <= 0) break;
+    const clipped = text.length > room ? `${text.slice(0, room)}\n…[truncated]` : text;
+    total += clipped.length;
+    out.push({ name, text: clipped });
+  }
+  return out;
+}
+
+/** System-prompt block holding the run's attached files, mirroring how project
+ *  context is folded in — the agent uses them directly instead of searching. */
+function attachmentsBlock(attachments: RunAttachment[]): string {
+  if (attachments.length === 0) return "";
+  const body = attachments.map((a) => `## ${a.name}\n${a.text}`).join("\n\n");
+  return (
+    "# Files attached to this run\n" +
+    "The user attached the following file(s) for this run only — they are not " +
+    "saved to the project. Treat them as primary input for the task. Their full " +
+    "text is included here, so don't call the search/read tools to find them.\n\n" +
+    body
+  );
+}
+
 function summarize(value: unknown): string {
   let s: string;
   try {
@@ -69,6 +117,7 @@ export async function POST(request: NextRequest) {
   const projectId = String(body?.projectId ?? "");
   const agentId = String(body?.agentId ?? "");
   const task = typeof body?.task === "string" ? body.task : "";
+  const attachments = parseAttachments(body?.attachments);
 
   const [project, agent] = await Promise.all([
     getProject(session.workspaceId, projectId),
@@ -437,6 +486,11 @@ export async function POST(request: NextRequest) {
   } catch (err) {
     console.warn("Agent context assembly failed:", err);
   }
+
+  // Fold in any files the user attached for this run only (extracted text;
+  // never stored as project documents).
+  const attachBlock = attachmentsBlock(attachments);
+  if (attachBlock) systemPrompt = `${systemPrompt}\n\n${attachBlock}`;
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {

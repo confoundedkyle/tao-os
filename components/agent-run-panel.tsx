@@ -43,6 +43,17 @@ interface Step {
   summary: string;
 }
 
+/** A file attached for this run only — its extracted text is sent with the run
+ *  and never saved as a project document. */
+interface RunAttachment {
+  name: string;
+  text: string;
+}
+
+const ATTACH_ACCEPT = ".pdf,.docx,.txt,.md";
+const ATTACH_MAX_BYTES = 20 * 1024 * 1024;
+const MAX_ATTACHMENTS = 10;
+
 const TOOL_LABELS: Record<string, string> = {
   calyflow_search_documents: "Searched knowledge base",
   calyflow_read_document: "Read document",
@@ -109,6 +120,49 @@ export function AgentRunPanel({
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploadDocType, setUploadDocType] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  // Files attached for this run only (not saved to the project).
+  const attachRef = useRef<HTMLInputElement>(null);
+  const [attachments, setAttachments] = useState<RunAttachment[]>([]);
+  const [attaching, setAttaching] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+
+  async function addAttachments(list: FileList | null) {
+    if (!list || list.length === 0) return;
+    setError(null);
+    const room = MAX_ATTACHMENTS - attachments.length;
+    if (room <= 0) {
+      setError(`You can attach up to ${MAX_ATTACHMENTS} files per run.`);
+      return;
+    }
+    setAttaching(true);
+    try {
+      for (const file of Array.from(list).slice(0, room)) {
+        if (file.size > ATTACH_MAX_BYTES) {
+          setError(`${file.name} is over the 20 MB limit.`);
+          continue;
+        }
+        const fd = new FormData();
+        fd.set("file", file);
+        const res = await fetch("/api/agents/extract", {
+          method: "POST",
+          body: fd,
+        });
+        const data = await res.json().catch(() => null);
+        if (!res.ok) {
+          setError(data?.error ?? `Couldn't attach ${file.name}`);
+          continue;
+        }
+        setAttachments((prev) => [...prev, { name: data.name, text: data.text }]);
+      }
+    } finally {
+      setAttaching(false);
+      if (attachRef.current) attachRef.current.value = "";
+    }
+  }
+
+  function removeAttachment(index: number) {
+    setAttachments((prev) => prev.filter((_, i) => i !== index));
+  }
 
   async function uploadRequiredDoc(file: File, docType: string) {
     setUploading(true);
@@ -184,6 +238,7 @@ export function AgentRunPanel({
           agentId: agent.id,
           task: task.trim(),
           connectors: choices,
+          attachments,
         }),
       });
       if (!response.ok) {
@@ -393,7 +448,33 @@ export function AgentRunPanel({
           <p className="mb-3 text-xs font-bold uppercase tracking-wider text-mint-700">
             Your task for this run
           </p>
-          <div className="rounded-card border-[1.5px] border-navy-800/15 bg-white shadow-[0_4px_18px_rgba(19,31,56,0.07)] transition focus-within:border-mint-700">
+          <div
+            onDragOver={(e) => {
+              e.preventDefault();
+              if (!running) setDragOver(true);
+            }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setDragOver(false);
+              if (!running) void addAttachments(e.dataTransfer.files);
+            }}
+            className={`relative rounded-card border-[1.5px] bg-white shadow-[0_4px_18px_rgba(19,31,56,0.07)] transition focus-within:border-mint-700 ${
+              dragOver
+                ? "border-dashed border-mint-700 ring-2 ring-mint-400/40"
+                : "border-navy-800/15"
+            }`}
+          >
+            {dragOver && (
+              <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center gap-1 rounded-card bg-mint-400/12 backdrop-blur-[1px]">
+                <span aria-hidden className="text-2xl">
+                  📎
+                </span>
+                <span className="text-sm font-semibold text-mint-700">
+                  Drop files to attach for this run
+                </span>
+              </div>
+            )}
             <textarea
               value={task}
               onChange={(e) => setTask(e.target.value)}
@@ -402,12 +483,57 @@ export function AgentRunPanel({
               placeholder="Add clarifying information to complete this task."
               className="block w-full resize-y border-0 bg-transparent px-4 py-3 text-sm leading-relaxed outline-none placeholder:text-navy-800/35"
             />
-            <div className="flex items-center justify-end border-t border-navy-800/8 px-3 py-2.5">
+            {attachments.length > 0 && (
+              <ul className="flex flex-wrap gap-1.5 border-t border-navy-800/8 px-3 py-2.5">
+                {attachments.map((a, i) => (
+                  <li
+                    key={`${a.name}-${i}`}
+                    className="inline-flex items-center gap-1.5 rounded-chip bg-cream-100 px-2 py-1 text-xs font-medium text-navy-800/70"
+                  >
+                    <span aria-hidden>📄</span>
+                    <span className="max-w-44 truncate" title={a.name}>
+                      {a.name}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => removeAttachment(i)}
+                      disabled={running}
+                      aria-label={`Remove ${a.name}`}
+                      className="text-navy-800/40 transition hover:text-coral-400 disabled:opacity-50"
+                    >
+                      ✕
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="flex items-center justify-between gap-3 border-t border-navy-800/8 px-3 py-2.5">
+              <label className="flex cursor-pointer items-center gap-1.5 rounded-chip px-2 py-1.5 text-sm font-semibold text-navy-800/55 transition hover:bg-cream-100 hover:text-navy-800">
+                <input
+                  ref={attachRef}
+                  type="file"
+                  multiple
+                  accept={ATTACH_ACCEPT}
+                  className="sr-only"
+                  disabled={running || attaching}
+                  onChange={(e) => void addAttachments(e.target.files)}
+                />
+                <span aria-hidden>📎</span>
+                {attaching ? "Attaching…" : "Attach files"}
+                <span className="font-normal text-navy-800/35">
+                  or drag &amp; drop
+                </span>
+              </label>
               <Button onClick={run} disabled={running || archived || !ready}>
                 {running ? "Running…" : "▶ Run agent"}
               </Button>
             </div>
           </div>
+          <p className="mt-2 text-xs text-navy-800/40">
+            Attached files (PDF, DOCX, TXT, MD · 20 MB) are used for this run
+            only and aren&apos;t saved. To keep a file, add it in the Documents
+            tab.
+          </p>
         </div>
 
       {archived && (
