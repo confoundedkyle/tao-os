@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import {
+  getDocumentTextAction,
   setDocumentActiveAction,
   uploadDocumentAction,
   uploadInputForRunAction,
@@ -22,39 +23,51 @@ interface CvRow extends DemoCv {
   sample: boolean;
 }
 
+interface Step {
+  kind: "tool-call" | "tool-result";
+  tool: string;
+  summary: string;
+}
+
+const TOOL_LABELS: Record<string, string> = {
+  calyflow_search_documents: "Searched knowledge base",
+  calyflow_read_document: "Read document",
+  calyflow_create_document: "Saved document",
+};
+
+/** Friendly label for a tool name, e.g. "calyflow_read_document" → "Read document". */
+function toolLabel(tool: string): string {
+  if (TOOL_LABELS[tool]) return TOOL_LABELS[tool];
+  const [prefix, ...rest] = tool.split("_");
+  return rest.length ? `${prefix} · ${rest.join(" ")}` : tool;
+}
+
 export function DemoExperience({
   projectId,
-  workflowId,
-  workflowName,
+  agentId,
+  agentName,
   graph,
   jd,
   cvs,
 }: {
   projectId: string;
-  workflowId: string;
-  workflowName: string;
+  agentId: string;
+  agentName: string;
   graph: WorkflowGraph;
   jd: { id: string; filename: string; text: string };
   cvs: DemoCv[];
 }) {
-  const [tab, setTab] = useState<"cv" | "agentic">("cv");
-
   return (
     <div>
       <Hero />
-      <Tabs tab={tab} onChange={setTab} />
-      {tab === "cv" ? (
-        <CvScreener
-          projectId={projectId}
-          workflowId={workflowId}
-          workflowName={workflowName}
-          graph={graph}
-          jd={jd}
-          cvs={cvs}
-        />
-      ) : (
-        <AgenticComingSoon />
-      )}
+      <CvScreener
+        projectId={projectId}
+        agentId={agentId}
+        agentName={agentName}
+        graph={graph}
+        jd={jd}
+        cvs={cvs}
+      />
     </div>
   );
 }
@@ -74,7 +87,7 @@ function Hero() {
         Screen a stack of CVs in seconds — not hours
       </h1>
       <p className="mt-2 max-w-[60ch] text-white/65">
-        This is the real CV Screener workflow, tuned for recruiting. Use our
+        This is the real CV Screener agent, tuned for recruiting. Use our
         sample role and candidates, or drop in your own — then hit run and watch
         an evidence-based scorecard appear.
       </p>
@@ -82,72 +95,17 @@ function Hero() {
   );
 }
 
-function Tabs({
-  tab,
-  onChange,
-}: {
-  tab: "cv" | "agentic";
-  onChange: (t: "cv" | "agentic") => void;
-}) {
-  const base =
-    "rounded-chip px-4 py-2 text-sm font-semibold transition";
-  return (
-    <div className="mb-6 inline-flex gap-1 rounded-chip border border-navy-800/12 bg-white p-1 shadow-sm">
-      <button
-        type="button"
-        onClick={() => onChange("cv")}
-        className={`${base} ${
-          tab === "cv"
-            ? "bg-mint-400 text-navy-900"
-            : "text-navy-800/60 hover:text-navy-900"
-        }`}
-      >
-        🧰 CV Screener
-      </button>
-      <button
-        type="button"
-        onClick={() => onChange("agentic")}
-        className={`${base} flex items-center gap-1.5 ${
-          tab === "agentic"
-            ? "bg-navy-900 text-white"
-            : "text-navy-800/50 hover:text-navy-800"
-        }`}
-      >
-        🤖 Agentic run
-        <span className="rounded-full bg-amber-400/25 px-1.5 py-px text-[10px] font-bold uppercase tracking-wide text-amber-400">
-          Soon
-        </span>
-      </button>
-    </div>
-  );
-}
-
-function AgenticComingSoon() {
-  return (
-    <div className="rounded-card border border-dashed border-navy-800/20 bg-cream-50 p-10 text-center">
-      <div className="text-4xl">🤖</div>
-      <h2 className="mt-3 text-xl font-semibold">Agentic run — coming soon</h2>
-      <p className="mx-auto mt-2 max-w-[52ch] text-navy-800/55">
-        Where the CV Screener is a single AI call, an agentic run plans and takes
-        multiple steps on its own — pulling candidates from your ATS, screening
-        each one, and drafting outreach. We&apos;re putting the finishing touches
-        on this demo.
-      </p>
-    </div>
-  );
-}
-
 function CvScreener({
   projectId,
-  workflowId,
-  workflowName,
+  agentId,
+  agentName,
   graph,
   jd,
   cvs,
 }: {
   projectId: string;
-  workflowId: string;
-  workflowName: string;
+  agentId: string;
+  agentName: string;
   graph: WorkflowGraph;
   jd: { id: string; filename: string; text: string };
   cvs: DemoCv[];
@@ -165,6 +123,7 @@ function CvScreener({
   const [cvBusy, setCvBusy] = useState(false);
 
   const [output, setOutput] = useState("");
+  const [steps, setSteps] = useState<Step[]>([]);
   const [running, setRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const outputRef = useRef<HTMLDivElement>(null);
@@ -249,15 +208,33 @@ function CvScreener({
     }
     setError(null);
     setOutput("");
+    setSteps([]);
     setRunning(true);
     try {
-      const response = await fetch("/api/runs", {
+      // The agent reads candidates from the project knowledge base via tools,
+      // and search only returns *active* docs — so mirror the checkboxes onto
+      // each CV's active state before the run.
+      await Promise.all(
+        cvRows.map((cv) =>
+          setDocumentActiveAction(cv.id, selected.has(cv.id)),
+        ),
+      );
+
+      // Only the selected CVs are active (above), and the agent's document
+      // search only returns active docs — so a simple instruction screens
+      // exactly the picked candidates without naming each one.
+      const count = selected.size;
+      const response = await fetch("/api/agents/run", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           projectId,
-          workflowId,
-          inputDocIds: Array.from(selected),
+          agentId,
+          task:
+            `Screen the ${count} candidate CV${count === 1 ? "" : "s"} in ` +
+            "this project against the job description, then save one " +
+            "screening report covering them.",
+          connectors: {},
         }),
       });
       if (!response.ok) {
@@ -266,14 +243,70 @@ function CvScreener({
       }
       const reader = response.body!.getReader();
       const decoder = new TextDecoder();
+      let buffer = "";
+      let outputDocId: string | null = null;
+      let streamed = "";
       for (;;) {
         const { done, value } = await reader.read();
         if (done) break;
-        setOutput((prev) => prev + decoder.decode(value, { stream: true }));
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          let ev: {
+            type: string;
+            value?: string;
+            tool?: string;
+            summary?: string;
+            message?: string;
+            outputDocId?: string | null;
+          };
+          try {
+            ev = JSON.parse(line);
+          } catch {
+            continue;
+          }
+          if (ev.type === "text") {
+            streamed += ev.value ?? "";
+            setOutput((prev) => prev + (ev.value ?? ""));
+          } else if (ev.type === "tool-call" || ev.type === "tool-result") {
+            setSteps((prev) => [
+              ...prev,
+              {
+                kind: ev.type as "tool-call" | "tool-result",
+                tool: ev.tool ?? "",
+                summary: ev.summary ?? "",
+              },
+            ]);
+          } else if (ev.type === "error") {
+            throw new Error(ev.message ?? "The agent run failed.");
+          } else if (ev.type === "done" && ev.outputDocId) {
+            outputDocId = ev.outputDocId;
+          }
+        }
         outputRef.current?.scrollTo({ top: outputRef.current.scrollHeight });
       }
+
+      // The full screening report is saved as a document; show it in place of
+      // the agent's short closing note so the demo lands the same payoff.
+      if (outputDocId) {
+        const report = await getDocumentTextAction(outputDocId);
+        if (report.trim()) {
+          setOutput(report);
+          return;
+        }
+      }
+      // The run ended without a saved report and without streamed text — most
+      // often the agent hit its step budget before finishing. Never leave the
+      // user staring at a blank panel with no explanation.
+      if (!outputDocId && !streamed.trim()) {
+        setError(
+          "The agent finished without producing a screening report — it may have run out of steps. Please try running it again.",
+        );
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Run failed");
+      setError(err instanceof Error ? err.message : "The agent run failed.");
     } finally {
       setRunning(false);
     }
@@ -281,12 +314,12 @@ function CvScreener({
 
   return (
     <div className="space-y-6">
-      {/* Canvas — the workflow shape, with the recruiting skill spotlighted. */}
+      {/* Canvas — the agent shape, with the recruiting skill spotlighted. */}
       <div className="rounded-card border border-navy-800/12 bg-white p-6">
-        <h2 className="mb-1 text-lg font-semibold">How this workflow runs</h2>
+        <h2 className="mb-1 text-lg font-semibold">How this agent runs</h2>
         <p className="mb-4 text-sm text-navy-800/55">
-          Your inputs flow into one expert-tuned AI call, and a screening report
-          comes out the other side.
+          The agent reads your job description and CVs from the project, screens
+          each candidate, and writes an evidence-based report back.
         </p>
         <WorkflowCanvas graph={graph} highlightSkill />
       </div>
@@ -388,7 +421,7 @@ function CvScreener({
       {/* Run — the moment of truth. */}
       <div className="flex flex-col items-center gap-2 rounded-card bg-linear-to-br from-mint-400/15 to-sky-300/10 px-6 py-7 text-center">
         <Button onClick={run} disabled={!canRun} className="text-base">
-          {running ? "Screening…" : "▶ Run Workflow"}
+          {running ? "Screening…" : "▶ Run Agent"}
         </Button>
         <p className="text-sm text-navy-800/55">
           {selected.size > 0
@@ -397,11 +430,45 @@ function CvScreener({
         </p>
       </div>
 
+      {(steps.length > 0 || running) && (
+        <div className="rounded-card border border-navy-800/12 bg-cream-100/60 p-4">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-navy-800/40">
+            What the agent did
+          </p>
+          <ol className="space-y-1.5">
+            {steps.map((step, i) => (
+              <li key={i} className="flex items-start gap-2 text-sm">
+                <span aria-hidden className="mt-0.5 shrink-0">
+                  {step.kind === "tool-call" ? "▸" : "✓"}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="font-medium text-navy-800/80">
+                    {toolLabel(step.tool)}
+                  </span>
+                  <span
+                    className="block truncate text-xs text-navy-800/45"
+                    title={step.summary}
+                  >
+                    {step.summary}
+                  </span>
+                </span>
+              </li>
+            ))}
+            {running && (
+              <li className="flex items-center gap-2 text-sm text-navy-800/45">
+                <span className="inline-block h-3 w-3 animate-pulse rounded-full bg-mint-400" />
+                Thinking…
+              </li>
+            )}
+          </ol>
+        </div>
+      )}
+
       <RunOutput
         output={output}
         running={running}
         outputRef={outputRef}
-        filename={`${workflowName} — screening report`}
+        filename={`${agentName} — screening report`}
       />
     </div>
   );

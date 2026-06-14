@@ -39,7 +39,36 @@ interface WorkflowYaml {
 
 async function seedWorkflows() {
   const dir = join(__dirname, "..", "workflows");
-  const files = readdirSync(dir).filter((f) => f.endsWith(".yaml"));
+  let files: string[];
+  try {
+    files = readdirSync(dir).filter((f) => f.endsWith(".yaml"));
+  } catch {
+    files = []; // no workflows directory — everything below retires cleanly
+  }
+
+  // Retire library workflows whose YAML was removed from the repo (the curated
+  // workflows have been folded into agents). Workspace copies keep working —
+  // they're detached (library_workflow_id → null) so the FK allows the row to go.
+  const repoSlugs = files.map(
+    (f) => (load(readFileSync(join(dir, f), "utf8")) as WorkflowYaml).slug,
+  );
+  const { data: existing } = await db
+    .from("library_workflows")
+    .select("id, slug");
+  const stale = (existing ?? []).filter((w) => !repoSlugs.includes(w.slug));
+  for (const wf of stale) {
+    await db
+      .from("workspace_workflows")
+      .update({ library_workflow_id: null })
+      .eq("library_workflow_id", wf.id);
+    const { error } = await db
+      .from("library_workflows")
+      .delete()
+      .eq("id", wf.id);
+    if (error) throw new Error(`retire ${wf.slug}: ${error.message}`);
+    console.log(`✗ retired workflow ${wf.slug}`);
+  }
+
   for (const file of files) {
     const wf = load(readFileSync(join(dir, file), "utf8")) as WorkflowYaml;
     const { error } = await db.from("library_workflows").upsert(
@@ -72,6 +101,7 @@ interface AgentYaml {
   allowed_tools: string[];
   model: string | null;
   max_steps: number;
+  context?: string;
   version?: number;
   featured?: boolean;
   og_description?: string;
@@ -118,6 +148,7 @@ async function seedAgents() {
         allowed_tools: a.allowed_tools,
         model: a.model ?? null,
         max_steps: a.max_steps ?? 12,
+        context: a.context ?? "recruiting-project",
         version: a.version ?? 1,
         featured: a.featured ?? false,
         og_description: a.og_description ?? null,

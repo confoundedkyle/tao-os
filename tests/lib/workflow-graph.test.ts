@@ -1,6 +1,3 @@
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-import { load } from "js-yaml";
 import { describe, expect, it } from "vitest";
 import type { InputSpec, OutputSpec } from "@/lib/types";
 import { deriveWorkflowGraph } from "@/lib/workflow-graph";
@@ -186,47 +183,4 @@ describe("deriveWorkflowGraph", () => {
     }
   });
 
-  it("derives a connected, grouped graph for every seeded workflow", () => {
-    const dir = join(__dirname, "../../workflows");
-    const files = readdirSync(dir).filter((f) => f.endsWith(".yaml"));
-    expect(files.length).toBeGreaterThan(0);
-
-    for (const file of files) {
-      const wf = load(readFileSync(join(dir, file), "utf8")) as {
-        name: string;
-        prompt_template: string;
-        input_spec: InputSpec;
-        output_spec: OutputSpec;
-      };
-      // Every seeded workflow now declares knowledge + an output name.
-      expect(wf.input_spec.knowledge?.length, file).toBeGreaterThan(0);
-      expect(wf.output_spec.name, file).toBeTruthy();
-
-      const graph = deriveWorkflowGraph({
-        name: wf.name,
-        promptTemplate: wf.prompt_template,
-        inputSpec: wf.input_spec,
-        outputSpec: wf.output_spec,
-      });
-
-      const ids = new Set(graph.nodes.map((n) => n.id));
-      expect(ids.has("grp-knowledge"), file).toBe(true);
-      expect(ids.has("grp-project"), file).toBe(true);
-      for (const edge of graph.edges) {
-        expect(ids.has(edge.source), `${file}: ${edge.id}`).toBe(true);
-        expect(ids.has(edge.target), `${file}: ${edge.id}`).toBe(true);
-      }
-      // Both groups + the skill feed the engine; the engine feeds the output.
-      expect(
-        graph.edges.filter((e) => e.target === "step").length,
-        file,
-      ).toBe(3);
-      expect(graph.nodes.find((n) => n.id === "skill")!.title, file).toBe(
-        wf.name,
-      );
-      expect(graph.nodes.find((n) => n.id === "out")!.title, file).toBe(
-        wf.output_spec.name,
-      );
-    }
-  });
 });

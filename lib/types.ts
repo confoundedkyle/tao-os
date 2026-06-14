@@ -290,6 +290,8 @@ export interface LibraryAgent {
   allowed_tools: string[];
   model: string | null;
   max_steps: number;
+  /** Where the agent belongs: "recruiting-project" (default) | "business-development". */
+  context: string;
   version: number;
   /** Highlighted on the public marketing homepage. */
   featured: boolean;

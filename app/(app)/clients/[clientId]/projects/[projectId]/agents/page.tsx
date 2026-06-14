@@ -1,38 +1,10 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
-import {
-  getPrimaryRunModel,
-  getProject,
-  listAgentRuns,
-  listConnections,
-  listWorkspaceAgents,
-} from "@/lib/queries";
-import {
-  CONNECTOR_CATEGORY_LABELS,
-  connectorsForCategory,
-  requiredConnectorCategories,
-} from "@/lib/connectors";
-import {
-  AgentRunPanel,
-  type AgentConnectorRequirement,
-} from "@/components/agent-run-panel";
-import { ButtonLink, Card, Chip, Mono } from "@/components/ui";
-
-/** The agent's required categories, each with the workspace's connected
- *  options of that category (the run panel's connector pickers). */
-function requirementsFor(
-  tools: string[],
-  connectedProviders: Set<string>,
-): AgentConnectorRequirement[] {
-  return requiredConnectorCategories(tools).map((category) => ({
-    category,
-    label: CONNECTOR_CATEGORY_LABELS[category],
-    options: connectorsForCategory(category)
-      .filter((c) => c.provider && connectedProviders.has(c.provider))
-      .map((c) => ({ provider: c.provider!, label: c.name })),
-  }));
-}
+import { getProject } from "@/lib/queries";
+import { listRunItems } from "@/lib/run-items";
+import { CombinedRunHistory } from "@/components/combined-run-history";
+import { ButtonLink, Card } from "@/components/ui";
 
 export default async function ProjectAgentsPage({
   params,
@@ -45,46 +17,25 @@ export default async function ProjectAgentsPage({
   const project = await getProject(session.workspaceId, projectId);
   if (!project || project.client.id !== clientId) notFound();
 
-  const [allAgents, runs, connections, model] = await Promise.all([
-    listWorkspaceAgents(session.workspaceId),
-    listAgentRuns(session.workspaceId, projectId),
-    listConnections(session.workspaceId),
-    getPrimaryRunModel(session.workspaceId),
-  ]);
-  const agents = allAgents.filter((a) => !a.archived_at);
-
-  const connectedProviders = new Set(
-    connections.filter((c) => c.status === "active").map((c) => c.provider),
-  );
+  const items = await listRunItems(session.workspaceId, projectId);
 
   return (
     <div className="space-y-6">
       <Card featured>
-        <h2 className="mb-1 text-xl font-semibold">Run a data agent</h2>
+        <h2 className="mb-1 text-xl font-semibold">Run an agent</h2>
         <p className="mb-4 text-sm text-navy-800/55">
           Agents read your knowledge base, query connected data sources, and
           write a result back into this project.
         </p>
-        {agents.length > 0 ? (
-          <AgentRunPanel
-            projectId={project.id}
-            agents={agents.map((a) => ({
-              id: a.id,
-              name: a.name,
-              requirements: requirementsFor(
-                a.allowed_tools ?? [],
-                connectedProviders,
-              ),
-            }))}
-            model={model}
-            connectorsHref="/settings/connectors"
-            archived={project.status !== "active"}
-          />
+        {items.length > 0 ? (
+          <p className="text-sm text-navy-800/55">
+            Select an agent from the list on the left to give it a task.
+          </p>
         ) : (
           <div className="space-y-5">
             <HowItWorks />
             <p className="text-sm text-navy-800/55">
-              No agents imported yet.{" "}
+              No agents yet.{" "}
               <ButtonLink
                 href="/library?tab=agents"
                 variant="small"
@@ -97,71 +48,19 @@ export default async function ProjectAgentsPage({
         )}
       </Card>
 
-      <Card>
-        <h2 className="mb-4 text-xl font-semibold">Agent run history</h2>
-        {runs.length === 0 ? (
-          <p className="text-sm text-navy-800/45">No agent runs yet.</p>
-        ) : (
-          <ul className="divide-y divide-navy-800/8">
-            {runs.map((run) => (
-              <li key={run.id} className="py-2.5">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="min-w-0 truncate font-medium">
-                    {run.agent?.name ?? "Agent"}
-                    {run.task ? (
-                      <span className="text-navy-800/45"> — {run.task}</span>
-                    ) : null}
-                  </span>
-                  <div className="flex shrink-0 items-center gap-2">
-                    {run.output_doc_id && (
-                      <Link
-                        href={`/docs/${run.output_doc_id}`}
-                        className="text-sm text-mint-700 hover:underline"
-                      >
-                        output
-                      </Link>
-                    )}
-                    <Chip
-                      tone={
-                        run.status === "succeeded"
-                          ? "mint"
-                          : run.status === "failed"
-                            ? "coral"
-                            : "sky"
-                      }
-                    >
-                      {run.status}
-                    </Chip>
-                  </div>
-                </div>
-                <Mono>
-                  {new Date(run.created_at).toLocaleString("en-GB", {
-                    day: "numeric",
-                    month: "short",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                  {" · "}
-                  {run.model ?? "—"}
-                  {" · "}
-                  {(run.steps?.length ?? 0)} tool step
-                  {(run.steps?.length ?? 0) === 1 ? "" : "s"}
-                  {" · "}
-                  {run.cost_usd != null
-                    ? `$${Number(run.cost_usd).toFixed(4)}`
-                    : "—"}
-                </Mono>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Card>
+      <CombinedRunHistory
+        workspaceId={session.workspaceId}
+        projectId={project.id}
+      />
 
       <p className="text-sm text-navy-800/45">
         Need a new data source?{" "}
-        <ButtonLink href="/settings/connectors" variant="small">
+        <Link
+          href="/settings/connectors"
+          className="font-semibold text-mint-700 hover:underline"
+        >
           Manage connectors
-        </ButtonLink>
+        </Link>
       </p>
     </div>
   );

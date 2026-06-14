@@ -6,9 +6,16 @@ import { useRouter } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { usePersistedSelection } from "@/lib/use-persisted-selection";
+import { uploadDocumentAction } from "@/lib/actions/documents";
 import { deriveAgentGraph } from "@/lib/workflow-graph";
 import { Button } from "./ui";
 import { WorkflowCanvas } from "./workflow-canvas";
+
+/** A required project document the agent needs before it can run. */
+export interface AgentMissingDoc {
+  docType: string;
+  label: string;
+}
 
 /** A connector category an agent needs, with the workspace's connected
  *  options for it (empty = nothing of that category is connected yet). */
@@ -21,6 +28,12 @@ export interface AgentConnectorRequirement {
 export interface AgentRunPanelAgent {
   id: string;
   name: string;
+  /** Library slug — drives the "Documents" node on the canvas. */
+  slug?: string;
+  /** Shown under the "Advanced skill" node on the canvas. */
+  description?: string;
+  /** Full instructions — shown when the skill node on the canvas is opened. */
+  instructions?: string;
   requirements: AgentConnectorRequirement[];
 }
 
@@ -58,12 +71,18 @@ export function AgentRunPanel({
   agents,
   model,
   connectorsHref,
+  documentsHref,
+  missingDocs = [],
   archived,
 }: {
   projectId: string;
   agents: AgentRunPanelAgent[];
   model: { providerLabel: string; modelId: string } | null;
   connectorsHref: string;
+  /** Project Documents tab — where to add the required docs. */
+  documentsHref?: string;
+  /** Required project documents that are not present yet — blocks the run. */
+  missingDocs?: AgentMissingDoc[];
   archived: boolean;
 }) {
   const router = useRouter();
@@ -87,6 +106,29 @@ export function AgentRunPanel({
   const [error, setError] = useState<string | null>(null);
   const [outputDocId, setOutputDocId] = useState<string | null>(null);
   const outputRef = useRef<HTMLDivElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploadDocType, setUploadDocType] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  async function uploadRequiredDoc(file: File, docType: string) {
+    setUploading(true);
+    setError(null);
+    try {
+      const fd = new FormData();
+      fd.set("file", file);
+      fd.set("scopeType", "project");
+      fd.set("scopeId", projectId);
+      fd.set("kind", "file");
+      fd.set("docType", docType);
+      await uploadDocumentAction(fd);
+      router.refresh(); // server recomputes missingDocs → the gate clears
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Couldn't upload the file");
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  }
 
   const agent = useMemo(
     () => agents.find((a) => a.id === agentId),
@@ -102,7 +144,8 @@ export function AgentRunPanel({
   const missingCategories = (agent?.requirements ?? []).filter(
     (req) => req.options.length === 0,
   );
-  const ready = missingCategories.length === 0;
+  const blocked = missingCategories.length > 0 || missingDocs.length > 0;
+  const ready = !blocked;
 
   const graph = useMemo(() => {
     if (!agent) return null;
@@ -119,6 +162,9 @@ export function AgentRunPanel({
         };
       }),
       model,
+      slug: agent.slug,
+      description: agent.description,
+      instructions: agent.instructions,
     });
   }, [agent, choices, model]);
 
@@ -205,23 +251,27 @@ export function AgentRunPanel({
   return (
     <div>
       <div className="flex flex-wrap items-end gap-3">
-        <label className="block min-w-56 max-w-xs">
-          <span className="mb-1.5 block text-sm font-semibold text-navy-800/80">
-            Agent
-          </span>
-          <select
-            value={agentId}
-            disabled={running}
-            onChange={(e) => setAgentId(e.target.value)}
-            className="w-full rounded-chip border border-navy-800/20 bg-white px-3.5 py-2.5 outline-none focus:border-mint-700"
-          >
-            {agents.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.name}
-              </option>
-            ))}
-          </select>
-        </label>
+        {/* The selector only matters when several agents share a panel; on the
+            per-agent page there's a single agent named in the heading. */}
+        {agents.length > 1 && (
+          <label className="block min-w-56 max-w-xs">
+            <span className="mb-1.5 block text-sm font-semibold text-navy-800/80">
+              Agent
+            </span>
+            <select
+              value={agentId}
+              disabled={running}
+              onChange={(e) => setAgentId(e.target.value)}
+              className="w-full rounded-chip border border-navy-800/20 bg-white px-3.5 py-2.5 outline-none focus:border-mint-700"
+            >
+              {agents.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
 
         {(agent?.requirements ?? [])
           .filter((req) => req.options.length > 0)
@@ -266,12 +316,39 @@ export function AgentRunPanel({
         </div>
       )}
 
-      {missingCategories.length > 0 ? (
+      {blocked && (
         <div className="mt-4 rounded-card border border-amber-400/30 bg-amber-400/8 px-4 py-3">
           <p className="text-sm font-semibold text-navy-800/70">
             Before you can run this agent:
           </p>
-          <ul className="mt-1.5 space-y-1">
+          <ul className="mt-1.5 space-y-1.5">
+            {missingDocs.map((doc) => (
+              <li
+                key={doc.docType}
+                className="flex items-center justify-between gap-3 text-sm text-navy-800/80"
+              >
+                <span className="flex items-center gap-2">
+                  <span aria-hidden className="text-amber-400">
+                    ☐
+                  </span>
+                  Add the {doc.label}
+                  <span className="rounded-full bg-amber-400/20 px-1.5 py-px text-[10px] font-bold uppercase tracking-wide text-amber-400">
+                    Required
+                  </span>
+                </span>
+                <button
+                  type="button"
+                  disabled={uploading}
+                  onClick={() => {
+                    setUploadDocType(doc.docType);
+                    fileRef.current?.click();
+                  }}
+                  className="shrink-0 rounded-chip border border-navy-800/20 px-2.5 py-1 text-xs font-semibold text-navy-800/70 transition hover:border-mint-700 hover:text-mint-700 disabled:opacity-50"
+                >
+                  {uploading ? "Uploading…" : "Upload"}
+                </button>
+              </li>
+            ))}
             {missingCategories.map((req) => (
               <li
                 key={req.category}
@@ -282,7 +359,7 @@ export function AgentRunPanel({
                 </span>
                 <Link
                   href={`${connectorsHref}?category=${req.category}`}
-                  className="hover:text-mint-700 hover:underline"
+                  className="font-semibold text-mint-700 hover:underline"
                 >
                   Connect {/^[aeio]/i.test(req.label) ? "an" : "a"} {req.label}{" "}
                   connector
@@ -290,15 +367,29 @@ export function AgentRunPanel({
               </li>
             ))}
           </ul>
-          <Link
-            href={`${connectorsHref}?category=${missingCategories[0].category}`}
-            className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-mint-700 hover:underline"
-          >
-            Set up a connector →
-          </Link>
+          <input
+            ref={fileRef}
+            type="file"
+            accept=".pdf,.docx,.txt,.md"
+            className="sr-only"
+            disabled={uploading}
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f && uploadDocType) void uploadRequiredDoc(f, uploadDocType);
+            }}
+          />
+          {missingDocs.length > 0 && documentsHref && (
+            <Link
+              href={documentsHref}
+              className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-mint-700 hover:underline"
+            >
+              Manage documents in the Documents tab →
+            </Link>
+          )}
         </div>
-      ) : (
-        <div className="mt-4 rounded-panel border border-mint-400/40 bg-mint-400/8 p-4">
+      )}
+
+      <div className="mt-4 rounded-panel border border-mint-400/40 bg-mint-400/8 p-4">
           <p className="mb-3 text-xs font-bold uppercase tracking-wider text-mint-700">
             Your task for this run
           </p>
@@ -308,7 +399,7 @@ export function AgentRunPanel({
               onChange={(e) => setTask(e.target.value)}
               rows={3}
               disabled={running}
-              placeholder={`What should the agent do? e.g. "Shortlist the best 5 backend candidates for this role."`}
+              placeholder="Add clarifying information to complete this task."
               className="block w-full resize-y border-0 bg-transparent px-4 py-3 text-sm leading-relaxed outline-none placeholder:text-navy-800/35"
             />
             <div className="flex items-center justify-end border-t border-navy-800/8 px-3 py-2.5">
@@ -318,7 +409,6 @@ export function AgentRunPanel({
             </div>
           </div>
         </div>
-      )}
 
       {archived && (
         <p className="mt-3 text-sm font-medium text-amber-400">

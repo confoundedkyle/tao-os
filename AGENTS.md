@@ -4,6 +4,16 @@
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 <!-- END:nextjs-agent-rules -->
 
+<!-- BEGIN:knowledge-base -->
+# Read the knowledge base first
+
+At the **start of every session**, review all articles in `knowledge-base/*` —
+they capture how the app works (`requirements.md`) and the engineering conventions
+(`standards.md`). They're the fastest way to get oriented before reading code, and
+keep features consistent across sessions. Keep them up to date when you learn
+something durable.
+<!-- END:knowledge-base -->
+
 <!-- BEGIN:worktree-path-discipline -->
 # When working in a git worktree, edit inside it
 

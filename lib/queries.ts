@@ -279,6 +279,32 @@ export async function getRun(
     | null;
 }
 
+export async function getAgentRun(
+  workspaceId: string,
+  runId: string,
+): Promise<
+  | (AgentRun & {
+      agent: { name: string } | null;
+      project: Project & { client: Client };
+    })
+  | null
+> {
+  const { data } = await db()
+    .from("agent_runs")
+    .select(
+      "*, agent:workspace_agents(name), project:projects!inner(*, client:clients!inner(*))",
+    )
+    .eq("id", runId)
+    .eq("project.client.workspace_id", workspaceId)
+    .maybeSingle();
+  return data as
+    | (AgentRun & {
+        agent: { name: string } | null;
+        project: Project & { client: Client };
+      })
+    | null;
+}
+
 export async function listRecentRuns(
   workspaceId: string,
   limit = 8,

@@ -13,8 +13,9 @@ import {
   updateDocumentTextAction,
   uploadDocumentAction,
 } from "@/lib/actions/documents";
-import type { Doc } from "@/lib/types";
+import type { Doc, DocScope } from "@/lib/types";
 import { Button } from "./ui";
+import { DownloadButtons } from "./download-buttons";
 import { Toast } from "./toast";
 
 /** Markdown/plain-text docs are editable; binary uploads (PDF, DOCX) are not. */
@@ -93,13 +94,19 @@ export function DocExplorer({
   docs,
   mode,
   importSlot,
+  allowUpload = true,
+  emptyHint,
 }: {
-  scopeType: "client" | "workspace";
+  scopeType: DocScope;
   scopeId: string;
   docs: Doc[];
   mode: "kb" | "files";
   /** Optional extra toolbar action (e.g. the domain-import trigger). */
   importSlot?: ReactNode;
+  /** Hide upload affordances — for read-from-elsewhere lists (agent outputs). */
+  allowUpload?: boolean;
+  /** Message shown when there are no documents and uploads are disabled. */
+  emptyHint?: string;
 }) {
   // A `?doc=<id>` param (e.g. after an import) selects that doc; otherwise the
   // first one. The effect below re-selects when the param changes on navigation.
@@ -261,17 +268,17 @@ export function DocExplorer({
     Array.from(e.dataTransfer?.types ?? []).includes("Files");
 
   function onDragEnter(e: React.DragEvent) {
-    if (!hasFiles(e)) return;
+    if (!allowUpload || !hasFiles(e)) return;
     e.preventDefault();
     dragDepth.current += 1;
     setDragOver(true);
   }
   function onDragOver(e: React.DragEvent) {
-    if (!hasFiles(e)) return;
+    if (!allowUpload || !hasFiles(e)) return;
     e.preventDefault(); // required so the drop event fires
   }
   function onDragLeave(e: React.DragEvent) {
-    if (!hasFiles(e)) return;
+    if (!allowUpload || !hasFiles(e)) return;
     e.preventDefault();
     dragDepth.current -= 1;
     if (dragDepth.current <= 0) {
@@ -280,7 +287,7 @@ export function DocExplorer({
     }
   }
   function onDrop(e: React.DragEvent) {
-    if (!hasFiles(e)) return;
+    if (!allowUpload || !hasFiles(e)) return;
     e.preventDefault();
     dragDepth.current = 0;
     setDragOver(false);
@@ -369,43 +376,47 @@ export function DocExplorer({
             </div>
           )}
           {/* Action toolbar: New note · Upload · Import */}
-          <div className="flex flex-wrap items-center gap-0.5 border-b border-navy-800/8 px-2 py-1.5">
-            {mode === "kb" && (
-              <button
-                type="button"
-                onClick={newNote}
-                disabled={pending}
-                title="Create a new note"
-                className={toolActionClass}
-              >
-                <span aria-hidden className="text-sm leading-none">
-                  ＋
-                </span>
-                New note
-              </button>
-            )}
-            <label
-              className={toolActionClass}
-              title="Upload files (PDF, DOCX, TXT, MD) — or drag & drop"
-            >
-              <input
-                type="file"
-                multiple
-                accept={ACCEPT}
-                disabled={pending}
-                className="sr-only"
-                onChange={(e) => {
-                  handleFiles(e.target.files);
-                  e.currentTarget.value = "";
-                }}
-              />
-              <span aria-hidden className="text-sm leading-none">
-                ↑
-              </span>
-              {pending ? "Uploading…" : "Upload"}
-            </label>
-            {importSlot}
-          </div>
+          {(allowUpload || importSlot) && (
+            <div className="flex flex-wrap items-center gap-0.5 border-b border-navy-800/8 px-2 py-1.5">
+              {mode === "kb" && allowUpload && (
+                <button
+                  type="button"
+                  onClick={newNote}
+                  disabled={pending}
+                  title="Create a new note"
+                  className={toolActionClass}
+                >
+                  <span aria-hidden className="text-sm leading-none">
+                    ＋
+                  </span>
+                  New note
+                </button>
+              )}
+              {allowUpload && (
+                <label
+                  className={toolActionClass}
+                  title="Upload files (PDF, DOCX, TXT, MD) — or drag & drop"
+                >
+                  <input
+                    type="file"
+                    multiple
+                    accept={ACCEPT}
+                    disabled={pending}
+                    className="sr-only"
+                    onChange={(e) => {
+                      handleFiles(e.target.files);
+                      e.currentTarget.value = "";
+                    }}
+                  />
+                  <span aria-hidden className="text-sm leading-none">
+                    ↑
+                  </span>
+                  {pending ? "Uploading…" : "Upload"}
+                </label>
+              )}
+              {importSlot}
+            </div>
+          )}
 
           {/* File list + persistent drag & drop hint */}
           <div className="flex flex-1 flex-col overflow-y-auto p-1.5 lg:max-h-[40rem]">
@@ -456,7 +467,12 @@ export function DocExplorer({
               })}
               </ul>
             )}
-            {docs.length < DROP_HINT_MAX && (
+            {docs.length === 0 && !allowUpload && (
+              <p className="flex flex-1 items-center justify-center px-4 py-10 text-center text-sm text-navy-800/40">
+                {emptyHint ?? "Nothing here yet."}
+              </p>
+            )}
+            {allowUpload && docs.length < DROP_HINT_MAX && (
               <label
                 title="Click to choose files, or drag & drop"
                 className="group mt-1.5 flex flex-1 cursor-pointer flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-navy-800/15 px-4 py-10 text-center transition hover:border-sky-300 hover:bg-sky-300/10"
@@ -488,9 +504,11 @@ export function DocExplorer({
             )}
           </div>
 
-          <p className="border-t border-navy-800/8 px-3 py-2 text-[11px] text-navy-800/35">
-            PDF, DOCX, TXT, MD · 20 MB · drag &amp; drop to add
-          </p>
+          {allowUpload && (
+            <p className="border-t border-navy-800/8 px-3 py-2 text-[11px] text-navy-800/35">
+              PDF, DOCX, TXT, MD · 20 MB · drag &amp; drop to add
+            </p>
+          )}
         </aside>
 
         {/* Right: preview / editor */}
@@ -546,7 +564,7 @@ export function DocExplorer({
                     : ""}
                 </p>
               </div>
-              <div className="flex shrink-0 items-center gap-2">
+              <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
                 {editing ? (
                   <>
                     <button
@@ -563,13 +581,22 @@ export function DocExplorer({
                   </>
                 ) : (
                   <>
+                    {selected.extracted_text && (
+                      <DownloadButtons
+                        text={selected.extracted_text}
+                        filename={(selected.filename ?? "Document").replace(
+                          /\.(md|markdown|txt|pdf|docx)$/i,
+                          "",
+                        )}
+                      />
+                    )}
                     {selected.storage_path && (
                       <Button
                         variant="smallSecondary"
                         onClick={downloadOriginal}
                         disabled={pending}
                       >
-                        ↓ Download original
+                        ↓ Original
                       </Button>
                     )}
                     {isEditable(selected) && (

@@ -112,10 +112,13 @@ export function PageHeader({
   title,
   description,
   action,
+  wide,
 }: {
   title: ReactNode;
   description?: ReactNode;
   action?: ReactNode;
+  /** Let the description span the full width instead of the 68ch cap. */
+  wide?: boolean;
 }) {
   return (
     <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
@@ -124,7 +127,14 @@ export function PageHeader({
           {title}
         </h1>
         {description ? (
-          <p className="mt-1 max-w-[68ch] text-navy-800/55">{description}</p>
+          <p
+            className={cx(
+              "mt-1 text-navy-800/55",
+              wide ? "max-w-none" : "max-w-[68ch]",
+            )}
+          >
+            {description}
+          </p>
         ) : null}
       </div>
       {action}

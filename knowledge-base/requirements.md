@@ -1,0 +1,78 @@
+# How Calyflow works (product model)
+
+Calyflow is an open-source recruiting OS. Recruiters run AI **agents** against
+their **projects** (a role being filled for a client). Next.js app + Supabase.
+
+## Core entities (Supabase)
+- `clients` → `projects` (a project belongs to a client; `is_demo` hides system ones).
+- `library_agents` / `library_workflows` — the **curated catalog**, seeded from
+  YAML (`agents/*.yaml`). Marketing + definition source of truth.
+- `workspace_agents` / `workspace_workflows` — a workspace's **imported copies**
+  (snapshot at import; `imported_version`, `archived_at`, `library_*_id` link).
+- `documents` — scoped to `workspace` | `client` | `project`, typed by
+  `doc_type` (`jd`, `intake_notes`, `scorecard`, `cv`, `other`, `output`).
+  `output` = agent-created. `is_active` gates whether the AI sees a doc.
+- `agent_runs` / `workflow_runs` — run history (status, steps, tokens, cost,
+  `output_doc_id`).
+
+## Agents are the primary primitive
+Workflows were folded into agents (the `workflows/` catalog is retired; the DB
+tables stay for possible future complex multi-step workflows). An **agent** =
+`instructions` (the prompt) + `allowed_tools` + `model` + `max_steps` + `context`.
+
+- Run via `POST /api/agents/run` → NDJSON stream of `text` / `tool-call` /
+  `tool-result` / `error` / `done` events (`done` carries `outputDocId`).
+- Workflows (legacy) = single prompt → `POST /api/runs` (plain-text stream).
+
+### Context is auto-injected at run time
+Before an agent runs, the runtime prepends a **"# Project context"** block to the
+system prompt: workspace KB + client KB + client files + project files (active,
+**CVs excluded**) — `assembleContext` + `contextBlock` in `app/api/agents/run/route.ts`.
+So agent instructions should **use that provided context directly** and only call
+the read tools for what's not in it (CVs, a specific/large doc).
+`calyflow_search_documents` matches content **+ filename + doc_type**, returns
+only **active** docs; `calyflow_read_document` fetches full text by id;
+`calyflow_create_document` saves an `output` doc.
+
+### Agent YAML config (`agents/<slug>.yaml`)
+- `context`: `recruiting-project` (default) | `business-development`. Drives where
+  it appears — recruiting-project agents show in a project's **Agents** tab; others
+  are kept out (surfaced in their own context). Exposed in the public API + badges.
+- `allowed_tools`: includes `connector:<category>` placeholders (ats/crm/data/email)
+  → require a connected source; and `calyflow_*` KB tools.
+- Per-agent **document needs** (required/optional) are curated in code:
+  `AGENT_DOCUMENTS` / `agentDocSpec()` in `lib/workflow-graph.ts`. Required docs
+  gate the run (Run disabled + upload prompt) and the sidebar readiness dot, and
+  render the canvas "Documents" node.
+
+## Import / snapshot / upgrade model
+Importing copies library → workspace (a snapshot). Editing the copy never touches
+the library. Versions don't auto-propagate: an **upgrade** action pulls the latest
+library instructions into the copy. A library row retired from YAML orphans copies
+(`library_*_id → null`) but keeps them working.
+
+## Where things live in the UI
+- **Project → Agents tab** (`/clients/[c]/projects/[p]/agents`): a sidebar lists the
+  workspace's recruiting-project agents; pick one → run panel (`/agents/[itemId]`).
+  Combined run history below.
+- **Project → Documents tab**: "Your documents" (inputs via `ProjectFilesManager`)
+  + "Agent-created documents" (`output` docs via `DocExplorer`).
+- **Agents (top nav, `/workflows` route)**: workspace-level "My agents" manage list;
+  each card → agent edit page (`/agents/[agentId]`: name + instructions, archive,
+  upgrade, delete).
+- **Library (`/library`)**: curated catalog to import from.
+- **Demo (`/demo`)**: the real CV Screener agent, end-to-end.
+- **Run detail**: `/runs/[id]` (workflow), `/agent-runs/[id]` (agent). Usage at
+  `/settings/usage`. Dashboard (`/`) shows merged recent runs.
+- **Canvas** ("How it works"): `WorkflowCanvas` from a graph built by
+  `deriveAgentGraph` / `deriveWorkflowGraph` (`lib/workflow-graph.ts`, pure). Clicking
+  a node opens a modal; the skill node shows the full instructions.
+
+## Public API (`/api/v1`, unauthenticated, marketing site)
+- `GET /library` — catalog (agents + workflows). Marketing metadata + `context` +
+  `documents` + `connectors`. **Never** leaks `prompt_template` / `instructions`.
+- `GET /library/[type]/[slug]/cover` — 16:9 SVG of the canvas.
+- `GET /connectors` — connector catalog.
+
+## Naming convention
+Document surfaces are all called **"Documents"** (project, client, workspace tabs).

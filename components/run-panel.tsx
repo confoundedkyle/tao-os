@@ -66,16 +66,19 @@ export function RunPanel({
   workflows,
   inputCandidates,
   blockedMessage,
-  adminHref,
+  documentsHref,
   starterPack = [],
+  heading = "Run a workflow",
 }: {
   projectId: string;
   workflows: RunPanelWorkflow[];
   inputCandidates: RunPanelDoc[];
   blockedMessage: string | null;
-  adminHref: string;
+  documentsHref: string;
   /** Ordered recommended workflows shown as the "Starter Pack" hint up top. */
   starterPack?: StarterPackItem[];
+  /** Card title — overridable so the unified Agents view reads "Run an agent". */
+  heading?: string;
 }) {
   const router = useRouter();
   // Remember the last workflow this project ran, so navigating away and back
@@ -170,10 +173,10 @@ export function RunPanel({
           ))}
         </ul>
         <Link
-          href={adminHref}
+          href={documentsHref}
           className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-mint-700 hover:underline"
         >
-          Upload in the Admin tab →
+          Upload in the Documents tab →
         </Link>
       </div>
     ) : (
@@ -359,7 +362,7 @@ export function RunPanel({
       )}
 
       <Card featured>
-        <h2 className="mb-4 text-xl font-semibold">Run a workflow</h2>
+        <h2 className="mb-4 text-xl font-semibold">{heading}</h2>
         <WorkflowSelector
           workflows={workflows}
           value={workflowId}

@@ -1,13 +1,11 @@
 slug: submission-pack
-featured: true
 name: Candidate Submission Pack
 description: >-
   Combine a CV with its screening report into a polished, client-ready
   candidate presentation in your tone of voice — ready to send to the hiring
   manager.
-category: submission
 og_description: >-
-  Use this free Calyflow workflow to turn a CV and screening notes into a
+  Use this free Calyflow agent to turn a CV and screening notes into a
   polished, client-ready candidate write-up in your own tone of voice.
 lead: >-
   Send the hiring manager a candidate write-up that actually gets read — a
@@ -35,47 +33,50 @@ long_description: |
   next step.
 
   ## What you need
-  - A job description saved in the project, so the workflow knows the role.
+  - A job description saved in the project, so the agent knows the role.
   - The candidate's CV, and optionally the report from the CV Screener.
 
   ## How to run it
-  Open the project, pick this workflow, attach the CV, and run. The finished
+  Open the project, pick this agent, attach the CV, and run. The finished
   pack is saved to your project files in seconds, ready to download or send.
+allowed_tools:
+  - calyflow_search_documents
+  - calyflow_read_document
+  - calyflow_create_document
+model: null
+max_steps: 16
 version: 1
-input_spec:
-  inputs: [document]
-  required_doc_types: [jd]
-  input_doc_types: [cv, output]
-  knowledge: [workspace, client]
-output_spec:
-  output: document
-  name: Submission pack
-prompt_template: |
-  ## System prompt
-  You are an expert recruiter preparing a candidate submission for a client.
-  Your output is a persuasive but strictly truthful presentation document:
-  every claim must be supported by the CV or the screening report. You are
-  honest about gaps — credibility with the client is the product.
+instructions: |
+  You are an expert recruiter preparing a candidate submission for a client,
+  working as an autonomous agent inside Calyflow. Your output is a persuasive but
+  strictly truthful presentation document: every claim must be supported by the
+  CV or the screening report. You are honest about gaps — credibility with the
+  client is the product. The project, client, and workspace context you need —
+  the job description, the recruiter's tone of voice, and what this client cares
+  about — is already provided to you in the "# Project context" section of your
+  prompt; read it directly rather than searching for it.
 
-  ## Context injection (in this order)
-  <workspace_context>{{workspace_kb}}</workspace_context>
-  <client_context>{{client_kb}} {{client_files}}</client_context>
-  <project_context>{{project_files}}</project_context>
-  <candidate_documents>{{input_documents}}</candidate_documents>
-
-  ## Task
-  Build a client-ready submission pack for the candidate from the documents
-  above (CV, and the screening report if selected), for the role defined by
-  the JD in project context. Write in the tone of voice from workspace
-  context, adapted to what client context says this client cares about.
-  If no JD is found, stop and return only:
-  "⚠️ No job description found in this project. Add a JD or run the
-  Intake-to-JD Builder first."
+  ## How to work
+  1. Use the "# Project context" already in your prompt for the job description,
+     the recruiter's tone of voice, and the client context on what this client
+     cares about. It is all there — do not waste steps re-fetching it.
+  2. Fetch the candidate-specific documents that are NOT in that context with
+     `calyflow_search_documents` (it matches on content, filename, and doc type)
+     and `calyflow_read_document` (reads full text by id): the candidate's CV
+     (doc_type `cv`), and the screening report from the CV Screener if one exists
+     (a prior output document). Read each in full before writing.
+  3. Build a client-ready submission pack for the candidate, for the role defined
+     by the JD. Write in the tone of voice from workspace context, adapted to
+     what client context says this client cares about. If no JD is found, stop
+     and return only:
+     "⚠️ No job description found in this project. Add a JD or run the
+     Intake-to-JD Builder first."
+  4. Save the result with `calyflow_create_document`, named "Submission pack".
 
   ## Output format (return exactly this structure)
 
   # Candidate Submission: [candidate name]
-  **Role:** [title from JD] · **Submitted by:** [agency name, if known] · **Date:** [today]
+  **Role:** [title from JD] · **Submitted by:** [agency name, if known] · **Date:** today's date
 
   ## Summary
   [3–4 sentences: who this candidate is and why they fit THIS role —
@@ -99,3 +100,6 @@ prompt_template: |
 
   ## Recommended next step
   [one sentence proposing the interview]
+
+  Finish by creating exactly one output document, then briefly tell the user
+  what you saved and the headline result.

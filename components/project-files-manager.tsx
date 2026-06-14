@@ -76,7 +76,13 @@ function DocCategorySection({
   const panelId = `add-${docType}`;
 
   return (
-    <div className="py-4">
+    <div
+      className={`flex flex-col rounded-card border bg-white p-4 transition ${
+        !filled && required
+          ? "border-amber-400/30"
+          : "border-navy-800/12"
+      }`}
+    >
       <div className="flex items-center gap-3">
         <span
           aria-hidden
@@ -111,14 +117,14 @@ function DocCategorySection({
           aria-expanded={isOpen}
           aria-controls={panelId}
           onClick={onToggle}
-          className="rounded-chip border border-navy-800/20 px-3 py-1 text-xs font-semibold text-navy-800/60 transition hover:border-mint-700 hover:text-mint-700"
+          className="shrink-0 rounded-chip border border-navy-800/20 px-3 py-1 text-xs font-semibold text-navy-800/60 transition hover:border-mint-700 hover:text-mint-700"
         >
           {isOpen ? "Cancel" : multi || !filled ? "Add" : "Replace"}
         </button>
       </div>
 
       {active.length > 0 && (
-        <ul className="mt-1 divide-y divide-navy-800/6 pl-8">
+        <ul className="mt-3 space-y-1 border-t border-navy-800/8 pt-3">
           {active.map((doc) => (
             <DocCategoryRow key={doc.id} doc={doc} />
           ))}
@@ -126,23 +132,31 @@ function DocCategorySection({
       )}
 
       {archived.length > 0 && (
-        <div className="pl-8">
+        <div>
           <button
             type="button"
             aria-expanded={showArchived}
             onClick={() => setShowArchived((v) => !v)}
-            className="mt-1 text-xs font-semibold text-navy-800/45 transition hover:text-navy-800/70"
+            className="mt-2 text-xs font-semibold text-navy-800/45 transition hover:text-navy-800/70"
           >
             {showArchived ? "Hide" : `${archived.length} previous version${archived.length > 1 ? "s" : ""}`}
           </button>
           {showArchived && (
-            <ul className="divide-y divide-navy-800/6">
+            <ul className="space-y-1">
               {archived.map((doc) => (
                 <DocCategoryRow key={doc.id} doc={doc} />
               ))}
             </ul>
           )}
         </div>
+      )}
+
+      {!filled && !isOpen && (
+        <p className="mt-2 text-xs text-navy-800/40">
+          {required
+            ? "Required before this can run."
+            : "Optional — add files the agents can use."}
+        </p>
       )}
 
       {isOpen && (
@@ -181,7 +195,7 @@ export function ProjectFilesManager({
   const [openType, setOpenType] = useState<string | null>(null);
 
   return (
-    <div className="divide-y divide-navy-800/8">
+    <div className="grid items-start gap-4 sm:grid-cols-2">
       {CATEGORIES.map(({ docType, multi, required }) => (
         <DocCategorySection
           key={docType}

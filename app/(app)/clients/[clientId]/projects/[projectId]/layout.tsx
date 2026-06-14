@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { getProject } from "@/lib/queries";
 import { setProjectStatusAction } from "@/lib/actions/clients";
-import { Button, PageHeader } from "@/components/ui";
+import { Button } from "@/components/ui";
 import { ProjectTabNav } from "@/components/project-tab-nav";
 
 export default async function ProjectLayout({
@@ -21,7 +21,7 @@ export default async function ProjectLayout({
 
   return (
     <>
-      <div className="mb-2 text-sm text-navy-800/45">
+      <div className="mb-0.5 text-sm text-navy-800/45">
         <Link href="/clients" className="hover:text-mint-700">
           Projects
         </Link>{" "}
@@ -30,22 +30,20 @@ export default async function ProjectLayout({
           {project.client.name}
         </Link>
       </div>
-      <PageHeader
-        title={project.name}
-        action={
-          <form
-            action={setProjectStatusAction.bind(
-              null,
-              project.id,
-              project.status === "active" ? "archived" : "active",
-            )}
-          >
-            <Button variant="smallSecondary" type="submit">
-              {project.status === "active" ? "Archive project" : "Reactivate"}
-            </Button>
-          </form>
-        }
-      />
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-bold leading-tight">{project.name}</h1>
+        <form
+          action={setProjectStatusAction.bind(
+            null,
+            project.id,
+            project.status === "active" ? "archived" : "active",
+          )}
+        >
+          <Button variant="smallSecondary" type="submit">
+            {project.status === "active" ? "Archive project" : "Reactivate"}
+          </Button>
+        </form>
+      </div>
       <ProjectTabNav
         basePath={`/clients/${clientId}/projects/${projectId}`}
       />

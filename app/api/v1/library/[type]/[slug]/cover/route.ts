@@ -46,6 +46,8 @@ export async function GET(
       graph = deriveLibraryAgentGraph({
         name: agent.name,
         allowedTools: agent.allowed_tools ?? [],
+        slug: agent.slug,
+        description: agent.description,
       });
     }
   } else {
