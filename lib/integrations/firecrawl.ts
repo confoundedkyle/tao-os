@@ -12,7 +12,9 @@ const API = "https://api.firecrawl.dev/v2";
 
 const MAP_TIMEOUT_MS = 60_000;
 const SCRAPE_TIMEOUT_MS = 90_000;
+const SEARCH_TIMEOUT_MS = 60_000;
 const DEFAULT_MAP_LIMIT = 60;
+const DEFAULT_SEARCH_LIMIT = 10;
 // One page can be enormous; cap the markdown so a single scrape can't blow the
 // agent's context window (mirrors brightdata's CHAR_CAP).
 const SCRAPE_CHAR_CAP = 12_000;
@@ -107,3 +109,48 @@ export async function firecrawlScrape(
     truncated,
   };
 }
+
+export interface SearchResult {
+  url: string;
+  title?: string;
+  description?: string;
+}
+
+/** Web search. Returns up to `limit` results. Supports Google-style operators
+ *  in the query (e.g. `site:github.com ffmpeg`). */
+export async function firecrawlSearch(
+  apiKey: string,
+  args: { query: string; limit?: number },
+): Promise<{ results: SearchResult[] }> {
+  const limit = Math.min(args.limit ?? DEFAULT_SEARCH_LIMIT, 30);
+  // The search endpoint has returned hits either as a flat `data` array or
+  // grouped under `data.web` across versions — accept both shapes.
+  const json = await call<{
+    data?: RawSearchHit[] | { web?: RawSearchHit[] | null } | null;
+    web?: RawSearchHit[] | null;
+  }>(apiKey, "/search", { query: args.query, limit }, SEARCH_TIMEOUT_MS);
+
+  const raw: RawSearchHit[] = Array.isArray(json.data)
+    ? json.data
+    : (json.data?.web ?? json.web ?? []);
+
+  const results: SearchResult[] = [];
+  const seen = new Set<string>();
+  for (const hit of raw) {
+    const url = hit?.url ?? "";
+    if (!url || seen.has(url)) continue;
+    seen.add(url);
+    results.push({
+      url,
+      title: hit.title ?? undefined,
+      description: hit.description ?? undefined,
+    });
+  }
+  return { results };
+}
+
+type RawSearchHit = {
+  url?: string | null;
+  title?: string | null;
+  description?: string | null;
+};

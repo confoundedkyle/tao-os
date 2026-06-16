@@ -74,6 +74,7 @@ export const CONNECTORS: Connector[] = [
   { name: "Coresignal", category: "tool", blurb: "Enrich candidates with fresh public employment data.", provider: "coresignal", live: true, auth: "apikey" },
   { name: "Fathom", category: "tool", blurb: "Read AI summaries and transcripts of your recorded calls.", provider: "fathom", live: true, auth: "apikey" },
   { name: "Fireflies.ai", category: "tool", blurb: "Search interview and client-call transcripts and summaries.", provider: "fireflies", live: true, auth: "apikey" },
+  { name: "GitHub", category: "tool", blurb: "Source engineers from open-source repos — contributors, forkers, and commit-email contacts.", provider: "github", live: true, auth: "apikey", apiKeyHint: "Create a Personal Access Token at github.com → Settings → Developer settings → Personal access tokens (a classic token with the public_repo scope, or a fine-grained read-only token, is enough)." },
   { name: "Gong", category: "tool", blurb: "Read briefs and transcripts from your recorded sales and intake calls.", provider: "gong", live: true, auth: "apikey", apiKeyPlaceholder: "access-key:secret", apiKeyHint: "A Gong admin creates the access-key pair under company settings → Ecosystem → API; paste both parts separated by a colon." },
   { name: "HireEZ", category: "tool", blurb: "AI outbound sourcing across 800M+ candidate profiles." },
   { name: "Hunter.io", category: "tool", blurb: "Find and verify work email addresses instantly.", provider: "hunter", live: true, auth: "apikey" },
@@ -106,6 +107,20 @@ export function requiredConnectorCategories(
     .filter((t) => t.startsWith(CONNECTOR_REQUIREMENT_PREFIX))
     .map((t) => t.slice(CONNECTOR_REQUIREMENT_PREFIX.length))
     .filter((c): c is ConnectorCategory => known.includes(c));
+}
+
+/** Provider slugs an agent binds DIRECTLY — its allowed_tools include that
+ *  provider's prefixed tools (e.g. "coresignal_search_employees" → "coresignal").
+ *  Unlike connector:<category> placeholders the user picks at run time, these are
+ *  fixed dependencies and render as a specific connector node on the canvas. */
+export function providersFromTools(allowedTools: string[]): string[] {
+  const out: string[] = [];
+  for (const c of CONNECTORS) {
+    if (!c.provider) continue;
+    const prefix = providerToolPrefix(c.provider);
+    if (allowedTools.some((t) => t.startsWith(prefix))) out.push(c.provider);
+  }
+  return out;
 }
 
 /** Live connectors of a category (the ones a user could pick for a run). */
@@ -172,6 +187,7 @@ export const CONNECTOR_DOMAINS: Record<string, string> = {
   coresignal: "coresignal.com",
   fathom: "fathom.video",
   fireflies: "fireflies.ai",
+  github: "github.com",
   gong: "gong.io",
   hunter: "hunter.io",
   instantly: "instantly.ai",
