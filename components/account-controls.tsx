@@ -16,7 +16,7 @@ export async function AccountControls({ session }: { session: Session }) {
         </span>
         <button
           type="submit"
-          className="flex-shrink-0 rounded-md border border-navy-800/20 px-2 py-1 text-xs font-medium transition-colors hover:border-navy-800/50"
+          className="flex-shrink-0 whitespace-nowrap rounded-full border border-navy-800/20 px-3 py-1 text-xs font-medium transition-colors hover:border-navy-800/50"
         >
           Sign out
         </button>

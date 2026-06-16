@@ -11,10 +11,13 @@ export function AppTopbar({
   session,
   clients,
   modules = [],
+  isAdmin = false,
 }: {
   session: Session;
   clients: ClientWithProjects[];
   modules?: ModuleKey[];
+  /** Platform admin — shows the Admin button. */
+  isAdmin?: boolean;
 }) {
   return (
     <header className="flex flex-shrink-0 items-center justify-between gap-3 border-b border-navy-800/10 bg-cream-50 px-4 py-2 sm:px-6 lg:justify-end lg:border-0 lg:bg-transparent lg:px-10 lg:py-4">
@@ -42,6 +45,14 @@ export function AppTopbar({
         >
           Setup Help
         </Link>
+        {isAdmin && (
+          <Link
+            href="/admin"
+            className="flex-shrink-0 whitespace-nowrap rounded-full border border-navy-800/20 bg-navy-800 px-3 py-1 text-xs font-semibold text-white transition hover:bg-navy-900"
+          >
+            Admin
+          </Link>
+        )}
         <AccountControls session={session} />
       </div>
 

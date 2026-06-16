@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { config } from "@/lib/config";
-import { getSession } from "@/lib/auth";
+import { getSession, isPlatformAdmin } from "@/lib/auth";
 import { listActiveModuleKeys, listClientsWithProjects } from "@/lib/queries";
 import { AppSidebar } from "@/components/app-sidebar";
 import { AppTopbar } from "@/components/app-topbar";
@@ -14,9 +14,10 @@ export default async function AppLayout({
   const session = await getSession();
   if (!session) redirect("/sign-in");
   if (!session.workspace.workspace_type) redirect("/onboarding");
-  const [clients, modules] = await Promise.all([
+  const [clients, modules, admin] = await Promise.all([
     listClientsWithProjects(session.workspace.id),
     listActiveModuleKeys(session.workspace.id),
+    isPlatformAdmin(),
   ]);
 
   return (
@@ -30,7 +31,12 @@ export default async function AppLayout({
       <AppSidebar clients={clients} modules={modules} />
       {/* min-w-0 lets grids/tables shrink instead of overflowing on mobile */}
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <AppTopbar session={session} clients={clients} modules={modules} />
+        <AppTopbar
+          session={session}
+          clients={clients}
+          modules={modules}
+          isAdmin={admin}
+        />
         {/* `relative` makes <main> the containing block for absolutely-positioned
             descendants (e.g. Tailwind `sr-only` file inputs). Without it they
             anchor to <body> at their in-flow offset, escaping this scroller's

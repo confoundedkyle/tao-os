@@ -33,6 +33,24 @@ export async function requireAdmin(): Promise<Session> {
 }
 
 /**
+ * PLATFORM admin (the /admin dashboard) — distinct from the per-workspace
+ * "Owner" role above. Gated on the Clerk user's private metadata `role:"admin"`.
+ * In single-workspace mode (no Clerk) it falls back to the ADMIN_EMAILS allowlist.
+ */
+export async function isPlatformAdmin(): Promise<boolean> {
+  const session = await getSession();
+  if (!session) return false;
+  if (env.singleWorkspace) {
+    const admins = env.adminEmails;
+    return admins.length === 0 || admins.includes(session.userId.toLowerCase());
+  }
+  const { clerkClient } = await import("@clerk/nextjs/server");
+  const client = await clerkClient();
+  const user = await client.users.getUser(session.userId);
+  return (user.privateMetadata as { role?: string } | null)?.role === "admin";
+}
+
+/**
  * Renames the backing Clerk organization so the org name shown in Clerk's
  * widgets (OrganizationSwitcher) stays in sync with the workspace name.
  * No-op in single-workspace mode (no Clerk org).
