@@ -341,9 +341,13 @@ export interface AgentRun {
   id: string;
   project_id: string;
   workspace_agent_id: string;
+  /** Groups the turns of one chat; each turn is its own agent_runs row. */
+  conversation_id: string | null;
   status: "running" | "succeeded" | "failed";
   task: string | null;
   steps: AgentRunStep[] | null;
+  /** The assistant's reply text for this turn (for re-rendering + threading). */
+  output_text: string | null;
   output_doc_id: string | null;
   error_message: string | null;
   provider: string | null;
@@ -353,5 +357,19 @@ export interface AgentRun {
   cache_read_tokens: number | null;
   cost_usd: number | null;
   created_by: string | null;
+  created_at: string;
+  /** Set when a user archives the run (soft-hidden, kept for cost tracking). */
+  archived_at: string | null;
+}
+
+/** One turn of a resumable agent chat (a slim agent_runs projection). */
+export interface AgentChatTurn {
+  id: string;
+  task: string | null;
+  output_text: string | null;
+  steps: AgentRunStep[] | null;
+  output_doc_id: string | null;
+  status: "running" | "succeeded" | "failed";
+  error_message: string | null;
   created_at: string;
 }

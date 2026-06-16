@@ -1,5 +1,9 @@
 import Link from "next/link";
-import { listAgentRuns, listRuns } from "@/lib/queries";
+import {
+  listAgentRuns,
+  listRuns,
+  listWorkspaceMemberNames,
+} from "@/lib/queries";
 import { Card, Chip, Mono } from "@/components/ui";
 
 /** A workflow or agent run, normalized into a single feed row. */
@@ -15,6 +19,7 @@ interface FeedItem {
   created_at: string;
   href: string | null;
   detail: string | null;
+  runnerId: string | null;
 }
 
 /**
@@ -27,16 +32,28 @@ export async function CombinedRunHistory({
   projectId,
   filter,
   title = "Run history",
+  showRunner = false,
 }: {
   workspaceId: string;
   projectId: string;
   filter?: { kind: "workflow" | "agent"; itemId: string };
   title?: string;
+  /** Show who ran each run (resolved from workspace member names). */
+  showRunner?: boolean;
 }) {
-  const [runs, agentRuns] = await Promise.all([
+  const [runs, agentRuns, names] = await Promise.all([
     listRuns(workspaceId, projectId),
     listAgentRuns(workspaceId, projectId),
+    showRunner
+      ? listWorkspaceMemberNames(workspaceId)
+      : Promise.resolve<Record<string, string>>({}),
   ]);
+
+  const runnerName = (id: string | null): string | null => {
+    if (!id) return null;
+    if (names[id]) return names[id];
+    return id.includes("@") ? id : null; // single-workspace: user_id is the email
+  };
 
   const feed: FeedItem[] = [
     ...runs.map((r) => ({
@@ -50,6 +67,7 @@ export async function CombinedRunHistory({
       created_at: r.created_at,
       href: `/runs/${r.id}`,
       detail: null,
+      runnerId: r.created_by,
     })),
     ...agentRuns.map((r) => ({
       kind: "agent" as const,
@@ -62,6 +80,7 @@ export async function CombinedRunHistory({
       created_at: r.created_at,
       href: `/agent-runs/${r.id}`,
       detail: r.task,
+      runnerId: r.created_by,
     })),
   ]
     .filter((item) =>
@@ -124,6 +143,9 @@ export async function CombinedRunHistory({
                 {item.cost_usd != null
                   ? `$${Number(item.cost_usd).toFixed(4)}`
                   : "—"}
+                {showRunner && runnerName(item.runnerId)
+                  ? ` · by ${runnerName(item.runnerId)}`
+                  : ""}
               </Mono>
             </li>
           ))}

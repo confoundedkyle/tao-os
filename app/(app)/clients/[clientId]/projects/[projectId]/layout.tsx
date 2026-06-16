@@ -21,17 +21,19 @@ export default async function ProjectLayout({
 
   return (
     <>
-      <div className="mb-0.5 text-sm text-navy-800/45">
-        <Link href="/clients" className="hover:text-mint-700">
-          Projects
-        </Link>{" "}
-        /{" "}
-        <Link href={`/clients/${clientId}`} className="hover:text-mint-700">
-          {project.client.name}
-        </Link>
-      </div>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold leading-tight">{project.name}</h1>
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+        <div className="min-w-0">
+          <div className="text-xs text-navy-800/45">
+            <Link href="/clients" className="hover:text-mint-700">
+              Projects
+            </Link>{" "}
+            /{" "}
+            <Link href={`/clients/${clientId}`} className="hover:text-mint-700">
+              {project.client.name}
+            </Link>
+          </div>
+          <h1 className="text-xl font-bold leading-tight">{project.name}</h1>
+        </div>
         <form
           action={setProjectStatusAction.bind(
             null,

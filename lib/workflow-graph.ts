@@ -13,6 +13,8 @@ import type { InputSpec, OutputSpec } from "./types";
 import {
   CONNECTORS,
   CONNECTOR_CATEGORY_LABELS,
+  connectorLabel,
+  providersFromTools,
   requiredConnectorCategories,
 } from "./connectors";
 
@@ -429,6 +431,10 @@ export function deriveAgentGraph(args: {
   description?: string;
   /** The agent's full instructions — shown when the skill node is opened. */
   instructions?: string;
+  /** Provider slugs the agent binds directly (from provider-prefixed tools).
+   *  Render as fixed, named connector nodes — distinct from the category
+   *  placeholder slots in `connectors`. */
+  boundProviders?: string[];
   /** "live" = the run panel (unselected → "No X connected · Missing");
    *  "catalog" = the public marketing cover (unselected → "Any X connector"). */
   variant?: "live" | "catalog";
@@ -474,7 +480,7 @@ export function deriveAgentGraph(args: {
   const emailSlot = args.connectors.find((slot) => slot.category === "email");
   const inputSlots = args.connectors.filter((slot) => slot.category !== "email");
 
-  const connectorItems: Item[] = inputSlots.map((slot) =>
+  const slotItems: Item[] = inputSlots.map((slot) =>
     slot.selectedProvider
       ? {
           id: `itm-conn-${slot.category}`,
@@ -498,6 +504,31 @@ export function deriveAgentGraph(args: {
             badge: "Missing",
           },
   );
+
+  // Provider-bound connectors (direct tools, e.g. coresignal_*) render as their
+  // own named node. Skip email providers (they're the destination) and any
+  // provider already shown via a selected category slot.
+  const selectedSlotProviders = new Set(
+    inputSlots.map((s) => s.selectedProvider).filter(Boolean) as string[],
+  );
+  const boundItems: Item[] = (args.boundProviders ?? [])
+    .filter((p) => CONNECTOR_CATEGORY_BY_PROVIDER.get(p) !== "email")
+    .filter((p) => !selectedSlotProviders.has(p))
+    .map((provider) => {
+      const category = CONNECTOR_CATEGORY_BY_PROVIDER.get(provider);
+      const categoryLabel = category
+        ? CONNECTOR_CATEGORY_LABELS[category]
+        : "Tool";
+      return {
+        id: `itm-conn-${provider}`,
+        title: connectorLabel(provider),
+        subtitle: `${categoryLabel} connector`,
+        icon: "connector",
+        brandLogos: [provider],
+      };
+    });
+
+  const connectorItems: Item[] = [...slotItems, ...boundItems];
 
   const output = emailSlot
     ? emailSlot.selectedProvider
@@ -557,6 +588,7 @@ export function deriveLibraryAgentGraph(args: {
   return deriveAgentGraph({
     name: args.name,
     connectors,
+    boundProviders: providersFromTools(args.allowedTools),
     variant: "catalog",
     slug: args.slug,
     description: args.description,

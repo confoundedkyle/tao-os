@@ -52,7 +52,7 @@ export async function archiveAgentAction(agentId: string) {
     .eq("id", agentId)
     .eq("workspace_id", session.workspaceId);
   if (error) throw error;
-  revalidatePath("/workflows");
+  revalidatePath("/agents");
 }
 
 export async function restoreAgentAction(agentId: string) {
@@ -63,8 +63,32 @@ export async function restoreAgentAction(agentId: string) {
     .eq("id", agentId)
     .eq("workspace_id", session.workspaceId);
   if (error) throw error;
-  revalidatePath("/workflows");
+  revalidatePath("/agents");
   revalidatePath(`/agents/${agentId}`);
+}
+
+/** Archive / restore a single agent run. Soft-hide only — the row stays in the
+ *  DB (and in everyone's view, muted) so cost/activity tracking is preserved.
+ *  Any workspace member may toggle it. */
+export async function setAgentRunArchivedAction(
+  runId: string,
+  archived: boolean,
+) {
+  const session = await requireSession();
+  const { data: run } = await db()
+    .from("agent_runs")
+    .select("id, agent:workspace_agents!inner(workspace_id)")
+    .eq("id", runId)
+    .maybeSingle();
+  const wsId = (run as { agent?: { workspace_id?: string } } | null)?.agent
+    ?.workspace_id;
+  if (!run || wsId !== session.workspaceId) throw new Error("Run not found");
+  const { error } = await db()
+    .from("agent_runs")
+    .update({ archived_at: archived ? new Date().toISOString() : null })
+    .eq("id", runId);
+  if (error) throw error;
+  revalidatePath("/clients", "layout");
 }
 
 /** Edit a workspace agent's name and instructions (its "skill"). */
@@ -82,7 +106,7 @@ export async function updateAgentAction(formData: FormData) {
     .eq("id", agentId)
     .eq("workspace_id", session.workspaceId);
   if (error) throw error;
-  revalidatePath("/workflows");
+  revalidatePath("/agents");
   revalidatePath(`/agents/${agentId}`);
 }
 
@@ -109,7 +133,7 @@ export async function upgradeAgentAction(agentId: string) {
     .eq("id", agentId)
     .eq("workspace_id", session.workspaceId);
   if (error) throw error;
-  revalidatePath("/workflows");
+  revalidatePath("/agents");
   revalidatePath(`/agents/${agentId}`);
 }
 
@@ -130,6 +154,6 @@ export async function deleteAgentAction(agentId: string) {
     .eq("id", agentId)
     .eq("workspace_id", session.workspaceId);
   if (error) throw error;
-  revalidatePath("/workflows");
-  redirect("/workflows");
+  revalidatePath("/agents");
+  redirect("/agents");
 }

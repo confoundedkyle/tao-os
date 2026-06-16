@@ -7,6 +7,7 @@ import {
   listWorkspaceAgents,
 } from "@/lib/queries";
 import { deriveAgentGraph } from "@/lib/workflow-graph";
+import { providersFromTools } from "@/lib/connectors";
 import { agentRequirements, connectedProvidersFrom } from "@/lib/run-items";
 import {
   archiveAgentAction,
@@ -55,6 +56,7 @@ export default async function AgentEditPage({
       selectedProvider: req.options[0]?.provider ?? null,
       selectedLabel: req.options[0]?.label,
     })),
+    boundProviders: providersFromTools(agent.allowed_tools ?? []),
     model,
     slug: agent.library?.slug,
     description: agent.library?.description,
@@ -69,7 +71,7 @@ export default async function AgentEditPage({
   return (
     <>
       <div className="mb-2 text-sm text-navy-800/45">
-        <Link href="/workflows" className="hover:text-mint-700">
+        <Link href="/agents" className="hover:text-mint-700">
           Agents
         </Link>{" "}
         / {agent.name}

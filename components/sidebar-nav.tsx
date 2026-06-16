@@ -8,7 +8,7 @@ export type ClientWithProjects = Client & { projects: Project[] };
 
 const mainNav = [
   { href: "/", label: "Dashboard", exact: true },
-  { href: "/workflows", label: "Agents" },
+  { href: "/agents", label: "Agents" },
   { href: "/knowledge", label: "Knowledge Base" },
   { href: "/settings", label: "Settings" },
 ];

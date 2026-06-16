@@ -16,6 +16,7 @@ import { coresignalAdapter } from "./coresignal";
 import { crelateAdapter } from "./crelate";
 import { fathomAdapter } from "./fathom";
 import { firefliesAdapter } from "./fireflies";
+import { githubAdapter } from "./github";
 import { gmailAdapter } from "./gmail";
 import { gongAdapter } from "./gong";
 import { googleSheetsAdapter } from "./google-sheets";
@@ -71,6 +72,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   crelate: crelateAdapter,
   fathom: fathomAdapter,
   fireflies: firefliesAdapter,
+  github: githubAdapter,
   gmail: gmailAdapter,
   gong: gongAdapter,
   "google-sheets": googleSheetsAdapter,

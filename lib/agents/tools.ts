@@ -17,6 +17,8 @@ import { coresignalAdapter } from "../integrations/coresignal";
 import { crelateAdapter } from "../integrations/crelate";
 import { fathomAdapter } from "../integrations/fathom";
 import { firefliesAdapter } from "../integrations/fireflies";
+import { githubAdapter } from "../integrations/github";
+import { firecrawlScrape, firecrawlSearch } from "../integrations/firecrawl";
 import { gmailAdapter } from "../integrations/gmail";
 import { gongAdapter } from "../integrations/gong";
 import { googleSheetsAdapter } from "../integrations/google-sheets";
@@ -77,6 +79,7 @@ export interface ToolContext {
   crelateToken: string | null;
   fathomToken: string | null;
   firefliesToken: string | null;
+  githubToken: string | null;
   gmailToken: string | null;
   gongToken: string | null;
   googleSheetsToken: string | null;
@@ -111,6 +114,8 @@ export interface ToolContext {
   workableToken: string | null;
   zohoCrmToken: string | null;
   zohoRecruitToken: string | null;
+  /** Firecrawl key for the web_* tools — platform env var, not a connection. */
+  firecrawlKey: string | null;
   /** Documents the agent created this run (mutated by calyflow_create_document). */
   createdDocIds: string[];
 }
@@ -413,6 +418,106 @@ function buildAll(ctx: ToolContext): ToolSet {
       execute: async ({ idOrShorthand }) => {
         if (!ctx.coresignalToken) return { error: notConnected("Coresignal") };
         return coresignalAdapter.collectEmployee(ctx.coresignalToken, idOrShorthand);
+      },
+    }),
+
+    github_search_repos: tool({
+      description:
+        "Search GitHub for open-source repositories by keyword (and optional language), ranked by stars. Use to find the libraries and projects a target engineer would use, then work back to the people via github_contributors / github_forks.",
+      inputSchema: z.object({
+        query: z
+          .string()
+          .describe('Keywords, e.g. "video encoding" or "ffmpeg wrapper".'),
+        language: z
+          .string()
+          .optional()
+          .describe('Programming language filter, e.g. "C++", "Rust".'),
+        limit: z.number().int().positive().optional().describe("Max repos (default 20, max 50)."),
+      }),
+      execute: async (args) => {
+        if (!ctx.githubToken) return { error: notConnected("GitHub") };
+        return githubAdapter.searchRepos(ctx.githubToken, args);
+      },
+    }),
+
+    github_contributors: tool({
+      description:
+        "List the people who contributed code to a GitHub repo (the strongest signal that someone has hands-on experience with it), ranked by commit count. Returns GitHub handles and profile URLs.",
+      inputSchema: z.object({
+        owner: z.string().describe('Repo owner/org, e.g. "FFmpeg".'),
+        repo: z.string().describe('Repo name, e.g. "FFmpeg".'),
+        limit: z.number().int().positive().optional().describe("Max people (default 20, max 50)."),
+      }),
+      execute: async (args) => {
+        if (!ctx.githubToken) return { error: notConnected("GitHub") };
+        return githubAdapter.contributors(ctx.githubToken, args);
+      },
+    }),
+
+    github_forks: tool({
+      description:
+        "List the people who forked a GitHub repo (a wider, warmer-than-cold pool — they cared enough to copy it), most recently active first. Returns GitHub handles and profile URLs.",
+      inputSchema: z.object({
+        owner: z.string().describe("Repo owner/org."),
+        repo: z.string().describe("Repo name."),
+        limit: z.number().int().positive().optional().describe("Max forkers (default 20, max 50)."),
+      }),
+      execute: async (args) => {
+        if (!ctx.githubToken) return { error: notConnected("GitHub") };
+        return githubAdapter.forks(ctx.githubToken, args);
+      },
+    }),
+
+    github_commit_emails: tool({
+      description:
+        "Read author contact emails out of a repo's public commit metadata (published for code attribution). Optionally scope to one author's GitHub handle. GitHub noreply addresses are filtered out; flag to the recruiter that these are public attribution emails, best used via GitHub/LinkedIn channels.",
+      inputSchema: z.object({
+        owner: z.string().describe("Repo owner/org."),
+        repo: z.string().describe("Repo name."),
+        author: z
+          .string()
+          .optional()
+          .describe("GitHub handle to scope commits to (from github_contributors)."),
+        limit: z.number().int().positive().optional().describe("Commits to scan (default 20, max 50)."),
+      }),
+      execute: async (args) => {
+        if (!ctx.githubToken) return { error: notConnected("GitHub") };
+        return githubAdapter.commitEmails(ctx.githubToken, args);
+      },
+    }),
+
+    web_search: tool({
+      description:
+        "Search the web and get back result titles, URLs, and snippets. Supports Google-style operators (e.g. `site:github.com ffmpeg`, `\"jane doe\" engineer`). Use to find open-source projects, or to pivot from a person's handle/name to other sites (personal site, LinkedIn, X) for contact details.",
+      inputSchema: z.object({
+        query: z.string().describe("Search query; operators like site:, quotes, OR are supported."),
+        limit: z.number().int().positive().optional().describe("Max results (default 10, max 30)."),
+      }),
+      execute: async (args) => {
+        if (!ctx.firecrawlKey)
+          return { error: "Web search is unavailable — FIRECRAWL_API_KEY is not configured." };
+        const { results } = await firecrawlSearch(ctx.firecrawlKey, args);
+        if (results.length === 0) return { text: "_No results._", count: 0 };
+        return {
+          text: results
+            .map((r) => `- [${r.title ?? r.url}](${r.url})${r.description ? ` — ${r.description}` : ""}`)
+            .join("\n"),
+          count: results.length,
+        };
+      },
+    }),
+
+    web_scrape: tool({
+      description:
+        "Fetch one web page and return its main content as clean markdown. Use to read a candidate's profile, personal site, or a GitHub page to confirm identity and find contact links.",
+      inputSchema: z.object({
+        url: z.string().describe("Full URL to fetch, e.g. https://github.com/janedoe."),
+      }),
+      execute: async ({ url }) => {
+        if (!ctx.firecrawlKey)
+          return { error: "Web scrape is unavailable — FIRECRAWL_API_KEY is not configured." };
+        const r = await firecrawlScrape(ctx.firecrawlKey, { url });
+        return { text: r.markdown || "_Empty page._", title: r.title, truncated: r.truncated };
       },
     }),
 
@@ -2390,6 +2495,12 @@ export const ALL_TOOL_NAMES = [
   "contactout_email_verify",
   "coresignal_search_employees",
   "coresignal_collect_employee",
+  "github_search_repos",
+  "github_contributors",
+  "github_forks",
+  "github_commit_emails",
+  "web_search",
+  "web_scrape",
   "fathom_list_meetings",
   "fathom_get_summary",
   "fathom_get_transcript",

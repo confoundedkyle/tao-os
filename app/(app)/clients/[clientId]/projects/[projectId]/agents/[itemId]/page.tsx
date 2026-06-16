@@ -1,8 +1,10 @@
 import { notFound, redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import {
+  getActiveAgentConversation,
   getPrimaryRunModel,
   getProject,
+  listAgentRuns,
   listConnections,
   listDocuments,
   listProviders,
@@ -18,19 +20,24 @@ import {
   deriveWorkflowGraph,
 } from "@/lib/workflow-graph";
 import { agentRequirements, connectedProvidersFrom } from "@/lib/run-items";
+import { providersFromTools } from "@/lib/connectors";
 import { AgentRunPanel } from "@/components/agent-run-panel";
 import { CombinedRunHistory } from "@/components/combined-run-history";
+import { RunHistoryMenu } from "@/components/run-history-menu";
 import { RunPanel, type RunPanelWorkflow } from "@/components/run-panel";
 import { Card } from "@/components/ui";
 
 export default async function RunItemPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ clientId: string; projectId: string; itemId: string }>;
+  searchParams: Promise<{ c?: string }>;
 }) {
   const session = await getSession();
   if (!session) redirect("/sign-in");
   const { clientId, projectId, itemId } = await params;
+  const { c: conversationParam } = await searchParams;
   const project = await getProject(session.workspaceId, projectId);
   if (!project || project.client.id !== clientId) notFound();
 
@@ -125,12 +132,90 @@ export default async function RunItemPage({
   }
 
   // --- Agent item: tool-using run via AgentRunPanel ---
-  const [connections, model, agentDocs] = await Promise.all([
+  const [
+    connections,
+    model,
+    agentDocs,
+    conversation,
+    workspaceKb,
+    clientKb,
+    allAgentRuns,
+  ] = await Promise.all([
     listConnections(session.workspaceId),
     getPrimaryRunModel(session.workspaceId),
     listDocuments(session.workspaceId, "project", projectId, "file"),
+    getActiveAgentConversation(
+      session.workspaceId,
+      projectId,
+      agent!.id,
+      conversationParam,
+    ),
+    listDocuments(session.workspaceId, "workspace", session.workspaceId, "kb"),
+    listDocuments(session.workspaceId, "client", clientId, "kb"),
+    listAgentRuns(session.workspaceId, projectId),
   ]);
   const connectedProviders = connectedProvidersFrom(connections);
+  const workspaceKbAvailable = workspaceKb.some((d) => d.is_active);
+  const clientKbAvailable = clientKb.some((d) => d.is_active);
+  const agentRuns = allAgentRuns.filter(
+    (r) => r.workspace_agent_id === agent!.id,
+  );
+  const agentRunHistory = agentRuns
+    .filter((r) => r.archived_at == null)
+    .map((r) => ({
+      id: r.id,
+      conversationId: r.conversation_id,
+      task: r.task,
+      status: r.status,
+      created_at: r.created_at,
+    }));
+  // Most-recent run's metrics, shown condensed at the top (refreshes when a run
+  // finishes via the panel's router.refresh()).
+  const latestRun = agentRuns[0] ?? null;
+  const num = (n: number | null) => (n != null ? n.toLocaleString("en-US") : "—");
+  const runStats = latestRun
+    ? [
+        {
+          label: "Provider",
+          value:
+            latestRun.provider === "calyflow"
+              ? "Calyflow default"
+              : (latestRun.provider ?? "—"),
+        },
+        { label: "Model", value: latestRun.model ?? "—" },
+        {
+          label: "Tokens",
+          value:
+            latestRun.input_tokens != null
+              ? `${num(latestRun.input_tokens)} in / ${num(latestRun.output_tokens)} out${
+                  latestRun.cache_read_tokens
+                    ? ` (${num(latestRun.cache_read_tokens)} cached)`
+                    : ""
+                }`
+              : latestRun.status === "running"
+                ? "running…"
+                : "—",
+        },
+        {
+          label: "Cost",
+          value:
+            latestRun.cost_usd != null
+              ? `$${Number(latestRun.cost_usd).toFixed(6)}`
+              : "—",
+        },
+        {
+          label: "Started",
+          value: new Date(latestRun.created_at).toLocaleString("en-GB", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+          }),
+        },
+      ]
+    : [];
 
   // Required documents that aren't present yet — block the run until added.
   const presentDocTypes = new Set<string>(
@@ -146,11 +231,30 @@ export default async function RunItemPage({
     "Reads your knowledge base, queries connected data sources, and writes a result back into this project.";
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <Card featured>
-        <h2 className="mb-1 text-xl font-semibold">Run {agent!.name} Agent</h2>
-        <p className="mb-4 text-sm text-navy-800/55">{agentLead}</p>
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <h2 className="text-lg font-semibold">Run {agent!.name} Agent</h2>
+            <p className="mt-0.5 text-sm text-navy-800/55">{agentLead}</p>
+            {runStats.length > 0 && (
+              <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-0.5 font-mono text-[11px] leading-tight text-navy-800/50">
+                {runStats.map((s) => (
+                  <span key={s.label}>
+                    <span className="text-navy-800/35">{s.label}</span> {s.value}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+          <RunHistoryMenu
+            runs={agentRunHistory}
+            agentHref={`/clients/${clientId}/projects/${projectId}/agents/${itemId}`}
+            allRunsHref={`/clients/${clientId}/projects/${projectId}/agents/${itemId}/runs`}
+          />
+        </div>
         <AgentRunPanel
+          key={conversation?.conversationId ?? "new"}
           projectId={project.id}
           agents={[
             {
@@ -163,6 +267,7 @@ export default async function RunItemPage({
                 agent!.allowed_tools ?? [],
                 connectedProviders,
               ),
+              boundProviders: providersFromTools(agent!.allowed_tools ?? []),
             },
           ]}
           model={model}
@@ -170,14 +275,16 @@ export default async function RunItemPage({
           documentsHref={documentsHref}
           missingDocs={missingDocs}
           archived={project.status !== "active"}
+          initialConversation={conversation}
+          workspaceKbAvailable={workspaceKbAvailable}
+          clientKbAvailable={clientKbAvailable}
+          connectedProviders={[...connectedProviders]}
+          workspaceKbHref="/knowledge"
+          clientKbHref={`/clients/${clientId}/knowledge`}
+          skillHref={`/agents/${agent!.id}`}
+          aiProviderHref="/settings/providers"
         />
       </Card>
-      <CombinedRunHistory
-        workspaceId={session.workspaceId}
-        projectId={project.id}
-        filter={{ kind: "agent", itemId: agent!.id }}
-        title="Recent runs"
-      />
     </div>
   );
 }
