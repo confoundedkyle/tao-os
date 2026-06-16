@@ -153,6 +153,15 @@ export async function POST(request: NextRequest) {
   const agentId = String(body?.agentId ?? "");
   const task = typeof body?.task === "string" ? body.task : "";
   const attachments = parseAttachments(body?.attachments);
+  // Continuing an existing chat when a valid conversation id is passed; a new
+  // conversation otherwise. Each turn is still its own agent_runs row.
+  const UUID_RE =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const continuingId =
+    typeof body?.conversationId === "string" && UUID_RE.test(body.conversationId)
+      ? body.conversationId
+      : null;
+  const conversationId = continuingId ?? crypto.randomUUID();
 
   const [project, agent] = await Promise.all([
     getProject(session.workspaceId, projectId),
@@ -268,6 +277,7 @@ export async function POST(request: NextRequest) {
   let crelateToken: string | null = null;
   let fathomToken: string | null = null;
   let firefliesToken: string | null = null;
+  let githubToken: string | null = null;
   let gmailToken: string | null = null;
   let gongToken: string | null = null;
   let googleSheetsToken: string | null = null;
@@ -318,6 +328,7 @@ export async function POST(request: NextRequest) {
       crelateToken,
       fathomToken,
       firefliesToken,
+      githubToken,
       gmailToken,
       gongToken,
       googleSheetsToken,
@@ -367,6 +378,7 @@ export async function POST(request: NextRequest) {
       tokenFor("crelate_", "crelate"),
       tokenFor("fathom_", "fathom"),
       tokenFor("fireflies_", "fireflies"),
+      tokenFor("github_", "github"),
       tokenFor("gmail_", "gmail"),
       tokenFor("gong_", "gong"),
       tokenFor("googlesheets_", "google-sheets"),
@@ -420,6 +432,7 @@ export async function POST(request: NextRequest) {
     .insert({
       project_id: projectId,
       workspace_agent_id: agentId,
+      conversation_id: conversationId,
       status: "running",
       task: task.trim() || null,
       provider,
@@ -468,6 +481,7 @@ export async function POST(request: NextRequest) {
     crelateToken,
     fathomToken,
     firefliesToken,
+    githubToken,
     gmailToken,
     gongToken,
     googleSheetsToken,
@@ -502,6 +516,7 @@ export async function POST(request: NextRequest) {
     workableToken,
     zohoCrmToken,
     zohoRecruitToken,
+    firecrawlKey: env.firecrawlApiKey || null,
     createdDocIds: [],
   };
 
@@ -553,9 +568,37 @@ export async function POST(request: NextRequest) {
   const attachBlock = attachmentsBlock(attachments);
   if (attachBlock) systemPrompt = `${systemPrompt}\n\n${attachBlock}`;
 
+  // Thread the earlier turns of this conversation back as context (each user
+  // task + the assistant's saved reply) so a follow-up continues the chat.
+  const priorMessages: { role: "user" | "assistant"; content: string }[] = [];
+  if (continuingId) {
+    const { data: prior } = await db()
+      .from("agent_runs")
+      .select("task, output_text, created_at")
+      .eq("project_id", projectId)
+      .eq("workspace_agent_id", agentId)
+      .eq("conversation_id", conversationId)
+      .neq("id", runId)
+      .order("created_at", { ascending: true });
+    for (const turn of prior ?? []) {
+      priorMessages.push({
+        role: "user",
+        content: (turn.task as string | null)?.trim() || "(standard task)",
+      });
+      const out = (turn.output_text as string | null)?.trim();
+      if (out) priorMessages.push({ role: "assistant", content: out });
+    }
+  }
+  const messages = [
+    ...priorMessages,
+    { role: "user" as const, content: userPrompt },
+  ];
+
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       const steps: AgentRunStep[] = [];
+      let outputText = "";
+      let finishReason: string | undefined;
       let usage = {
         inputTokens: undefined as number | undefined,
         outputTokens: undefined as number | undefined,
@@ -567,6 +610,7 @@ export async function POST(request: NextRequest) {
         if (env.mockAi) {
           const text =
             "**Mock agent run** (MOCK_AI=true): no provider or tools were called.";
+          outputText = text;
           controller.enqueue(ndjson({ type: "text", value: text }));
           usage = { inputTokens: 500, outputTokens: 60, cachedInputTokens: 0 };
         } else {
@@ -580,7 +624,7 @@ export async function POST(request: NextRequest) {
           const result = streamText({
             model: lm,
             system: systemPrompt,
-            prompt: userPrompt,
+            messages,
             tools,
             stopWhen: stepCountIs(agent.max_steps ?? 12),
             abortSignal: AbortSignal.timeout(540_000),
@@ -591,6 +635,7 @@ export async function POST(request: NextRequest) {
 
           for await (const part of result.fullStream) {
             if (part.type === "text-delta") {
+              outputText += part.text;
               controller.enqueue(ndjson({ type: "text", value: part.text }));
             } else if (part.type === "tool-call") {
               steps.push({
@@ -637,6 +682,7 @@ export async function POST(request: NextRequest) {
           }
 
           if (streamError) throw streamError;
+          finishReason = await result.finishReason;
           const totalUsage = await result.totalUsage;
           usage = {
             inputTokens: totalUsage.inputTokens,
@@ -652,6 +698,19 @@ export async function POST(request: NextRequest) {
 
       const succeeded = failure === null;
       const outputDocId = ctx.createdDocIds.at(-1) ?? null;
+
+      // A run can finish "successfully" yet produce nothing — most often when the
+      // model exhausts its step budget mid tool-loop (finishReason "tool-calls"
+      // /"length"). Surface that instead of a blank result so the user knows to
+      // re-run rather than staring at an empty page.
+      if (succeeded && !outputText.trim() && !outputDocId) {
+        outputText =
+          finishReason === "tool-calls" || finishReason === "length"
+            ? "I gathered a lot of research but ran out of room before writing it up. Run me again and I'll get to a result — narrowing the request a little helps me wrap up faster."
+            : "I wasn't able to put together a result this time. Mind running it again, or rephrasing the request a little?";
+        controller.enqueue(ndjson({ type: "text", value: outputText }));
+      }
+
       const costUsd = await computeCostUsd(provider, model, usage).catch(
         () => null,
       );
@@ -661,6 +720,7 @@ export async function POST(request: NextRequest) {
         .update({
           status: succeeded ? "succeeded" : "failed",
           steps,
+          output_text: outputText || null,
           output_doc_id: outputDocId,
           error_message: failure ? failure.slice(0, 500) : null,
           input_tokens: usage.inputTokens ?? null,
@@ -701,7 +761,7 @@ export async function POST(request: NextRequest) {
         controller.enqueue(ndjson({ type: "error", message: failure }));
       }
       controller.enqueue(
-        ndjson({ type: "done", runId, outputDocId, succeeded }),
+        ndjson({ type: "done", runId, conversationId, outputDocId, succeeded }),
       );
       controller.close();
     },

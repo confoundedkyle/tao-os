@@ -46,13 +46,13 @@ export function WorkflowPreviewDialog({
             aria-modal="true"
             aria-label={`How ${name} works`}
             onClick={(e) => e.stopPropagation()}
-            className="flex max-h-[85vh] w-full max-w-4xl flex-col overflow-hidden rounded-panel border border-navy-800/12 bg-white shadow-lift"
+            className="flex max-h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-panel border border-navy-800/12 bg-white shadow-lift"
           >
-            <div className="flex items-center justify-between gap-3 border-b border-navy-800/8 px-5 py-3.5">
+            <div className="flex items-start justify-between gap-3 border-b border-navy-800/8 px-6 py-4">
               <div className="min-w-0">
-                <h3 className="truncate font-semibold">{name}</h3>
+                <h3 className="text-xl font-semibold">{name}</h3>
                 {description && (
-                  <p className="truncate text-xs text-navy-800/45">
+                  <p className="mt-0.5 line-clamp-2 text-sm text-navy-800/55">
                     {description}
                   </p>
                 )}
@@ -61,12 +61,12 @@ export function WorkflowPreviewDialog({
                 type="button"
                 onClick={() => setOpen(false)}
                 aria-label="Close preview"
-                className="rounded-lg px-2 py-1 text-lg leading-none text-navy-800/40 transition hover:bg-cream-100 hover:text-navy-900"
+                className="shrink-0 rounded-lg px-2 py-1 text-lg leading-none text-navy-800/40 transition hover:bg-cream-100 hover:text-navy-900"
               >
                 ✕
               </button>
             </div>
-            <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+            <div className="min-h-[65vh] flex-1 overflow-y-auto px-6 py-5">
               <WorkflowCanvas graph={graph} />
             </div>
           </div>

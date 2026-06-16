@@ -13,7 +13,7 @@ export function ProjectTabNav({ basePath }: { basePath: string }) {
   ];
 
   return (
-    <nav className="mb-6 flex gap-1 border-b border-navy-800/10">
+    <nav className="mb-4 flex gap-1 border-b border-navy-800/10">
       {tabs.map((tab) => (
         <Link
           key={tab.href}

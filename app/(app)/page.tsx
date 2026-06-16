@@ -171,7 +171,7 @@ export default async function DashboardPage() {
             </p>
           </Card>
         </Link>
-        <Link href="/workflows">
+        <Link href="/agents">
           <Card className="h-full hover:-translate-y-0.5 hover:shadow-lift">
             <IconRobot size={32} className="mb-3 text-navy-800" />
             <h3 className="font-semibold">Agents</h3>

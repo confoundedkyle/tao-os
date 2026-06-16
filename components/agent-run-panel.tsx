@@ -1,15 +1,15 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { usePersistedSelection } from "@/lib/use-persisted-selection";
 import { uploadDocumentAction } from "@/lib/actions/documents";
-import { deriveAgentGraph } from "@/lib/workflow-graph";
+import { connectorLabel } from "@/lib/connectors";
+import type { AgentChatTurn } from "@/lib/types";
 import { Button } from "./ui";
-import { WorkflowCanvas } from "./workflow-canvas";
 
 /** A required project document the agent needs before it can run. */
 export interface AgentMissingDoc {
@@ -35,12 +35,142 @@ export interface AgentRunPanelAgent {
   /** Full instructions — shown when the skill node on the canvas is opened. */
   instructions?: string;
   requirements: AgentConnectorRequirement[];
+  /** Provider slugs the agent binds directly (provider-prefixed tools) — render
+   *  as fixed connector nodes on the canvas. */
+  boundProviders?: string[];
 }
 
 interface Step {
   kind: "tool-call" | "tool-result";
   tool: string;
   summary: string;
+}
+
+/** One turn shown in the chat: the user's message and the agent's reply. */
+interface ChatTurn {
+  id: string;
+  task: string;
+  output: string;
+  steps: Step[];
+  outputDocId: string | null;
+  running: boolean;
+  error: string | null;
+}
+
+/** The agent's saved conversation for this project, hydrated on first render. */
+export interface InitialConversation {
+  conversationId: string;
+  turns: AgentChatTurn[];
+}
+
+/** Unique markdown-document illustration (200×250 canvas) for the saved-output
+ *  card. Drawn with theme tokens so it matches the app. */
+function SavedDocArtwork() {
+  return (
+    <svg
+      viewBox="0 0 200 250"
+      role="img"
+      aria-label="Saved markdown document"
+      className="h-36 w-auto shrink-0 drop-shadow-[0_6px_14px_rgba(19,31,56,0.12)]"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      {/* page with a folded top-right corner */}
+      <path
+        d="M36 18 H138 L170 50 V232 H36 Z"
+        className="fill-white stroke-navy-800/15"
+        strokeWidth="2.5"
+        strokeLinejoin="round"
+      />
+      <path d="M138 18 L170 50 H138 Z" className="fill-mint-400/30" />
+      {/* title bar */}
+      <rect x="54" y="40" width="64" height="11" rx="5.5" className="fill-mint-400" />
+      {/* markdown badge */}
+      <rect
+        x="54"
+        y="62"
+        width="46"
+        height="28"
+        rx="6"
+        className="fill-mint-700"
+      />
+      <text
+        x="77"
+        y="82"
+        textAnchor="middle"
+        className="fill-white"
+        fontSize="15"
+        fontWeight="800"
+        fontFamily="ui-monospace, monospace"
+      >
+        ↓M
+      </text>
+      {/* body text lines */}
+      <rect x="54" y="106" width="92" height="7" rx="3.5" className="fill-navy-800/20" />
+      <rect x="54" y="122" width="76" height="7" rx="3.5" className="fill-navy-800/12" />
+      <rect x="54" y="138" width="86" height="7" rx="3.5" className="fill-navy-800/12" />
+      <rect x="54" y="162" width="58" height="7" rx="3.5" className="fill-navy-800/12" />
+      <rect x="54" y="178" width="88" height="7" rx="3.5" className="fill-navy-800/12" />
+      <rect x="54" y="194" width="70" height="7" rx="3.5" className="fill-navy-800/12" />
+      {/* "done" check badge */}
+      <circle
+        cx="150"
+        cy="198"
+        r="24"
+        className="fill-mint-400 stroke-white"
+        strokeWidth="5"
+      />
+      <path
+        d="M139 198 l8 8 l14 -16"
+        className="stroke-white"
+        strokeWidth="5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+    </svg>
+  );
+}
+
+function SavedDocumentCard({ docId }: { docId: string }) {
+  return (
+    <Link
+      href={`/docs/${docId}`}
+      className="group flex items-center gap-5 rounded-card border-[1.5px] border-mint-400/50 bg-mint-400/[0.06] p-5 transition hover:border-mint-700 hover:bg-mint-400/10"
+    >
+      <SavedDocArtwork />
+      <div className="min-w-0">
+        <p className="text-xs font-bold uppercase tracking-wider text-mint-700">
+          Saved result
+        </p>
+        <p className="mt-0.5 text-lg font-semibold text-navy-800">
+          View the saved document{" "}
+          <span className="inline-block transition-transform group-hover:translate-x-1">
+            →
+          </span>
+        </p>
+        <p className="mt-1 text-sm text-navy-800/55">
+          The agent wrote its output to your project files — open it to read,
+          share, or download.
+        </p>
+      </div>
+    </Link>
+  );
+}
+
+function toChatTurn(t: AgentChatTurn): ChatTurn {
+  return {
+    id: t.id,
+    task: t.task ?? "",
+    output: t.output_text ?? "",
+    steps: (t.steps ?? []).map((s) => ({
+      kind: s.type === "tool-call" ? "tool-call" : "tool-result",
+      tool: s.tool,
+      summary: s.summary,
+    })),
+    outputDocId: t.output_doc_id,
+    running: false,
+    error: t.error_message,
+  };
 }
 
 /** A file attached for this run only — its extracted text is sent with the run
@@ -85,6 +215,14 @@ export function AgentRunPanel({
   documentsHref,
   missingDocs = [],
   archived,
+  initialConversation = null,
+  workspaceKbAvailable = false,
+  clientKbAvailable = false,
+  connectedProviders = [],
+  workspaceKbHref = "/knowledge",
+  clientKbHref,
+  skillHref,
+  aiProviderHref = "/settings/providers",
 }: {
   projectId: string;
   agents: AgentRunPanelAgent[];
@@ -95,8 +233,23 @@ export function AgentRunPanel({
   /** Required project documents that are not present yet — blocks the run. */
   missingDocs?: AgentMissingDoc[];
   archived: boolean;
+  /** The agent's most recent saved chat for this project, resumed on load. */
+  initialConversation?: InitialConversation | null;
+  /** Whether the agency / client knowledge bases have any content (drives the
+   *  amber "empty" badge). */
+  workspaceKbAvailable?: boolean;
+  clientKbAvailable?: boolean;
+  /** Provider slugs the workspace has connected — to mark bound connectors. */
+  connectedProviders?: string[];
+  /** Where each badge links so the user can adjust it. */
+  workspaceKbHref?: string;
+  clientKbHref?: string;
+  /** The agent's edit page (update its skill/instructions). */
+  skillHref?: string;
+  aiProviderHref?: string;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   // Remember the last agent this project ran, so switching tabs/pages doesn't
   // snap the picker back to the first one.
   const [agentId, setAgentId] = usePersistedSelection(
@@ -109,14 +262,46 @@ export function AgentRunPanel({
   const [choicesByAgent, setChoicesByAgent] = useState<
     Record<string, Record<string, string>>
   >({});
-  const [diagramOpen, setDiagramOpen] = useState(true);
   const [task, setTask] = useState("");
-  const [steps, setSteps] = useState<Step[]>([]);
-  const [output, setOutput] = useState("");
+  const [turns, setTurns] = useState<ChatTurn[]>(
+    () => initialConversation?.turns.map(toChatTurn) ?? [],
+  );
+  const [conversationId, setConversationId] = useState<string | null>(
+    initialConversation?.conversationId ?? null,
+  );
   const [running, setRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [outputDocId, setOutputDocId] = useState<string | null>(null);
-  const outputRef = useRef<HTMLDivElement>(null);
+  // Mutate the in-flight (last) turn as stream events arrive.
+  const updateLastTurn = (patch: (t: ChatTurn) => ChatTurn) =>
+    setTurns((prev) =>
+      prev.map((t, i) => (i === prev.length - 1 ? patch(t) : t)),
+    );
+  // Sentinel at the end of the chat; scrolling it into view scrolls the whole
+  // page (not just an inner box) so a new/streaming turn is always visible.
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const scrollToBottom = (behavior: ScrollBehavior = "auto") =>
+    bottomRef.current?.scrollIntoView({ behavior, block: "end" });
+
+  // Reflect the active conversation in the URL (?c=<id>) via the router so a
+  // reload, bookmark, or shared link reopens the same chat (and Next keeps the
+  // change instead of a router.refresh() reverting it).
+  const syncConversationUrl = (cid: string | null) => {
+    router.replace(cid ? `${pathname}?c=${cid}` : pathname, { scroll: false });
+  };
+
+  // On open, canonicalize the URL to the loaded conversation (?c=<id>) so the
+  // address is stable to copy/share — not "whatever was most recent".
+  useEffect(() => {
+    if (
+      conversationId &&
+      typeof window !== "undefined" &&
+      !new URLSearchParams(window.location.search).has("c")
+    ) {
+      syncConversationUrl(conversationId);
+    }
+    // run once on mount for the initially-loaded conversation
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploadDocType, setUploadDocType] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -201,34 +386,127 @@ export function AgentRunPanel({
   const blocked = missingCategories.length > 0 || missingDocs.length > 0;
   const ready = !blocked;
 
-  const graph = useMemo(() => {
-    if (!agent) return null;
-    return deriveAgentGraph({
-      name: agent.name,
-      connectors: agent.requirements.map((req) => {
-        const provider = choices[req.category] ?? null;
-        const option = req.options.find((o) => o.provider === provider);
-        return {
-          category: req.category,
-          categoryLabel: req.label,
-          selectedProvider: option?.provider ?? null,
-          selectedLabel: option?.label,
-        };
-      }),
-      model,
-      slug: agent.slug,
-      description: agent.description,
-      instructions: agent.instructions,
+  // Compact "what's involved" badges that replace the canvas: a dot per piece,
+  // green = ready, amber = optional-but-missing, red = required-but-missing.
+  const badges = useMemo<
+    {
+      label: string;
+      status: "ok" | "warn" | "missing";
+      hint: string;
+      href?: string;
+    }[]
+  >(() => {
+    if (!agent) return [];
+    const items: {
+      label: string;
+      status: "ok" | "warn" | "missing";
+      hint: string;
+      href?: string;
+    }[] = [
+      {
+        label: "Knowledge base",
+        status: workspaceKbAvailable ? "ok" : "warn",
+        hint: workspaceKbAvailable
+          ? "Your agency knowledge base has content. Click to manage it."
+          : "Your agency knowledge base is empty — click to add content.",
+        href: workspaceKbHref,
+      },
+      {
+        label: "Client knowledge",
+        status: clientKbAvailable ? "ok" : "warn",
+        hint: clientKbAvailable
+          ? "This client's knowledge base has content. Click to manage it."
+          : "This client has no knowledge yet — click to add some.",
+        href: clientKbHref,
+      },
+    ];
+    // Category connectors the user picks (connected = at least one option).
+    for (const req of agent.requirements) {
+      const connected = req.options.length > 0;
+      items.push({
+        label: `${req.label} connector`,
+        status: connected ? "ok" : "missing",
+        hint: connected
+          ? `${req.label} connector is connected. Click to manage connectors.`
+          : `Connect ${/^[aeio]/i.test(req.label) ? "an" : "a"} ${req.label} connector — click to open Connectors.`,
+        href: `${connectorsHref}?category=${req.category}`,
+      });
+    }
+    // Provider-bound connectors (e.g. GitHub) — required for this agent.
+    for (const provider of agent.boundProviders ?? []) {
+      const connected = connectedProviders.includes(provider);
+      const name = connectorLabel(provider);
+      items.push({
+        label: `${name} connector`,
+        status: connected ? "ok" : "missing",
+        hint: connected
+          ? `${name} is connected. Click to manage connectors.`
+          : `Connect ${name} — click to open Connectors.`,
+        href: connectorsHref,
+      });
+    }
+    items.push({
+      label: "Skill",
+      status: "ok",
+      hint: "The agent's instructions that drive the run. Click to edit them.",
+      href: skillHref,
     });
-  }, [agent, choices, model]);
+    items.push({
+      label: "AI Engine",
+      status: model ? "ok" : "missing",
+      hint: model
+        ? `Runs on ${model.providerLabel} · ${model.modelId}. Click to manage providers.`
+        : "No run model is configured — click to add an AI provider.",
+      href: aiProviderHref,
+    });
+    return items;
+  }, [
+    agent,
+    workspaceKbAvailable,
+    clientKbAvailable,
+    connectedProviders,
+    model,
+    connectorsHref,
+    workspaceKbHref,
+    clientKbHref,
+    skillHref,
+    aiProviderHref,
+  ]);
 
-  async function run() {
-    if (!agent || running || !ready) return;
+  function startNewChat() {
+    if (running) return;
+    setTurns([]);
+    setConversationId(null);
     setError(null);
-    setOutput("");
-    setSteps([]);
-    setOutputDocId(null);
+    setTask("");
+    setAttachments([]);
+    syncConversationUrl(null);
+  }
+
+  async function send() {
+    if (!agent || running || !ready) return;
+    const sentTask = task.trim();
+    if (turns.length > 0 && !sentTask) return; // follow-ups need a message
+    setError(null);
+    // Append the new turn and clear the composer.
+    setTurns((prev) => [
+      ...prev,
+      {
+        id: `pending-${prev.length}`,
+        task: sentTask,
+        output: "",
+        steps: [],
+        outputDocId: null,
+        running: true,
+        error: null,
+      },
+    ]);
+    const sentAttachments = attachments;
+    setTask("");
+    setAttachments([]);
     setRunning(true);
+    // Reveal the new (running) turn once it's painted.
+    requestAnimationFrame(() => scrollToBottom("smooth"));
     try {
       const response = await fetch("/api/agents/run", {
         method: "POST",
@@ -236,9 +514,10 @@ export function AgentRunPanel({
         body: JSON.stringify({
           projectId,
           agentId: agent.id,
-          task: task.trim(),
+          task: sentTask,
+          conversationId,
           connectors: choices,
-          attachments,
+          attachments: sentAttachments,
         }),
       });
       if (!response.ok) {
@@ -248,6 +527,7 @@ export function AgentRunPanel({
       const reader = response.body!.getReader();
       const decoder = new TextDecoder();
       let buffer = "";
+      let resolvedConvId = conversationId;
       for (;;) {
         const { done, value } = await reader.read();
         if (done) break;
@@ -256,14 +536,26 @@ export function AgentRunPanel({
         buffer = lines.pop() ?? "";
         for (const line of lines) {
           if (!line.trim()) continue;
-          handleEvent(JSON.parse(line));
+          const ev = JSON.parse(line);
+          if (ev.type === "done" && ev.conversationId)
+            resolvedConvId = ev.conversationId;
+          handleEvent(ev);
         }
-        outputRef.current?.scrollTo({ top: outputRef.current.scrollHeight });
+        scrollToBottom();
       }
-      router.refresh();
+      // A brand-new chat just got its id → put it in the URL (router.replace also
+      // refetches). Continuing an existing chat → refresh to update stats/runs.
+      if (resolvedConvId && resolvedConvId !== conversationId) {
+        setConversationId(resolvedConvId);
+        syncConversationUrl(resolvedConvId);
+      } else {
+        router.refresh();
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Run failed");
+      const message = err instanceof Error ? err.message : "Run failed";
+      updateLastTurn((t) => ({ ...t, error: message }));
     } finally {
+      updateLastTurn((t) => ({ ...t, running: false }));
       setRunning(false);
     }
   }
@@ -274,29 +566,40 @@ export function AgentRunPanel({
     tool?: string;
     summary?: string;
     message?: string;
+    conversationId?: string;
     outputDocId?: string | null;
   }) {
     switch (ev.type) {
       case "text":
-        setOutput((prev) => prev + (ev.value ?? ""));
+        updateLastTurn((t) => ({ ...t, output: t.output + (ev.value ?? "") }));
         break;
       case "tool-call":
-        setSteps((prev) => [
-          ...prev,
-          { kind: "tool-call", tool: ev.tool!, summary: ev.summary ?? "" },
-        ]);
+        updateLastTurn((t) => ({
+          ...t,
+          steps: [
+            ...t.steps,
+            { kind: "tool-call", tool: ev.tool!, summary: ev.summary ?? "" },
+          ],
+        }));
         break;
       case "tool-result":
-        setSteps((prev) => [
-          ...prev,
-          { kind: "tool-result", tool: ev.tool!, summary: ev.summary ?? "" },
-        ]);
+        updateLastTurn((t) => ({
+          ...t,
+          steps: [
+            ...t.steps,
+            { kind: "tool-result", tool: ev.tool!, summary: ev.summary ?? "" },
+          ],
+        }));
         break;
       case "error":
-        setError(ev.message ?? "Agent run failed");
+        updateLastTurn((t) => ({
+          ...t,
+          error: ev.message ?? "Agent run failed",
+        }));
         break;
       case "done":
-        if (ev.outputDocId) setOutputDocId(ev.outputDocId);
+        if (ev.outputDocId)
+          updateLastTurn((t) => ({ ...t, outputDocId: ev.outputDocId ?? null }));
         break;
     }
   }
@@ -351,23 +654,42 @@ export function AgentRunPanel({
           ))}
       </div>
 
-      {graph && (
-        <div className="mt-4">
-          <button
-            type="button"
-            onClick={() => setDiagramOpen((open) => !open)}
-            aria-expanded={diagramOpen}
-            className="flex items-center gap-1.5 text-sm font-semibold text-navy-800/60 transition hover:text-navy-800"
-          >
-            <span
-              aria-hidden
-              className={`inline-block text-[11px] transition-transform ${diagramOpen ? "rotate-90" : ""}`}
-            >
-              ▶
-            </span>
-            How this works
-          </button>
-          {diagramOpen && <WorkflowCanvas graph={graph} className="mt-3" />}
+      {badges.length > 0 && (
+        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-navy-800/10 pb-4">
+          {badges.map((b) => {
+            const dot = (
+              <span
+                aria-hidden
+                className={`inline-block h-2 w-2 rounded-full ${
+                  b.status === "ok"
+                    ? "bg-mint-400"
+                    : b.status === "warn"
+                      ? "bg-amber-400"
+                      : "bg-coral-400"
+                }`}
+              />
+            );
+            return b.href ? (
+              <Link
+                key={b.label}
+                href={b.href}
+                title={b.hint}
+                className="inline-flex items-center gap-1.5 text-sm text-navy-800/70 underline-offset-2 transition hover:text-navy-900 hover:underline"
+              >
+                {dot}
+                {b.label}
+              </Link>
+            ) : (
+              <span
+                key={b.label}
+                title={b.hint}
+                className="inline-flex items-center gap-1.5 text-sm text-navy-800/70"
+              >
+                {dot}
+                {b.label}
+              </span>
+            );
+          })}
         </div>
       )}
 
@@ -444,97 +766,88 @@ export function AgentRunPanel({
         </div>
       )}
 
-      <div className="mt-4 rounded-panel border border-mint-400/40 bg-mint-400/8 p-4">
-          <p className="mb-3 text-xs font-bold uppercase tracking-wider text-mint-700">
-            Your task for this run
-          </p>
-          <div
-            onDragOver={(e) => {
-              e.preventDefault();
-              if (!running) setDragOver(true);
-            }}
-            onDragLeave={() => setDragOver(false)}
-            onDrop={(e) => {
-              e.preventDefault();
-              setDragOver(false);
-              if (!running) void addAttachments(e.dataTransfer.files);
-            }}
-            className={`relative rounded-card border-[1.5px] bg-white shadow-[0_4px_18px_rgba(19,31,56,0.07)] transition focus-within:border-mint-700 ${
-              dragOver
-                ? "border-dashed border-mint-700 ring-2 ring-mint-400/40"
-                : "border-navy-800/15"
-            }`}
-          >
-            {dragOver && (
-              <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center gap-1 rounded-card bg-mint-400/12 backdrop-blur-[1px]">
-                <span aria-hidden className="text-2xl">
-                  📎
-                </span>
-                <span className="text-sm font-semibold text-mint-700">
-                  Drop files to attach for this run
-                </span>
-              </div>
-            )}
-            <textarea
-              value={task}
-              onChange={(e) => setTask(e.target.value)}
-              rows={3}
-              disabled={running}
-              placeholder="Add clarifying information to complete this task."
-              className="block w-full resize-y border-0 bg-transparent px-4 py-3 text-sm leading-relaxed outline-none placeholder:text-navy-800/35"
-            />
-            {attachments.length > 0 && (
-              <ul className="flex flex-wrap gap-1.5 border-t border-navy-800/8 px-3 py-2.5">
-                {attachments.map((a, i) => (
-                  <li
-                    key={`${a.name}-${i}`}
-                    className="inline-flex items-center gap-1.5 rounded-chip bg-cream-100 px-2 py-1 text-xs font-medium text-navy-800/70"
-                  >
-                    <span aria-hidden>📄</span>
-                    <span className="max-w-44 truncate" title={a.name}>
-                      {a.name}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => removeAttachment(i)}
-                      disabled={running}
-                      aria-label={`Remove ${a.name}`}
-                      className="text-navy-800/40 transition hover:text-coral-400 disabled:opacity-50"
+      {/* Conversation — the turns so far, oldest first, above the composer. */}
+      {turns.length > 0 && (
+        <div className="mt-5 space-y-6">
+          {turns.map((turn) => (
+            <div key={turn.id} className="space-y-3">
+              {turn.task && (
+                <div className="ml-auto max-w-[85%] rounded-card bg-mint-400/12 px-4 py-2.5 text-sm leading-relaxed text-navy-800/90">
+                  {turn.task}
+                </div>
+              )}
+
+              {(turn.steps.length > 0 || turn.running) && (
+                <div className="rounded-card border border-navy-800/12 bg-cream-100/60 p-4">
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-navy-800/40">
+                    What the agent did
+                  </p>
+                  <ol className="space-y-1.5">
+                    {turn.steps.map((step, i) => (
+                      <li key={i} className="flex items-start gap-2 text-sm">
+                        <span aria-hidden className="mt-0.5 shrink-0">
+                          {step.kind === "tool-call" ? "▸" : "✓"}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="font-medium text-navy-800/80">
+                            {toolLabel(step.tool)}
+                          </span>
+                          <span
+                            className="block truncate text-xs text-navy-800/45"
+                            title={step.summary}
+                          >
+                            {step.summary}
+                          </span>
+                        </span>
+                      </li>
+                    ))}
+                    {turn.running && (
+                      <li className="flex items-center gap-2 text-sm text-navy-800/45">
+                        <span className="inline-block h-3 w-3 animate-pulse rounded-full bg-mint-400" />
+                        Thinking…
+                      </li>
+                    )}
+                  </ol>
+                </div>
+              )}
+
+              {(turn.output || turn.running) && (
+                <div className="prose-calyflow rounded-card border border-navy-800/12 bg-white p-6">
+                  {turn.running && !turn.output && (
+                    <div
+                      role="status"
+                      aria-live="polite"
+                      className="flex items-center gap-2.5 text-sm font-medium text-navy-800/55"
                     >
-                      ✕
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <div className="flex items-center justify-between gap-3 border-t border-navy-800/8 px-3 py-2.5">
-              <label className="flex cursor-pointer items-center gap-1.5 rounded-chip px-2 py-1.5 text-sm font-semibold text-navy-800/55 transition hover:bg-cream-100 hover:text-navy-800">
-                <input
-                  ref={attachRef}
-                  type="file"
-                  multiple
-                  accept={ATTACH_ACCEPT}
-                  className="sr-only"
-                  disabled={running || attaching}
-                  onChange={(e) => void addAttachments(e.target.files)}
-                />
-                <span aria-hidden>📎</span>
-                {attaching ? "Attaching…" : "Attach files"}
-                <span className="font-normal text-navy-800/35">
-                  or drag &amp; drop
-                </span>
-              </label>
-              <Button onClick={run} disabled={running || archived || !ready}>
-                {running ? "Running…" : "▶ Run agent"}
-              </Button>
+                      <span
+                        aria-hidden
+                        className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-mint-400/30 border-t-mint-400"
+                      />
+                      Working on it — this can take a moment…
+                    </div>
+                  )}
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {turn.output}
+                  </ReactMarkdown>
+                  {turn.running && turn.output && (
+                    <span className="ml-1 inline-block h-4 w-2 animate-pulse bg-mint-400 align-text-bottom" />
+                  )}
+                </div>
+              )}
+
+              {turn.error && (
+                <p className="rounded-chip bg-coral-400/12 px-3 py-2 text-sm text-coral-400">
+                  {turn.error}
+                </p>
+              )}
+
+              {turn.outputDocId && !turn.running && (
+                <SavedDocumentCard docId={turn.outputDocId} />
+              )}
             </div>
-          </div>
-          <p className="mt-2 text-xs text-navy-800/40">
-            Attached files (PDF, DOCX, TXT, MD · 20 MB) are used for this run
-            only and aren&apos;t saved. To keep a file, add it in the Documents
-            tab.
-          </p>
+          ))}
         </div>
+      )}
 
       {archived && (
         <p className="mt-3 text-sm font-medium text-amber-400">
@@ -548,75 +861,136 @@ export function AgentRunPanel({
         </p>
       )}
 
-      {(steps.length > 0 || running) && (
-        <div className="mt-5 rounded-card border border-navy-800/12 bg-cream-100/60 p-4">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-navy-800/40">
-            What the agent did
+      {/* Composer — sticks to the bottom of the viewport so it's always
+          reachable without scrolling through a long conversation. The white
+          backing matches the card so it blends, and masks scrolled content. */}
+      <div className="sticky bottom-0 z-10 mt-4 bg-white pt-2 shadow-[0_-10px_24px_-6px_rgba(255,255,255,0.95)]">
+      <div className="rounded-panel border border-mint-400/40 bg-mint-400/8 p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <p className="text-xs font-bold uppercase tracking-wider text-mint-700">
+            {turns.length > 0 ? "Continue the chat" : "Your task for this run"}
           </p>
-          <ol className="space-y-1.5">
-            {steps.map((step, i) => (
-              <li key={i} className="flex items-start gap-2 text-sm">
-                <span aria-hidden className="mt-0.5 shrink-0">
-                  {step.kind === "tool-call" ? "▸" : "✓"}
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="font-medium text-navy-800/80">
-                    {toolLabel(step.tool)}
-                  </span>
-                  <span
-                    className="block truncate text-xs text-navy-800/45"
-                    title={step.summary}
-                  >
-                    {step.summary}
-                  </span>
-                </span>
-              </li>
-            ))}
-            {running && (
-              <li className="flex items-center gap-2 text-sm text-navy-800/45">
-                <span className="inline-block h-3 w-3 animate-pulse rounded-full bg-mint-400" />
-                Thinking…
-              </li>
-            )}
-          </ol>
-        </div>
-      )}
-
-      {(output || running) && (
-        <div
-          ref={outputRef}
-          className="prose-calyflow mt-5 max-h-130 overflow-y-auto rounded-card border border-navy-800/12 bg-white p-6"
-        >
-          {running && (
-            <div
-              role="status"
-              aria-live="polite"
-              className="mb-3 flex items-center gap-2.5 text-sm font-medium text-navy-800/55"
+          {turns.length > 0 && (
+            <button
+              type="button"
+              onClick={startNewChat}
+              disabled={running}
+              className="rounded-chip px-2 py-1 text-xs font-semibold text-navy-800/55 transition hover:bg-cream-100 hover:text-navy-800 disabled:opacity-50"
             >
-              <span
-                aria-hidden
-                className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-mint-400/30 border-t-mint-400"
-              />
-              {output ? "Generating…" : "Working on it — this can take a moment…"}
+              ＋ New chat
+            </button>
+          )}
+        </div>
+        <div
+          onDragOver={(e) => {
+            e.preventDefault();
+            if (!running) setDragOver(true);
+          }}
+          onDragLeave={() => setDragOver(false)}
+          onDrop={(e) => {
+            e.preventDefault();
+            setDragOver(false);
+            if (!running) void addAttachments(e.dataTransfer.files);
+          }}
+          className={`relative rounded-card border-[1.5px] bg-white shadow-[0_4px_18px_rgba(19,31,56,0.07)] transition focus-within:border-mint-700 ${
+            dragOver
+              ? "border-dashed border-mint-700 ring-2 ring-mint-400/40"
+              : "border-navy-800/15"
+          }`}
+        >
+          {dragOver && (
+            <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center gap-1 rounded-card bg-mint-400/12 backdrop-blur-[1px]">
+              <span aria-hidden className="text-2xl">
+                📎
+              </span>
+              <span className="text-sm font-semibold text-mint-700">
+                Drop files to attach for this run
+              </span>
             </div>
           )}
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>{output}</ReactMarkdown>
-          {running && output && (
-            <span className="ml-1 inline-block h-4 w-2 animate-pulse bg-mint-400 align-text-bottom" />
+          <textarea
+            value={task}
+            onChange={(e) => setTask(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                e.preventDefault();
+                void send();
+              }
+            }}
+            rows={3}
+            disabled={running}
+            placeholder={
+              turns.length > 0
+                ? "Send a follow-up…"
+                : "Add clarifying information, or leave blank to run the agent's standard task."
+            }
+            className="block w-full resize-y border-0 bg-transparent px-4 py-3 text-sm leading-relaxed outline-none placeholder:text-navy-800/35"
+          />
+          {attachments.length > 0 && (
+            <ul className="flex flex-wrap gap-1.5 border-t border-navy-800/8 px-3 py-2.5">
+              {attachments.map((a, i) => (
+                <li
+                  key={`${a.name}-${i}`}
+                  className="inline-flex items-center gap-1.5 rounded-chip bg-cream-100 px-2 py-1 text-xs font-medium text-navy-800/70"
+                >
+                  <span aria-hidden>📄</span>
+                  <span className="max-w-44 truncate" title={a.name}>
+                    {a.name}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => removeAttachment(i)}
+                    disabled={running}
+                    aria-label={`Remove ${a.name}`}
+                    className="text-navy-800/40 transition hover:text-coral-400 disabled:opacity-50"
+                  >
+                    ✕
+                  </button>
+                </li>
+              ))}
+            </ul>
           )}
+          <div className="flex items-center justify-between gap-3 border-t border-navy-800/8 px-3 py-2.5">
+            <label className="flex cursor-pointer items-center gap-1.5 rounded-chip px-2 py-1.5 text-sm font-semibold text-navy-800/55 transition hover:bg-cream-100 hover:text-navy-800">
+              <input
+                ref={attachRef}
+                type="file"
+                multiple
+                accept={ATTACH_ACCEPT}
+                className="sr-only"
+                disabled={running || attaching}
+                onChange={(e) => void addAttachments(e.target.files)}
+              />
+              <span aria-hidden>📎</span>
+              {attaching ? "Attaching…" : "Attach files"}
+              <span className="font-normal text-navy-800/35">
+                or drag &amp; drop
+              </span>
+            </label>
+            <Button
+              onClick={send}
+              disabled={
+                running ||
+                archived ||
+                !ready ||
+                (turns.length > 0 && !task.trim())
+              }
+            >
+              {running
+                ? "Running…"
+                : turns.length > 0
+                  ? "Send ▸"
+                  : "▶ Run agent"}
+            </Button>
+          </div>
         </div>
-      )}
-
-      {outputDocId && !running && (
-        <p className="mt-3 text-sm">
-          <Link
-            href={`/docs/${outputDocId}`}
-            className="font-semibold text-mint-700 hover:underline"
-          >
-            View saved document →
-          </Link>
+        <p className="mt-2 text-xs text-navy-800/40">
+          Attached files (PDF, DOCX, TXT, MD · 20 MB) are used for this run only
+          and aren&apos;t saved. To keep a file, add it in the Documents tab.
         </p>
-      )}
+      </div>
+      </div>
+      <div ref={bottomRef} aria-hidden />
     </div>
   );
 }

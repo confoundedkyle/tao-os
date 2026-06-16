@@ -4,6 +4,7 @@ import { providerLabel } from "./ai-catalog";
 import { db } from "./db";
 import { env } from "./env";
 import type {
+  AgentChatTurn,
   AgentRun,
   AiProvider,
   AtsCandidate,
@@ -76,6 +77,28 @@ export async function getUserPreferences(
     .eq("user_id", userId)
     .maybeSingle();
   return data as UserPreferences | null;
+}
+
+/** Map of workspace member user_id → display name, from user_preferences (which
+ *  mirrors Clerk). Lets run history show who ran each agent without a Clerk
+ *  round-trip. Members with no name set are omitted. */
+export async function listWorkspaceMemberNames(
+  workspaceId: string,
+): Promise<Record<string, string>> {
+  const { data } = await db()
+    .from("user_preferences")
+    .select("user_id, first_name, last_name")
+    .eq("workspace_id", workspaceId);
+  const map: Record<string, string> = {};
+  for (const r of (data ?? []) as {
+    user_id: string;
+    first_name: string | null;
+    last_name: string | null;
+  }[]) {
+    const name = [r.first_name, r.last_name].filter(Boolean).join(" ").trim();
+    if (name) map[r.user_id] = name;
+  }
+  return map;
 }
 
 export async function listClients(workspaceId: string): Promise<Client[]> {
@@ -434,6 +457,55 @@ export async function listAgentRuns(
     .order("created_at", { ascending: false });
   if (error) throw error;
   return data as (AgentRun & { agent: { name: string } | null })[];
+}
+
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** A chat conversation for an agent in a project, with its turns oldest-first —
+ *  drives the run panel's resumable chat. Pass `conversationId` (from the URL)
+ *  to load that specific chat; omit it to load the most recent one. Returns null
+ *  when the agent has no matching runs. */
+export async function getActiveAgentConversation(
+  workspaceId: string,
+  projectId: string,
+  workspaceAgentId: string,
+  conversationId?: string | null,
+): Promise<{ conversationId: string; turns: AgentChatTurn[] } | null> {
+  const project = await getProject(workspaceId, projectId);
+  if (!project) return null;
+
+  let convId =
+    conversationId && UUID_RE.test(conversationId) ? conversationId : null;
+  if (!convId) {
+    const { data: latest } = await db()
+      .from("agent_runs")
+      .select("conversation_id")
+      .eq("project_id", projectId)
+      .eq("workspace_agent_id", workspaceAgentId)
+      .not("conversation_id", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    convId = (latest?.conversation_id as string | null) ?? null;
+  }
+  if (!convId) return null;
+
+  const { data, error } = await db()
+    .from("agent_runs")
+    .select(
+      "id, task, output_text, steps, output_doc_id, status, error_message, created_at",
+    )
+    .eq("project_id", projectId)
+    .eq("workspace_agent_id", workspaceAgentId)
+    .eq("conversation_id", convId)
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  const turns = (data ?? []) as AgentChatTurn[];
+  // An explicit (URL) id with no rows yet is still a valid, empty chat — keep
+  // the id so the URL stays stable. A "latest" lookup with no rows is null.
+  if (turns.length === 0 && !conversationId) return null;
+  return { conversationId: convId, turns };
 }
 
 export async function listRecentAgentRuns(
