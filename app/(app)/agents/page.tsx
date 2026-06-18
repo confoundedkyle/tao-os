@@ -78,8 +78,10 @@ export default async function AgentsPage({
   const statusByProvider = new Map(
     connections.map((c) => [c.provider, c.status]),
   );
-  const agents = allAgents.filter((a) => !a.archived_at);
-  const archivedAgents = allAgents.filter((a) => a.archived_at);
+  const byName = (a: { name: string }, b: { name: string }) =>
+    a.name.localeCompare(b.name, undefined, { sensitivity: "base" });
+  const agents = allAgents.filter((a) => !a.archived_at).sort(byName);
+  const archivedAgents = allAgents.filter((a) => a.archived_at).sort(byName);
 
   return (
     <>
