@@ -47,6 +47,7 @@ import { smartrecruitersAdapter } from "./smartrecruiters";
 import { snovAdapter } from "./snov";
 import { teamtailorAdapter } from "./teamtailor";
 import { tldvAdapter } from "./tldv";
+import { vincereAdapter } from "./vincere";
 import { woodpeckerAdapter } from "./woodpecker";
 import { workableAdapter } from "./workable";
 import { zohoCrmAdapter } from "./zoho-crm";
@@ -103,6 +104,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   snov: snovAdapter,
   teamtailor: teamtailorAdapter,
   tldv: tldvAdapter,
+  vincere: vincereAdapter,
   woodpecker: woodpeckerAdapter,
   workable: workableAdapter,
   "zoho-crm": zohoCrmAdapter,
@@ -172,8 +174,21 @@ export async function getValidAccessToken(
     );
   }
 
+  // BYO-OAuth connectors refresh against the workspace's own app credentials.
+  let app: { clientId: string; clientSecret?: string } | undefined;
+  if (connection.oauth_client_id) {
+    app = { clientId: connection.oauth_client_id };
+    if (connection.oauth_client_secret_cipher) {
+      try {
+        app.clientSecret = decrypt(connection.oauth_client_secret_cipher);
+      } catch {
+        // Secret unreadable — fall back to a public-client refresh.
+      }
+    }
+  }
+
   try {
-    const tokens = await adapter.refreshToken!(refreshToken);
+    const tokens = await adapter.refreshToken!(refreshToken, app);
     await db()
       .from("workspace_connections")
       .update({

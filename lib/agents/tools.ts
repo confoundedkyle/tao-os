@@ -49,6 +49,7 @@ import { smartrecruitersAdapter } from "../integrations/smartrecruiters";
 import { snovAdapter } from "../integrations/snov";
 import { teamtailorAdapter } from "../integrations/teamtailor";
 import { tldvAdapter } from "../integrations/tldv";
+import { vincereAdapter } from "../integrations/vincere";
 import { woodpeckerAdapter } from "../integrations/woodpecker";
 import { workableAdapter } from "../integrations/workable";
 import { zohoCrmAdapter } from "../integrations/zoho-crm";
@@ -110,6 +111,7 @@ export interface ToolContext {
   snovToken: string | null;
   teamtailorToken: string | null;
   tldvToken: string | null;
+  vincereToken: string | null;
   woodpeckerToken: string | null;
   workableToken: string | null;
   zohoCrmToken: string | null;
@@ -1038,6 +1040,92 @@ function buildAll(ctx: ToolContext): ToolSet {
       execute: async (args) => {
         if (!ctx.bullhornToken) return { error: notConnected("Bullhorn") };
         return bullhornAdapter.listJobSubmissions(ctx.bullhornToken, args);
+      },
+    }),
+
+    vincere_search_candidates: tool({
+      description:
+        "Search candidates in the connected Vincere ATS as a Markdown table (name, email, phone, title, company, location, candidate id), newest first. Pass query for a name keyword (prefix match), or q for a raw Vincere Solr fragment (e.g. current_location:\"London\"#current_job_title:engineer); page with start.",
+      inputSchema: z.object({
+        query: z
+          .string()
+          .optional()
+          .describe("Name keyword (prefix match on the candidate's name)."),
+        q: z
+          .string()
+          .optional()
+          .describe(
+            'Raw Vincere Solr query, e.g. current_job_title:engineer (overrides query).',
+          ),
+        start: z.number().int().nonnegative().optional(),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.vincereToken) return { error: notConnected("Vincere") };
+        return vincereAdapter.searchCandidates(ctx.vincereToken, args);
+      },
+    }),
+
+    vincere_search_companies: tool({
+      description:
+        "Search companies (clients) in the connected Vincere CRM as a Markdown table (name, industry, website, phone, location, company id), newest first. Pass query for a name keyword or q for a raw Vincere Solr fragment; page with start.",
+      inputSchema: z.object({
+        query: z.string().optional().describe("Company name keyword (prefix match)."),
+        q: z
+          .string()
+          .optional()
+          .describe("Raw Vincere Solr query (overrides query)."),
+        start: z.number().int().nonnegative().optional(),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.vincereToken) return { error: notConnected("Vincere") };
+        return vincereAdapter.searchCompanies(ctx.vincereToken, args);
+      },
+    }),
+
+    vincere_search_contacts: tool({
+      description:
+        "Search contacts (client-side people) in the connected Vincere CRM as a Markdown table (name, email, phone, title, company, contact id), newest first. Pass query for a name keyword or q for a raw Vincere Solr fragment; page with start.",
+      inputSchema: z.object({
+        query: z.string().optional().describe("Contact name keyword (prefix match)."),
+        q: z
+          .string()
+          .optional()
+          .describe("Raw Vincere Solr query (overrides query)."),
+        start: z.number().int().nonnegative().optional(),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.vincereToken) return { error: notConnected("Vincere") };
+        return vincereAdapter.searchContacts(ctx.vincereToken, args);
+      },
+    }),
+
+    vincere_search_applications: tool({
+      description:
+        "Search applications (candidate↔job links) in the connected Vincere ATS as a Markdown table (candidate, job, stage, status, created, application id), newest first. Pass q for a raw Vincere Solr fragment (e.g. job_id:1234 or stage:shortlisted); page with start.",
+      inputSchema: z.object({
+        q: z
+          .string()
+          .optional()
+          .describe('Raw Vincere Solr query, e.g. job_id:1234 or stage:shortlisted.'),
+        start: z.number().int().nonnegative().optional(),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.vincereToken) return { error: notConnected("Vincere") };
+        return vincereAdapter.searchApplications(ctx.vincereToken, args);
+      },
+    }),
+
+    vincere_list_talent_pools: tool({
+      description:
+        "List the talent pools in the connected Vincere ATS (name, description, candidate count, pool id).",
+      inputSchema: z.object({}),
+      execute: async () => {
+        if (!ctx.vincereToken) return { error: notConnected("Vincere") };
+        return vincereAdapter.listTalentPools(ctx.vincereToken);
       },
     }),
 
@@ -2484,6 +2572,11 @@ export const ALL_TOOL_NAMES = [
   "bullhorn_list_jobs",
   "bullhorn_search_candidates",
   "bullhorn_list_job_submissions",
+  "vincere_search_candidates",
+  "vincere_search_companies",
+  "vincere_search_contacts",
+  "vincere_search_applications",
+  "vincere_list_talent_pools",
   "cats_list_jobs",
   "cats_list_candidates",
   "crelate_list_jobs",

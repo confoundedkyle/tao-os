@@ -5,11 +5,13 @@ import { useRouter } from "next/navigation";
 import {
   CONNECTORS,
   CONNECTOR_CATEGORY_LABELS,
+  connectorInCategory,
   type ConnectorCategory,
 } from "@/lib/connectors";
 import {
   connectApiKeyAction,
   disconnectConnectionAction,
+  saveOAuthAppAction,
 } from "@/lib/actions/connectors";
 
 type Filter = "all" | ConnectorCategory;
@@ -71,7 +73,9 @@ export function ConnectorsGrid({
 
   const visible = useMemo(
     () =>
-      CONNECTORS.filter((c) => filter === "all" || c.category === filter).sort(
+      CONNECTORS.filter(
+        (c) => filter === "all" || connectorInCategory(c, filter),
+      ).sort(
         (a, b) => a.name.localeCompare(b.name),
       ),
     [filter],
@@ -155,7 +159,9 @@ function ConnectorFooter({
     );
   }
 
-  if (connection) {
+  // A 'pending' BYO connection has saved app credentials but hasn't completed
+  // the OAuth round-trip yet — treat it as not-yet-connected.
+  if (connection && connection.status !== "pending") {
     const errored = connection.status === "error";
     return (
       <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -220,6 +226,16 @@ function ConnectorFooter({
     );
   }
 
+  if (connector.byoOAuth) {
+    return (
+      <OAuthAppConnect
+        provider={connector.provider}
+        hint={connector.oauthAppHint}
+        pending={connection?.status === "pending"}
+      />
+    );
+  }
+
   return (
     <div className="mt-4 flex items-center gap-2">
       <a
@@ -228,6 +244,137 @@ function ConnectorFooter({
       >
         Connect
       </a>
+    </div>
+  );
+}
+
+/** BYO-OAuth connect flow: the workspace registers its own OAuth app, pastes
+ *  the client_id (+ optional secret), then runs the OAuth round-trip. */
+function OAuthAppConnect({
+  provider,
+  hint,
+  pending,
+}: {
+  provider: string;
+  hint?: string;
+  /** App credentials already saved; the OAuth round-trip just needs running. */
+  pending?: boolean;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [clientId, setClientId] = useState("");
+  const [clientSecret, setClientSecret] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [pendingSave, startTransition] = useTransition();
+
+  const startUrl = `/api/connectors/${provider}/start`;
+  // The redirect URI to register in the provider must match this origin exactly.
+  const redirectUri =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/api/connectors/${provider}/callback`
+      : `/api/connectors/${provider}/callback`;
+
+  // Credentials saved but not yet connected: offer to finish, or re-enter.
+  if (pending && !editing) {
+    return (
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        <a
+          href={startUrl}
+          className="rounded-chip bg-mint-400 px-4 py-1.5 text-sm font-semibold text-navy-800 transition hover:bg-mint-400/85"
+        >
+          Connect
+        </a>
+        <span className="text-xs text-navy-800/45">credentials saved</span>
+        <button
+          type="button"
+          onClick={() => setEditing(true)}
+          className="text-xs text-navy-800/45 underline transition hover:text-navy-800"
+        >
+          Re-enter credentials
+        </button>
+      </div>
+    );
+  }
+
+  if (!editing) {
+    return (
+      <div className="mt-4 flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => setEditing(true)}
+          className="rounded-chip bg-mint-400 px-4 py-1.5 text-sm font-semibold text-navy-800 transition hover:bg-mint-400/85"
+        >
+          Connect
+        </button>
+        <span className="text-xs text-navy-800/35">with your OAuth app</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-4">
+      <label className="mb-1 block text-xs font-medium text-navy-800/55">
+        Redirect URI — register this in {provider}
+      </label>
+      <code className="mb-3 block overflow-x-auto rounded-chip border border-navy-800/15 bg-cream-100 px-3 py-1.5 text-xs text-navy-800/70">
+        {redirectUri}
+      </code>
+      <div className="flex flex-col gap-2">
+        <input
+          type="text"
+          value={clientId}
+          autoFocus
+          disabled={pendingSave}
+          placeholder="Client ID"
+          onChange={(e) => setClientId(e.target.value)}
+          className="rounded-chip border border-navy-800/20 bg-white px-3 py-1.5 text-sm outline-none focus:border-mint-700"
+        />
+        <input
+          type="password"
+          value={clientSecret}
+          disabled={pendingSave}
+          placeholder="Client Secret (optional)"
+          onChange={(e) => setClientSecret(e.target.value)}
+          className="rounded-chip border border-navy-800/20 bg-white px-3 py-1.5 text-sm outline-none focus:border-mint-700"
+        />
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            disabled={pendingSave || !clientId.trim()}
+            onClick={() =>
+              startTransition(async () => {
+                setError(null);
+                const res = await saveOAuthAppAction(
+                  provider,
+                  clientId,
+                  clientSecret,
+                );
+                if (res.ok) {
+                  // Hand off to the OAuth round-trip immediately.
+                  window.location.href = startUrl;
+                } else {
+                  setError(res.error ?? "Could not save credentials");
+                }
+              })
+            }
+            className="rounded-chip bg-mint-400 px-4 py-1.5 text-sm font-semibold text-navy-800 transition hover:bg-mint-400/85 disabled:opacity-40"
+          >
+            {pendingSave ? "Connecting…" : "Save & Connect"}
+          </button>
+          <button
+            type="button"
+            disabled={pendingSave}
+            onClick={() => {
+              setEditing(false);
+              setError(null);
+            }}
+            className="rounded-chip px-2 py-1.5 text-sm text-navy-800/45 transition hover:text-navy-800"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+      {hint && <p className="mt-2 text-xs text-navy-800/45">{hint}</p>}
+      {error && <p className="mt-2 text-sm text-coral-400">{error}</p>}
     </div>
   );
 }

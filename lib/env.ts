@@ -99,6 +99,20 @@ export const env = {
   get bullhornRestLoginBase() {
     return (process.env.BULLHORN_REST_LOGIN_BASE ?? "https://rest.bullhornstaffing.com").replace(/\/$/, "");
   },
+  /** Vincere OAuth app credentials (Vincere App Store → API Authentication &
+   *  Throttling). Vincere apps are usually public OAuth clients, so the secret
+   *  is optional. The identity host is the OAuth + /oauth2/user service; the
+   *  per-tenant API host is discovered from the id_token, not configured. Point
+   *  the id base at https://id.vinceredev.com for the Vincere test environment. */
+  get vincereClientId() {
+    return process.env.VINCERE_CLIENT_ID ?? "";
+  },
+  get vincereClientSecret() {
+    return process.env.VINCERE_CLIENT_SECRET ?? "";
+  },
+  get vincereIdBase() {
+    return (process.env.VINCERE_ID_BASE ?? "https://id.vincere.io").replace(/\/$/, "");
+  },
   /** Google OAuth app credentials (Cloud console; the Sheets connector).
    *  The OAuth client must be a Web application with the
    *  /api/connectors/google-sheets/callback redirect URI registered. */

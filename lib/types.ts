@@ -275,7 +275,9 @@ export interface Session {
 
 // --- Data-source connectors ---
 
-export type ConnectionStatus = "active" | "error" | "revoked";
+// "pending" = BYO-OAuth credentials saved but the OAuth round-trip hasn't
+// completed yet (no tokens). Flips to "active" on a successful callback.
+export type ConnectionStatus = "active" | "error" | "revoked" | "pending";
 
 export interface Connection {
   id: string;
@@ -287,6 +289,10 @@ export interface Connection {
   account_label: string | null;
   scopes: string | null;
   status: ConnectionStatus;
+  /** BYO-OAuth: the workspace's own OAuth app client_id (null = shared env app). */
+  oauth_client_id: string | null;
+  /** BYO-OAuth: the workspace's own OAuth app client_secret, encrypted. */
+  oauth_client_secret_cipher: string | null;
   created_by: string | null;
   created_at: string;
 }
