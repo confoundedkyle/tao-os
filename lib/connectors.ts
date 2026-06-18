@@ -14,6 +14,17 @@ export interface Connector {
   live?: boolean;
   /** How the connector authenticates — drives the Connect affordance. */
   auth?: "oauth" | "apikey";
+  /** Additional categories this connector also belongs to, beyond its primary
+   *  `category` (which drives the badge). A dual-purpose ATS + CRM lists here so
+   *  it's filterable and pickable under each. */
+  extraCategories?: ConnectorCategory[];
+  /** OAuth connectors where each workspace registers its OWN OAuth app and
+   *  pastes the client_id/secret here (e.g. Vincere issues client_ids per
+   *  customer instance, so a shared env app can't authorize every tenant).
+   *  Drives a credentials form before the OAuth redirect. */
+  byoOAuth?: boolean;
+  /** Help text under the BYO OAuth credential form: where to register the app. */
+  oauthAppHint?: string;
   /** Input placeholder for non-obvious credential formats (e.g. "subdomain:api-key"). */
   apiKeyPlaceholder?: string;
   /** One-line help shown under the open API-key input: format + where to find it. */
@@ -47,6 +58,7 @@ export const CONNECTORS: Connector[] = [
   { name: "Recruiterflow", category: "ats", blurb: "Sync the ATS + CRM built for recruiting firms.", provider: "recruiterflow", live: true, auth: "apikey" },
   { name: "SmartRecruiters", category: "ats", blurb: "Sync jobs and candidates from the enterprise TA suite.", provider: "smartrecruiters", live: true, auth: "apikey" },
   { name: "Teamtailor", category: "ats", blurb: "Import candidates from the employer-branding-first ATS.", provider: "teamtailor", live: true, auth: "apikey" },
+  { name: "Vincere", category: "ats", extraCategories: ["crm"], blurb: "Search candidates, contacts, companies, applications, and talent pools from the recruitment agency ATS + CRM.", provider: "vincere", live: true, auth: "oauth", byoOAuth: true, oauthAppHint: "In Vincere go to Settings → API → API Authentication & Throttling, register an app with the redirect URI shown above, then paste its Client ID here (add a Client Secret only if Vincere issued your app a confidential one)." },
   { name: "Workable", category: "ats", blurb: "Pull jobs and candidates from the all-in-one hiring platform.", provider: "workable", live: true, auth: "apikey" },
   { name: "Zoho Recruit", category: "ats", blurb: "Import candidates from Zoho's staffing-ready ATS.", provider: "zoho-recruit", live: true, auth: "oauth" },
 
@@ -123,11 +135,19 @@ export function providersFromTools(allowedTools: string[]): string[] {
   return out;
 }
 
+/** Whether a connector belongs to a category — its primary one or an extra. */
+export function connectorInCategory(
+  c: Connector,
+  category: ConnectorCategory,
+): boolean {
+  return c.category === category || (c.extraCategories?.includes(category) ?? false);
+}
+
 /** Live connectors of a category (the ones a user could pick for a run). */
 export function connectorsForCategory(
   category: ConnectorCategory,
 ): Connector[] {
-  return CONNECTORS.filter((c) => c.category === category && c.live);
+  return CONNECTORS.filter((c) => c.live && connectorInCategory(c, category));
 }
 
 /** Display name for a provider slug, from the catalog. */
@@ -168,6 +188,7 @@ export const CONNECTOR_DOMAINS: Record<string, string> = {
   recruiterflow: "recruiterflow.com",
   smartrecruiters: "smartrecruiters.com",
   teamtailor: "teamtailor.com",
+  vincere: "vincere.io",
   workable: "workable.com",
   "zoho-recruit": "zoho.com",
   attio: "attio.com",

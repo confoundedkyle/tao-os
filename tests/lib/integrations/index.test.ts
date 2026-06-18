@@ -41,6 +41,8 @@ function connection(overrides: Partial<Connection> = {}): Connection {
     account_label: null,
     scopes: "data.records:read",
     status: "active",
+    oauth_client_id: null,
+    oauth_client_secret_cipher: null,
     created_by: null,
     created_at: "2026-01-01T00:00:00.000Z",
     ...overrides,

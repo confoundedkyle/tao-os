@@ -25,22 +25,34 @@ export interface ResourceRef {
   tableId: string;
 }
 
+/** Per-workspace OAuth app credentials, passed in for connectors where each
+ *  workspace registers its OWN OAuth app (e.g. Vincere) rather than using a
+ *  shared app from env. Omitted for shared-app connectors, which read env. */
+export interface OAuthApp {
+  clientId: string;
+  clientSecret?: string;
+}
+
 export interface ConnectorAdapter {
   provider: string;
   authType: ConnectorAuthType;
 
   // --- OAuth connectors ---
+  // `app` carries per-workspace OAuth app credentials for BYO connectors;
+  // shared-app adapters ignore it and read env.
   getAuthorizeUrl?(args: {
     state: string;
     codeChallenge: string;
     redirectUri: string;
+    app?: OAuthApp;
   }): string;
   exchangeCode?(args: {
     code: string;
     codeVerifier: string;
     redirectUri: string;
+    app?: OAuthApp;
   }): Promise<OAuthTokens>;
-  refreshToken?(refreshToken: string): Promise<OAuthTokens>;
+  refreshToken?(refreshToken: string, app?: OAuthApp): Promise<OAuthTokens>;
 
   // --- API-key connectors ---
   /** Validate a pasted key and (optionally) return a display label. */
