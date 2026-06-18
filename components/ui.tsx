@@ -70,7 +70,7 @@ export function Chip({
   children,
   className,
 }: {
-  tone?: "mint" | "amber" | "navy" | "coral" | "sky";
+  tone?: "mint" | "amber" | "navy" | "coral" | "sky" | "lavender";
   children: ReactNode;
   className?: string;
 }) {
@@ -80,6 +80,7 @@ export function Chip({
     navy: "bg-navy-800/8 text-navy-800/70",
     coral: "bg-coral-400/22 text-coral-400",
     sky: "bg-sky-300/30 text-navy-800/80",
+    lavender: "bg-lavender-300/35 text-lavender-700",
   };
   return (
     <span

@@ -4,7 +4,7 @@ import { Chip } from "./ui";
 export function AgentContextBadge({ context }: { context?: string | null }) {
   const bizDev = context === "business-development";
   return (
-    <Chip tone={bizDev ? "sky" : "mint"}>
+    <Chip tone={bizDev ? "sky" : "lavender"}>
       {bizDev ? "Business Development" : "Recruiting Project"}
     </Chip>
   );
