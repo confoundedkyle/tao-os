@@ -12,6 +12,7 @@ export const STARTER_PACK_SLUGS = [
   "job-requirement-analysis",
   "candidate-scorecard-rubric",
   "sourcing-strategy-map",
+  "github-sourcer",
   "outreach-writer",
 ] as const;
 

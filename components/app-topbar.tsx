@@ -10,11 +10,13 @@ import type { ClientWithProjects } from "./sidebar-nav";
 export function AppTopbar({
   session,
   clients,
+  demo = null,
   modules = [],
   isAdmin = false,
 }: {
   session: Session;
   clients: ClientWithProjects[];
+  demo?: ClientWithProjects | null;
   modules?: ModuleKey[];
   /** Platform admin — shows the Admin button. */
   isAdmin?: boolean;
@@ -56,7 +58,7 @@ export function AppTopbar({
         <AccountControls session={session} />
       </div>
 
-      <MobileNav clients={clients} modules={modules}>
+      <MobileNav clients={clients} demo={demo} modules={modules}>
         <AccountControls session={session} />
       </MobileNav>
     </header>

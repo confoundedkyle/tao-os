@@ -7,7 +7,8 @@ import { db } from "../db";
 import { encrypt } from "../crypto";
 import { env } from "../env";
 import { SUPPORTED_PROVIDERS, validateApiKey } from "../providers";
-import { ensureStarterPack } from "../starter-pack";
+import { ensureDemoProject } from "../demo";
+import { listWorkspaceAgents } from "../queries";
 import { getPostHogClient } from "../posthog-server";
 import type { WorkspaceType } from "../types";
 
@@ -271,8 +272,10 @@ export async function finishOnboardingAction() {
       .update({ workspace_type: "independent" })
       .eq("id", session.workspaceId);
   }
-  // Give every new workspace the recommended Starter Pack workflows up front.
-  await ensureStarterPack(session.workspaceId);
+  // Provision the per-user Demo project (a real project pre-loaded from the
+  // template: JD, intake notes, scorecard, sample CVs) and install the starter
+  // agents, so the user lands somewhere they can run an agent immediately.
+  const demo = await ensureDemoProject(session.workspaceId, session.userId);
   getPostHogClient().capture({
     distinctId: session.userId,
     event: "onboarding_completed",
@@ -281,10 +284,16 @@ export async function finishOnboardingAction() {
       workspace_id: session.workspaceId,
     },
   });
-  // New users land on the Demo page for an instant "aha" (CV Screener), not the
-  // empty Dashboard. The demo project is provisioned lazily on first visit.
+  // Land new users on the Demo project with the Job Requirement Analysis agent
+  // already selected — a real, runnable agent — so the very next click is Run,
+  // with zero setup. Fall back to the agents tab if that agent isn't present.
+  const base = `/clients/${demo.clientId}/projects/${demo.projectId}/agents`;
+  const agents = await listWorkspaceAgents(session.workspaceId);
+  const firstAgent = agents.find(
+    (a) => !a.archived_at && a.library?.slug === "job-requirement-analysis",
+  );
   revalidatePath("/");
-  redirect("/demo");
+  redirect(firstAgent ? `${base}/${firstAgent.id}` : base);
 }
 
 export async function platformProviderAvailable() {

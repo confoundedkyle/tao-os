@@ -514,6 +514,50 @@ export async function POST(request: NextRequest) {
         },
       });
 
+      // Activation funnel. Demo-project runs are practice, not activation — they
+      // get their own event. A successful run in a REAL project is the canonical
+      // `activated` moment: stamp workspaces.activated_at exactly once (guarded
+      // conditional update is race-safe) and fire the event only on that first
+      // transition, so nudges can filter on activated_at and the metric is clean.
+      if (project.is_demo) {
+        if (succeeded) {
+          getPostHogClient().capture({
+            distinctId: session.userId,
+            event: "demo_run",
+            properties: {
+              run_id: runId,
+              agent_id: agentId,
+              agent_name: agent.name,
+              workspace_id: session.workspaceId,
+            },
+          });
+        }
+      } else if (succeeded) {
+        const { data: activatedRows } = await db()
+          .from("workspaces")
+          .update({ activated_at: new Date().toISOString() })
+          .eq("id", session.workspaceId)
+          .is("activated_at", null)
+          .select("id");
+        if ((activatedRows?.length ?? 0) > 0) {
+          const createdAt = session.workspace.created_at;
+          getPostHogClient().capture({
+            distinctId: session.userId,
+            event: "activated",
+            properties: {
+              run_id: runId,
+              agent_id: agentId,
+              agent_name: agent.name,
+              project_id: projectId,
+              workspace_id: session.workspaceId,
+              time_to_activate_seconds: createdAt
+                ? Math.round((Date.now() - new Date(createdAt).getTime()) / 1000)
+                : null,
+            },
+          });
+        }
+      }
+
       if (!succeeded) {
         controller.enqueue(ndjson({ type: "error", message: failure }));
       }

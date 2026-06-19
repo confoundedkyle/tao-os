@@ -19,6 +19,7 @@ function workspace(overrides: Partial<Workspace> = {}): Workspace {
     one_time_platform_credit_usd: null,
     one_time_platform_credit_spent_usd: 0,
     monthly_spend_limit_usd: null,
+    activated_at: null,
     created_at: "2026-01-01T00:00:00.000Z",
     ...overrides,
   };

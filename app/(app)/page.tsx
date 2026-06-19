@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import {
+  getDemoClientWithProject,
   listClients,
   listRecentAgentRuns,
   listRecentRuns,
@@ -31,15 +32,24 @@ interface RecentRunRow {
 export default async function DashboardPage() {
   const session = await getSession();
   if (!session) redirect("/sign-in");
-  const [clients, allAgents, workflowRuns, agentRuns, budget] =
+  const [clients, allAgents, workflowRuns, agentRuns, budget, demo] =
     await Promise.all([
       listClients(session.workspaceId),
       listWorkspaceAgents(session.workspaceId),
       listRecentRuns(session.workspaceId),
       listRecentAgentRuns(session.workspaceId),
       checkBudgets(session.workspace, "calyflow"),
+      getDemoClientWithProject(session.workspaceId),
     ]);
   const agents = allAgents.filter((a) => !a.archived_at);
+
+  // The activation guide stays up until the workspace runs its first REAL
+  // (non-demo) agent successfully. The Demo project is the zero-setup first try.
+  const activated = !!session.workspace.activated_at;
+  const demoProject = demo?.projects[0];
+  const demoAgentsHref = demoProject
+    ? `/clients/${demo!.id}/projects/${demoProject.id}/agents`
+    : null;
 
   // Workflow runs and agent runs merged into one recency-sorted feed.
   const runs: RecentRunRow[] = [
@@ -71,22 +81,16 @@ export default async function DashboardPage() {
 
   const steps = [
     {
-      done: agents.length > 0,
-      label: "Import an agent from the library",
-      href: "/library",
-    },
-    {
       done: clients.length > 0,
-      label: "Create your first project",
+      label: "Create your first real project",
       href: "/clients",
     },
     {
       done: runs.length > 0,
-      label: "Run an agent on a project",
+      label: "Run an agent on your own data",
       href: clients.length ? `/clients/${clients[0].id}` : "/clients",
     },
   ];
-  const allDone = steps.every((s) => s.done);
 
   return (
     <>
@@ -134,9 +138,22 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      {!allDone && (
+      {!activated && (
         <Card className="mb-10" featured>
-          <h2 className="mb-4 text-xl font-semibold">Get set up</h2>
+          <h2 className="mb-1 text-xl font-semibold">Get your first result</h2>
+          <p className="mb-4 text-sm text-navy-800/55">
+            Your <span className="font-medium text-navy-800/75">Demo</span> project
+            is loaded with a job description, intake notes, a scorecard, and sample
+            CVs — run any agent there in one click, no setup.
+          </p>
+          {demoAgentsHref && (
+            <ButtonLink href={demoAgentsHref} className="mb-5 inline-flex">
+              ▶ Try an agent in your Demo project
+            </ButtonLink>
+          )}
+          <p className="mb-3 text-sm font-semibold text-navy-800/70">
+            Then make it yours:
+          </p>
           <ol className="space-y-3">
             {steps.map((s) => (
               <li key={s.label} className="flex items-center gap-3">

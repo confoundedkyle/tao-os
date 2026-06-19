@@ -6,9 +6,11 @@ import { SidebarNav, type ClientWithProjects } from "./sidebar-nav";
 /** Desktop-only navigation rail; on mobile the same nav lives in MobileNav. */
 export function AppSidebar({
   clients,
+  demo = null,
   modules = [],
 }: {
   clients: ClientWithProjects[];
+  demo?: ClientWithProjects | null;
   modules?: ModuleKey[];
 }) {
   return (
@@ -23,7 +25,7 @@ export function AppSidebar({
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <SidebarNav clients={clients} modules={modules} />
+        <SidebarNav clients={clients} demo={demo} modules={modules} />
       </div>
     </aside>
   );

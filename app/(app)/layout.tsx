@@ -1,7 +1,12 @@
 import { redirect } from "next/navigation";
 import { config } from "@/lib/config";
 import { getSession, isPlatformAdmin } from "@/lib/auth";
-import { listActiveModuleKeys, listClientsWithProjects } from "@/lib/queries";
+import {
+  getDemoClientWithProject,
+  listActiveModuleKeys,
+  listClientsWithProjects,
+} from "@/lib/queries";
+import { ensureDemoProject, TEMPLATE_VERSION } from "@/lib/demo";
 import { AppSidebar } from "@/components/app-sidebar";
 import { AppTopbar } from "@/components/app-topbar";
 import { PostHogIdentify } from "@/components/posthog-identify";
@@ -20,6 +25,22 @@ export default async function AppLayout({
     isPlatformAdmin(),
   ]);
 
+  // The per-user Demo project lives in the sidebar's DEMO section. Provision (or
+  // re-sync to the latest template) only when it's missing or behind, so steady
+  // state is a single read; failures never block the app shell.
+  let demo = await getDemoClientWithProject(session.workspace.id);
+  const demoProject = demo?.projects[0];
+  const demoStale =
+    !demoProject || (demoProject.template_version ?? 0) < TEMPLATE_VERSION;
+  if (demoStale) {
+    try {
+      await ensureDemoProject(session.workspace.id, session.userId);
+      demo = await getDemoClientWithProject(session.workspace.id);
+    } catch (err) {
+      console.warn("ensureDemoProject failed:", err);
+    }
+  }
+
   return (
     <div className="flex h-dvh overflow-hidden">
       <PostHogIdentify
@@ -28,12 +49,13 @@ export default async function AppLayout({
         workspaceName={session.workspace.name}
         workspaceType={session.workspace.workspace_type}
       />
-      <AppSidebar clients={clients} modules={modules} />
+      <AppSidebar clients={clients} demo={demo} modules={modules} />
       {/* min-w-0 lets grids/tables shrink instead of overflowing on mobile */}
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <AppTopbar
           session={session}
           clients={clients}
+          demo={demo}
           modules={modules}
           isAdmin={admin}
         />

@@ -10,10 +10,12 @@ import { SidebarNav, type ClientWithProjects } from "./sidebar-nav";
  *  controls (Clerk profile) are passed in as server-rendered children. */
 export function MobileNav({
   clients,
+  demo = null,
   modules = [],
   children,
 }: {
   clients: ClientWithProjects[];
+  demo?: ClientWithProjects | null;
   modules?: ModuleKey[];
   children: React.ReactNode;
 }) {
@@ -74,7 +76,7 @@ export function MobileNav({
               </button>
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto">
-              <SidebarNav clients={clients} modules={modules} />
+              <SidebarNav clients={clients} demo={demo} modules={modules} />
             </div>
             <div className="flex-shrink-0 space-y-3 border-t border-navy-800/10 px-4 py-3">
               <div className="grid grid-cols-2 gap-2">

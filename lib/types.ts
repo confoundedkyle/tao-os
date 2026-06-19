@@ -9,6 +9,9 @@ export interface Workspace {
   one_time_platform_credit_usd: number | null;
   one_time_platform_credit_spent_usd: number;
   monthly_spend_limit_usd: number | null;
+  /** When the workspace ran its first real (non-demo) agent run successfully.
+   *  Null until activated; set once. */
+  activated_at: string | null;
   created_at: string;
 }
 
@@ -41,8 +44,11 @@ export interface Project {
   client_id: string;
   name: string;
   status: "active" | "archived";
-  /** Hidden demo project backing the /demo page (kept out of normal lists). */
+  /** The per-user Demo project (surfaced in the sidebar's DEMO section). */
   is_demo: boolean;
+  /** For the demo project: which template version (lib/demo.ts) its docs were
+   *  last synced to. Null on real projects. */
+  template_version: number | null;
   /** Slack channel this project posts to (id like C0123456789), or null. */
   slack_channel_id: string | null;
   /** Display name of that channel, e.g. proj-acme-devops (cosmetic). */

@@ -38,18 +38,21 @@ function Chevron({ className }: { className?: string }) {
 
 export function SidebarNav({
   clients,
+  demo = null,
   modules = [],
 }: {
   clients: ClientWithProjects[];
+  /** The per-user Demo client+project, shown in its own DEMO section. */
+  demo?: ClientWithProjects | null;
   modules?: ModuleKey[];
 }) {
   const pathname = usePathname();
   const activeModules = MODULES.filter((m) => modules.includes(m.key));
 
   // Expand every client by default so projects are visible without clicking;
-  // users can still collapse any client individually.
+  // users can still collapse any client individually. The demo client too.
   const [expanded, setExpanded] = useState<Set<string>>(
-    () => new Set(clients.map((c) => c.id)),
+    () => new Set([...(demo ? [demo.id] : []), ...clients.map((c) => c.id)]),
   );
 
   const toggle = (clientId: string) => {
@@ -63,6 +66,79 @@ export function SidebarNav({
 
   const isActive = (href: string, exact?: boolean) =>
     exact ? pathname === href : pathname.startsWith(href);
+
+  // One client row + its projects. Reused for the demo client and real clients
+  // so the demo project looks and links exactly like a real one.
+  const clientBlock = (client: ClientWithProjects) => {
+    const isClientActive = pathname.startsWith(`/clients/${client.id}`);
+    // On a project page the project link below carries the highlight;
+    // the client row is highlighted on the client's own pages/tabs.
+    const onProjectPage = pathname.includes("/projects/");
+    const isOpen = expanded.has(client.id);
+
+    return (
+      <div key={client.id}>
+        <div
+          className={cn(
+            "flex items-center gap-0.5 rounded-lg transition-colors",
+            isClientActive && (!onProjectPage || !isOpen) ? "bg-mint-400/15" : "",
+          )}
+        >
+          <button
+            onClick={() => toggle(client.id)}
+            className="flex h-8 w-6 flex-shrink-0 items-center justify-center text-navy-800/30 transition-colors hover:text-navy-800/60"
+            aria-label={isOpen ? "Collapse" : "Expand"}
+          >
+            <Chevron
+              className={cn(
+                "transition-transform duration-150",
+                isOpen ? "rotate-90" : "",
+              )}
+            />
+          </button>
+          <Link
+            href={`/clients/${client.id}`}
+            className={cn(
+              "flex-1 truncate py-1.5 pr-2 text-sm transition-colors",
+              isClientActive && (!onProjectPage || !isOpen)
+                ? "font-medium text-mint-700"
+                : isClientActive
+                  ? "font-medium text-navy-900"
+                  : "text-navy-800/65 hover:text-navy-900",
+            )}
+          >
+            {client.name}
+          </Link>
+        </div>
+
+        {isOpen && (
+          <div className="ml-5 flex flex-col gap-0.5 pb-0.5">
+            {client.projects.length === 0 && (
+              <p className="px-3 py-1 text-xs text-navy-800/30">No projects</p>
+            )}
+            {client.projects.map((project) => {
+              const href = `/clients/${client.id}/projects/${project.id}`;
+              const active = pathname.startsWith(href);
+              return (
+                <Link
+                  key={project.id}
+                  href={href}
+                  className={cn(
+                    "truncate rounded-lg px-3 py-1.5 text-sm transition-colors",
+                    active
+                      ? "bg-mint-400/15 font-medium text-mint-700"
+                      : "text-navy-800/55 hover:bg-cream-100 hover:text-navy-900",
+                  )}
+                >
+                  {project.name}
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="flex flex-col gap-0.5 p-2">
@@ -101,6 +177,24 @@ export function SidebarNav({
         </>
       )}
 
+      {demo && (
+        <>
+          <div className="my-2 border-t border-navy-800/10" />
+          <div className="mb-1 flex items-center justify-between px-3">
+            <span className="text-[11px] font-semibold uppercase tracking-widest text-mint-700/70">
+              Demo
+            </span>
+            <span
+              className="rounded-chip bg-mint-400/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-mint-700"
+              title="A ready-to-run sample project — try any agent here with no setup."
+            >
+              Try it
+            </span>
+          </div>
+          {clientBlock(demo)}
+        </>
+      )}
+
       <div className="my-2 border-t border-navy-800/10" />
 
       <div className="mb-1 flex items-center justify-between px-3">
@@ -134,80 +228,7 @@ export function SidebarNav({
         </div>
       )}
 
-      {clients.map((client) => {
-        const isClientActive = pathname.startsWith(`/clients/${client.id}`);
-        // On a project page the project link below carries the highlight;
-        // the client row is highlighted on the client's own pages/tabs.
-        const onProjectPage = pathname.includes("/projects/");
-        const isOpen = expanded.has(client.id);
-
-        return (
-          <div key={client.id}>
-            <div
-              className={cn(
-                "flex items-center gap-0.5 rounded-lg transition-colors",
-                isClientActive && (!onProjectPage || !isOpen)
-                  ? "bg-mint-400/15"
-                  : "",
-              )}
-            >
-              <button
-                onClick={() => toggle(client.id)}
-                className="flex h-8 w-6 flex-shrink-0 items-center justify-center text-navy-800/30 transition-colors hover:text-navy-800/60"
-                aria-label={isOpen ? "Collapse" : "Expand"}
-              >
-                <Chevron
-                  className={cn(
-                    "transition-transform duration-150",
-                    isOpen ? "rotate-90" : "",
-                  )}
-                />
-              </button>
-              <Link
-                href={`/clients/${client.id}`}
-                className={cn(
-                  "flex-1 truncate py-1.5 pr-2 text-sm transition-colors",
-                  isClientActive && (!onProjectPage || !isOpen)
-                    ? "font-medium text-mint-700"
-                    : isClientActive
-                      ? "font-medium text-navy-900"
-                      : "text-navy-800/65 hover:text-navy-900",
-                )}
-              >
-                {client.name}
-              </Link>
-            </div>
-
-            {isOpen && (
-              <div className="ml-5 flex flex-col gap-0.5 pb-0.5">
-                {client.projects.length === 0 && (
-                  <p className="px-3 py-1 text-xs text-navy-800/30">
-                    No projects
-                  </p>
-                )}
-                {client.projects.map((project) => {
-                  const href = `/clients/${client.id}/projects/${project.id}`;
-                  const active = pathname.startsWith(href);
-                  return (
-                    <Link
-                      key={project.id}
-                      href={href}
-                      className={cn(
-                        "truncate rounded-lg px-3 py-1.5 text-sm transition-colors",
-                        active
-                          ? "bg-mint-400/15 font-medium text-mint-700"
-                          : "text-navy-800/55 hover:bg-cream-100 hover:text-navy-900",
-                      )}
-                    >
-                      {project.name}
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        );
-      })}
+      {clients.map((client) => clientBlock(client))}
     </div>
   );
 }

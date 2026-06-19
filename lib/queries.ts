@@ -64,6 +64,28 @@ export async function listClientsWithProjects(
   }));
 }
 
+/** The workspace's Demo client + its demo project, for the sidebar's DEMO
+ *  section. Null until `ensureDemoProject` has provisioned it. Mirrors
+ *  `listClientsWithProjects` but for the `is_demo` rows it deliberately hides. */
+export async function getDemoClientWithProject(
+  workspaceId: string,
+): Promise<(Client & { projects: Project[] }) | null> {
+  const { data, error } = await db()
+    .from("clients")
+    .select("*, projects(*)")
+    .eq("workspace_id", workspaceId)
+    .eq("is_demo", true)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+  return {
+    ...(data as Client & { projects: Project[] }),
+    projects: ((data.projects ?? []) as Project[]).filter((p) => p.is_demo),
+  };
+}
+
 /** A user's personal preferences (Settings > Personal) for this workspace, or
  *  null if they haven't saved any yet. */
 export async function getUserPreferences(
