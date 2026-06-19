@@ -12,6 +12,8 @@ export interface Workspace {
   /** When the workspace ran its first real (non-demo) agent run successfully.
    *  Null until activated; set once. */
   activated_at: string | null;
+  /** The user dismissed the sidebar DEMO section for this workspace. */
+  demo_hidden: boolean;
   created_at: string;
 }
 

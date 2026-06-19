@@ -21,12 +21,13 @@ import type { Doc, DocType } from "./types";
  * Safe to call on every app-shell load.
  */
 
-const DEMO_CLIENT_NAME = "Northwind (Demo)";
-const DEMO_PROJECT_NAME = "Senior Backend Engineer — Demo";
+const DEMO_CLIENT_NAME = "Northwind";
+const DEMO_PROJECT_NAME = "Senior Backend Engineer";
 const CV_SCREENER_SLUG = "cv-screener";
 
-// Bump when you change any template file below so existing demo projects re-sync.
-export const TEMPLATE_VERSION = 1;
+// Bump when you change the template (files below, or the client/project names)
+// so existing demo projects re-sync on next load.
+export const TEMPLATE_VERSION = 2;
 
 interface TemplateDoc {
   docType: DocType;
@@ -126,12 +127,21 @@ export async function ensureDemoProject(
 async function ensureDemoClient(workspaceId: string): Promise<string> {
   const { data: existing } = await db()
     .from("clients")
-    .select("id")
+    .select("id, name")
     .eq("workspace_id", workspaceId)
     .eq("is_demo", true)
     .limit(1)
     .maybeSingle();
-  if (existing) return existing.id as string;
+  if (existing) {
+    // Keep the name in sync with the template (e.g. after a rename).
+    if (existing.name !== DEMO_CLIENT_NAME) {
+      await db()
+        .from("clients")
+        .update({ name: DEMO_CLIENT_NAME })
+        .eq("id", existing.id);
+    }
+    return existing.id as string;
+  }
 
   const { data, error } = await db()
     .from("clients")
@@ -148,12 +158,18 @@ async function ensureDemoProjectRow(
 ): Promise<{ projectId: string; templateVersion: number | null }> {
   const { data: existing } = await db()
     .from("projects")
-    .select("id, template_version")
+    .select("id, name, template_version")
     .eq("client_id", clientId)
     .eq("is_demo", true)
     .limit(1)
     .maybeSingle();
   if (existing) {
+    if (existing.name !== DEMO_PROJECT_NAME) {
+      await db()
+        .from("projects")
+        .update({ name: DEMO_PROJECT_NAME })
+        .eq("id", existing.id);
+    }
     return {
       projectId: existing.id as string,
       templateVersion: (existing.template_version as number | null) ?? null,

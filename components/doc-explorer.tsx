@@ -14,6 +14,7 @@ import {
   uploadDocumentAction,
 } from "@/lib/actions/documents";
 import type { Doc, DocScope } from "@/lib/types";
+import { isMarkdownDoc } from "@/lib/readiness";
 import { Button } from "./ui";
 import { DownloadButtons } from "./download-buttons";
 import { Toast } from "./toast";
@@ -25,11 +26,6 @@ function isEditable(doc: Doc): boolean {
   return (
     name.endsWith(".md") || name.endsWith(".markdown") || name.endsWith(".txt")
   );
-}
-
-function isMarkdownName(doc: Doc): boolean {
-  const name = (doc.filename ?? "").toLowerCase();
-  return name.endsWith(".md") || name.endsWith(".markdown") || !doc.storage_path;
 }
 
 function FileIcon({ className }: { className?: string }) {
@@ -625,7 +621,7 @@ export function DocExplorer({
                 className="block w-full resize-y border-0 bg-transparent px-5 py-4 font-mono text-[13.5px] leading-relaxed outline-none"
               />
             ) : selected.extracted_text ? (
-              isMarkdownName(selected) ? (
+              isMarkdownDoc(selected) ? (
                 <div className="prose-calyflow max-h-[32rem] overflow-y-auto px-5 py-4">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>
                     {selected.extracted_text}

@@ -27,11 +27,15 @@ export default async function AppLayout({
 
   // The per-user Demo project lives in the sidebar's DEMO section. Provision (or
   // re-sync to the latest template) only when it's missing or behind, so steady
-  // state is a single read; failures never block the app shell.
-  let demo = await getDemoClientWithProject(session.workspace.id);
+  // state is a single read; failures never block the app shell. Skip entirely
+  // when the workspace has dismissed it (Hide).
+  let demo = session.workspace.demo_hidden
+    ? null
+    : await getDemoClientWithProject(session.workspace.id);
   const demoProject = demo?.projects[0];
   const demoStale =
-    !demoProject || (demoProject.template_version ?? 0) < TEMPLATE_VERSION;
+    !session.workspace.demo_hidden &&
+    (!demoProject || (demoProject.template_version ?? 0) < TEMPLATE_VERSION);
   if (demoStale) {
     try {
       await ensureDemoProject(session.workspace.id, session.userId);

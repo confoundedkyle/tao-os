@@ -36,12 +36,6 @@ export function AppTopbar({
       <div className="hidden w-auto items-center gap-3 lg:flex">
         <PoweredBy workspaceId={session.workspaceId} />
         <Link
-          href="/demo"
-          className="flex-shrink-0 whitespace-nowrap rounded-full border border-mint-400/50 px-3 py-1 text-xs font-semibold text-mint-700 transition hover:bg-mint-400/10"
-        >
-          Demo
-        </Link>
-        <Link
           href="/setup-help"
           className="flex-shrink-0 whitespace-nowrap rounded-full border border-mint-400/50 px-3 py-1 text-xs font-semibold text-mint-700 transition hover:bg-mint-400/10"
         >

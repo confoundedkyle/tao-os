@@ -392,7 +392,15 @@ export function AgentRunPanel({
   const missingCategories = (agent?.requirements ?? []).filter(
     (req) => req.options.length === 0,
   );
-  const blocked = missingCategories.length > 0 || missingDocs.length > 0;
+  // Provider-bound connectors the agent needs (e.g. GitHub) that aren't
+  // connected — block the run just like a missing category connector.
+  const missingProviders = (agent?.boundProviders ?? []).filter(
+    (p) => !connectedProviders.includes(p),
+  );
+  const blocked =
+    missingCategories.length > 0 ||
+    missingProviders.length > 0 ||
+    missingDocs.length > 0;
   const ready = !blocked;
 
   // Compact "what's involved" badges that replace the canvas: a dot per piece,
@@ -756,6 +764,22 @@ export function AgentRunPanel({
                 >
                   Connect {/^[aeio]/i.test(req.label) ? "an" : "a"} {req.label}{" "}
                   connector
+                </Link>
+              </li>
+            ))}
+            {missingProviders.map((provider) => (
+              <li
+                key={provider}
+                className="flex items-center gap-2 text-sm text-navy-800/80"
+              >
+                <span aria-hidden className="text-amber-400">
+                  ☐
+                </span>
+                <Link
+                  href={connectorsHref}
+                  className="font-semibold text-mint-700 hover:underline"
+                >
+                  Connect {connectorLabel(provider)}
                 </Link>
               </li>
             ))}
