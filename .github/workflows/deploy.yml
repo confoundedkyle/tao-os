@@ -27,6 +27,8 @@
 #   HUNTER_API_KEY (optional contact enrichment for domain import)
 # Optional connector OAuth SECRETS (each enables one connector's Connect flow):
 #   AIRTABLE_CLIENT_ID, AIRTABLE_CLIENT_SECRET,
+#   SLACK_CLIENT_ID, SLACK_CLIENT_SECRET, SLACK_SIGNING_SECRET (the signing
+#     secret also verifies inbound Slack slash-command & event requests),
 #   BULLHORN_CLIENT_ID, BULLHORN_CLIENT_SECRET,
 #   GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET,
 #   JOBADDER_CLIENT_ID, JOBADDER_CLIENT_SECRET,
@@ -166,6 +168,7 @@ jobs:
               "ONE_TIME_PLATFORM_CREDIT_DEFAULT_USD", "CRON_SECRET", "MOCK_AI",
               "FIRECRAWL_API_KEY", "HUNTER_API_KEY",
               "APP_BASE_URL", "AIRTABLE_CLIENT_ID", "AIRTABLE_CLIENT_SECRET",
+              "SLACK_CLIENT_ID", "SLACK_CLIENT_SECRET", "SLACK_SIGNING_SECRET",
               "BULLHORN_CLIENT_ID", "BULLHORN_CLIENT_SECRET",
               "BULLHORN_AUTH_BASE", "BULLHORN_REST_LOGIN_BASE",
               "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET",
@@ -213,6 +216,11 @@ jobs:
           APP_BASE_URL: ${{ vars.APP_BASE_URL }}
           AIRTABLE_CLIENT_ID: ${{ secrets.AIRTABLE_CLIENT_ID }}
           AIRTABLE_CLIENT_SECRET: ${{ secrets.AIRTABLE_CLIENT_SECRET }}
+          # Slack: CLIENT_ID/SECRET drive the "Connect Slack" OAuth flow;
+          # SIGNING_SECRET verifies inbound slash-command & event requests.
+          SLACK_CLIENT_ID: ${{ secrets.SLACK_CLIENT_ID }}
+          SLACK_CLIENT_SECRET: ${{ secrets.SLACK_CLIENT_SECRET }}
+          SLACK_SIGNING_SECRET: ${{ secrets.SLACK_SIGNING_SECRET }}
           BULLHORN_CLIENT_ID: ${{ secrets.BULLHORN_CLIENT_ID }}
           BULLHORN_CLIENT_SECRET: ${{ secrets.BULLHORN_CLIENT_SECRET }}
           BULLHORN_AUTH_BASE: ${{ vars.BULLHORN_AUTH_BASE }}
