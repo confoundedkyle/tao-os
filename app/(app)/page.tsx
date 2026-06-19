@@ -47,9 +47,10 @@ export default async function DashboardPage() {
   // (non-demo) agent successfully. The Demo project is the zero-setup first try.
   const activated = !!session.workspace.activated_at;
   const demoProject = demo?.projects[0];
-  const demoAgentsHref = demoProject
-    ? `/clients/${demo!.id}/projects/${demoProject.id}/agents`
-    : null;
+  const demoAgentsHref =
+    !session.workspace.demo_hidden && demoProject
+      ? `/clients/${demo!.id}/projects/${demoProject.id}/agents`
+      : null;
 
   // Workflow runs and agent runs merged into one recency-sorted feed.
   const runs: RecentRunRow[] = [

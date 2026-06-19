@@ -1,7 +1,8 @@
 "use client";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { hideDemoProjectAction } from "@/lib/actions/demo";
 import { MODULES, type Client, type ModuleKey, type Project } from "@/lib/types";
 
 export type ClientWithProjects = Client & { projects: Project[] };
@@ -47,7 +48,20 @@ export function SidebarNav({
   modules?: ModuleKey[];
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const activeModules = MODULES.filter((m) => modules.includes(m.key));
+
+  const [hidingDemo, startHidingDemo] = useTransition();
+  const hideDemo = () => {
+    if (
+      !window.confirm("Hide the demo project from this workspace?")
+    )
+      return;
+    startHidingDemo(async () => {
+      await hideDemoProjectAction();
+      router.refresh();
+    });
+  };
 
   // Expand every client by default so projects are visible without clicking;
   // users can still collapse any client individually. The demo client too.
@@ -184,12 +198,15 @@ export function SidebarNav({
             <span className="text-[11px] font-semibold uppercase tracking-widest text-mint-700/70">
               Demo
             </span>
-            <span
-              className="rounded-chip bg-mint-400/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-mint-700"
-              title="A ready-to-run sample project — try any agent here with no setup."
+            <button
+              type="button"
+              onClick={hideDemo}
+              disabled={hidingDemo}
+              className="rounded-chip px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-navy-800/40 transition hover:bg-coral-400/10 hover:text-coral-400 disabled:opacity-50"
+              title="Hide the demo project from this workspace"
             >
-              Try it
-            </span>
+              {hidingDemo ? "Hiding…" : "Hide"}
+            </button>
           </div>
           {clientBlock(demo)}
         </>
