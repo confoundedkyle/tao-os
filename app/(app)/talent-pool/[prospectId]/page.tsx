@@ -78,7 +78,7 @@ export default async function ProspectPage({
             {cvs.map((cv) => (
               <li key={cv.id}>
                 <Link
-                  href={`/docs/${cv.id}`}
+                  href={`/document/${cv.id}`}
                   className="text-sm font-medium text-mint-700 hover:underline"
                 >
                   📄 {cv.filename ?? "CV"}

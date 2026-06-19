@@ -119,7 +119,7 @@ export default async function RunPage({
                         (doc) =>
                           doc && (
                             <li key={doc.id}>
-                              <Link href={`/docs/${doc.id}`} className="font-medium hover:text-mint-700">
+                              <Link href={`/document/${doc.id}`} className="font-medium hover:text-mint-700">
                                 {doc.filename}
                               </Link>
                             </li>
@@ -173,7 +173,7 @@ export default async function RunPage({
             <h2 className="text-lg font-semibold">Output</h2>
             {run.output_doc_id && (
               <Link
-                href={`/docs/${run.output_doc_id}`}
+                href={`/document/${run.output_doc_id}`}
                 className="text-sm font-semibold text-mint-700 hover:underline"
               >
                 Saved as project file →

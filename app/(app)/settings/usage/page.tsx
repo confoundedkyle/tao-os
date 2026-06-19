@@ -53,7 +53,7 @@ export default async function UsagePage() {
       status: r.status,
       createdAt: r.created_at,
       href: `/runs/${r.id}`,
-      docHref: r.output_doc_id ? `/docs/${r.output_doc_id}` : null,
+      docHref: r.output_doc_id ? `/document/${r.output_doc_id}` : null,
     })),
     ...agentRuns.map((r) => ({
       id: r.id,
@@ -65,7 +65,7 @@ export default async function UsagePage() {
       status: r.status,
       createdAt: r.created_at,
       href: `/agent-runs/${r.id}`,
-      docHref: r.output_doc_id ? `/docs/${r.output_doc_id}` : null,
+      docHref: r.output_doc_id ? `/document/${r.output_doc_id}` : null,
     })),
   ]
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
