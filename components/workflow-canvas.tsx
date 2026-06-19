@@ -19,7 +19,7 @@ import type {
   WorkflowGraphNode,
   WorkflowNodeIcon,
 } from "@/lib/workflow-graph";
-import { CONNECTOR_DOMAINS } from "@/lib/connectors";
+import { CONNECTOR_DOMAINS, connectorFaviconUrl } from "@/lib/connectors";
 import {
   IconAiSpark,
   IconClientsBuilding,
@@ -172,7 +172,7 @@ function BrandLogo({ provider, size = 18 }: { provider: string; size?: number })
   return (
     // eslint-disable-next-line @next/next/no-img-element -- tiny external favicons; next/image would need remotePatterns for ~50 hosts
     <img
-      src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
+      src={connectorFaviconUrl(domain)}
       alt={provider}
       title={provider}
       width={size}

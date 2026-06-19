@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CONNECTORS } from "@/lib/connectors";
+import { CONNECTORS, CONNECTOR_DOMAINS } from "@/lib/connectors";
 import { SUPPORTED_PROVIDERS } from "@/lib/ai-catalog";
 import { GET, OPTIONS, type PublicCatalogItem } from "@/app/api/v1/connectors/route";
 
@@ -18,14 +18,42 @@ describe("GET /api/v1/connectors", () => {
     expect(items).toHaveLength(CONNECTORS.length + byoProviders.length + 1);
   });
 
-  it("exposes only name, category, and status on every item", async () => {
+  it("exposes only public, non-internal fields on every item", async () => {
     const items = await getItems();
+    const allowed = ["category", "domain", "faviconUrl", "name", "status"];
     for (const item of items) {
-      expect(Object.keys(item).sort()).toEqual(["category", "name", "status"]);
+      for (const key of Object.keys(item)) {
+        expect(allowed).toContain(key);
+      }
       expect(["ai", "ats", "crm", "data", "email", "tool"]).toContain(
         item.category,
       );
       expect(["available", "coming_soon"]).toContain(item.status);
+    }
+  });
+
+  it("exposes domain and a favicon URL for connectors with a known domain", async () => {
+    const items = await getItems();
+    const byName = Object.fromEntries(items.map((i) => [i.name, i]));
+    for (const c of CONNECTORS) {
+      const domain = c.provider ? CONNECTOR_DOMAINS[c.provider] : undefined;
+      const item = byName[c.name];
+      if (domain) {
+        expect(item.domain).toBe(domain);
+        expect(item.faviconUrl).toBe(
+          `https://www.google.com/s2/favicons?domain=${domain}&sz=64`,
+        );
+      } else {
+        expect(item.domain).toBeUndefined();
+        expect(item.faviconUrl).toBeUndefined();
+      }
+    }
+  });
+
+  it("never exposes a favicon URL without its domain", async () => {
+    const items = await getItems();
+    for (const item of items) {
+      if (item.faviconUrl) expect(item.domain).toBeTruthy();
     }
   });
 

@@ -222,3 +222,13 @@ export const CONNECTOR_DOMAINS: Record<string, string> = {
   tldv: "tldv.io",
   woodpecker: "woodpecker.co",
 };
+
+/** Brand-logo URL for a domain, via Google's favicon service (no logo assets
+ *  to host). Returns undefined when there's no domain to render. */
+export function connectorFaviconUrl(
+  domain: string | undefined,
+  size = 64,
+): string | undefined {
+  if (!domain) return undefined;
+  return `https://www.google.com/s2/favicons?domain=${domain}&sz=${size}`;
+}
