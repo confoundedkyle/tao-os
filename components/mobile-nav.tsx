@@ -79,20 +79,12 @@ export function MobileNav({
               <SidebarNav clients={clients} demo={demo} modules={modules} />
             </div>
             <div className="flex-shrink-0 space-y-3 border-t border-navy-800/10 px-4 py-3">
-              <div className="grid grid-cols-2 gap-2">
-                <Link
-                  href="/demo"
-                  className="block rounded-chip border border-mint-400/50 px-3 py-2 text-center text-sm font-semibold text-mint-700 transition hover:bg-mint-400/10"
-                >
-                  Demo
-                </Link>
-                <Link
-                  href="/setup-help"
-                  className="block rounded-chip border border-mint-400/50 px-3 py-2 text-center text-sm font-semibold text-mint-700 transition hover:bg-mint-400/10"
-                >
-                  Setup Help
-                </Link>
-              </div>
+              <Link
+                href="/setup-help"
+                className="block rounded-chip border border-mint-400/50 px-3 py-2 text-center text-sm font-semibold text-mint-700 transition hover:bg-mint-400/10"
+              >
+                Setup Help
+              </Link>
               {children}
             </div>
           </div>
