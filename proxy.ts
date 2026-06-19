@@ -13,6 +13,8 @@ const isPublicRoute = createRouteMatcher([
   // Inbound Slack (slash command + events) is server-to-server with no Clerk
   // session; it authenticates itself via Slack request-signature verification.
   "/api/slack(.*)",
+  // Public product documentation — readable by anyone, no account needed.
+  "/docs(.*)",
   "/api/v1/connectors",
   "/api/v1/library(.*)",
 ]);
