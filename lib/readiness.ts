@@ -4,6 +4,16 @@ import type { Doc, InputSpec } from "./types";
 // (SPEC §5). The same logic feeds the project readiness checklist and the
 // disabled-Run-button reasons.
 
+/** Whether a document's extracted text should render as Markdown rather than
+ *  plain preformatted text. True for agent output, `.md`/`.markdown` files, and
+ *  pasted/manual docs (no uploaded binary) — false for extracted PDF/DOCX text,
+ *  whose layout we preserve verbatim. Shared by the doc page + DocExplorer. */
+export function isMarkdownDoc(doc: Doc): boolean {
+  if (doc.doc_type === "output") return true;
+  const name = (doc.filename ?? "").toLowerCase();
+  return name.endsWith(".md") || name.endsWith(".markdown") || !doc.storage_path;
+}
+
 export const DOC_TYPE_LABELS: Record<string, string> = {
   jd: "Job description",
   intake_notes: "Intake notes",

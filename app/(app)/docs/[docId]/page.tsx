@@ -4,7 +4,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { getSession } from "@/lib/auth";
 import { getDocument, getProject } from "@/lib/queries";
-import { DOC_TYPE_LABELS } from "@/lib/readiness";
+import { DOC_TYPE_LABELS, isMarkdownDoc } from "@/lib/readiness";
 import { Card, Chip, PageHeader } from "@/components/ui";
 import { DownloadButtons } from "@/components/download-buttons";
 
@@ -80,10 +80,10 @@ export default async function DocPage({
         </div>
       )}
       <Card>
-        {doc.doc_type === "output" ? (
+        {doc.extracted_text && isMarkdownDoc(doc) ? (
           <div className="prose-calyflow">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {doc.extracted_text ?? ""}
+              {doc.extracted_text}
             </ReactMarkdown>
           </div>
         ) : (
