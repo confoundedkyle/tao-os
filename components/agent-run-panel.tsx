@@ -136,7 +136,7 @@ function SavedDocArtwork() {
 function SavedDocumentCard({ docId }: { docId: string }) {
   return (
     <Link
-      href={`/docs/${docId}`}
+      href={`/document/${docId}`}
       className="group flex items-center gap-5 rounded-card border-[1.5px] border-mint-400/50 bg-mint-400/[0.06] p-5 transition hover:border-mint-700 hover:bg-mint-400/10"
     >
       <SavedDocArtwork />

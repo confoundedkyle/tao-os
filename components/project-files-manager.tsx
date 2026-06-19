@@ -25,7 +25,7 @@ function DocCategoryRow({ doc }: { doc: Doc }) {
     <li className="flex items-center gap-3 py-2">
       <div className="min-w-0 flex-1">
         <Link
-          href={`/docs/${doc.id}`}
+          href={`/document/${doc.id}`}
           className={`text-sm font-medium hover:text-mint-700 ${
             doc.is_active ? "" : "text-navy-800/40 line-through"
           }`}

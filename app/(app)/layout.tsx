@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { config } from "@/lib/config";
 import { getSession, isPlatformAdmin } from "@/lib/auth";
@@ -72,6 +73,10 @@ export default async function AppLayout({
           <footer className="mt-16 border-t border-navy-800/8 py-4 text-center text-xs text-navy-800/35">
             Calyflow — open-source recruiting OS ·{" "}
             <span className="font-mono">AGPL-3.0</span> ·{" "}
+            <Link href="/docs" className="hover:text-mint-700">
+              Docs
+            </Link>{" "}
+            ·{" "}
             <a
               href={`mailto:${config.contactEmail}`}
               className="hover:text-mint-700"
