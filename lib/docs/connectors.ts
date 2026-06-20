@@ -197,6 +197,29 @@ export const DOC_CONNECTORS: Record<string, ConnectorDocContent> = {
       "Self-hosters/testers can point VINCERE_ID_BASE at the Vincere test environment (id.vinceredev.com).",
     ],
   },
+  recruitis: {
+    capabilities: [
+      "List your jobs and their candidate pipelines",
+      "Pull the applicants on a role, with each candidate's current pipeline stage",
+    ],
+    useCases: [
+      "Build a ranked shortlist from a Recruitis job's applicants",
+      "Screen a role's candidates against its job description and scorecard",
+      "Resurface strong past applicants worth re-approaching for a new opening",
+    ],
+    whatYouNeed: [
+      "A Recruitis account that can generate an API token (Settings → API)",
+    ],
+    steps: [
+      "In Recruitis, open Settings → API and generate a token.",
+      "Give it the read scopes (e.g. api.position.read and api.candidates.read) and copy it.",
+      "In Calyflow, go to Settings → Connectors → Recruitis and paste the token.",
+    ],
+    configuration: [
+      "Read-only: Calyflow queries Recruitis on demand and never writes back to it.",
+    ],
+    links: [{ label: "Recruitis API docs", url: "https://docs.recruitis.io/api/" }],
+  },
 
   // ── CRM ──────────────────────────────────────────────────────────────────
   hubspot: {

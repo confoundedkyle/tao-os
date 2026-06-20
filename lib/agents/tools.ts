@@ -42,6 +42,7 @@ import { pinpointAdapter } from "../integrations/pinpoint";
 import { pipedriveAdapter } from "../integrations/pipedrive";
 import { recruiteeAdapter } from "../integrations/recruitee";
 import { recruiterflowAdapter } from "../integrations/recruiterflow";
+import { recruitisAdapter } from "../integrations/recruitis";
 import { rocketreachAdapter } from "../integrations/rocketreach";
 import { signalhireAdapter } from "../integrations/signalhire";
 import { slackAdapter } from "../integrations/slack";
@@ -2032,6 +2033,37 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    recruitis_list_jobs: tool({
+      description:
+        "List jobs in the connected Recruitis ATS (title, status, location, salary, recruiter, job id). Set activeOnly for live roles; paginate with page (max 50 per page).",
+      inputSchema: z.object({
+        activeOnly: z.boolean().optional().describe("Only active jobs."),
+        page: z.number().int().positive().optional(),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.recruitisToken) return { error: notConnected("Recruitis") };
+        return recruitisAdapter.listJobs(ctx.recruitisToken, args);
+      },
+    }),
+
+    recruitis_list_candidates: tool({
+      description:
+        "List candidates (job applications) in the connected Recruitis ATS as a Markdown table (name, email, phone, job, pipeline stage, applied date, candidate id). Scope to one job's pipeline with jobId (from recruitis_list_jobs); paginate with page (max 50 per page).",
+      inputSchema: z.object({
+        jobId: z
+          .string()
+          .optional()
+          .describe("Job id to scope to one job's pipeline."),
+        page: z.number().int().positive().optional(),
+        limit: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.recruitisToken) return { error: notConnected("Recruitis") };
+        return recruitisAdapter.listCandidates(ctx.recruitisToken, args);
+      },
+    }),
+
     snov_find_email: tool({
       description:
         "Find a person's work email via Snov.io from their first name, last name, and company domain. Costs a credit. May return a pending task — finish it with snov_get_task_result.",
@@ -2644,6 +2676,8 @@ export const ALL_TOOL_NAMES = [
   "recruitee_list_candidates",
   "recruiterflow_list_jobs",
   "recruiterflow_list_candidates",
+  "recruitis_list_jobs",
+  "recruitis_list_candidates",
   "rocketreach_search_people",
   "rocketreach_lookup_person",
   "rocketreach_check_lookup",

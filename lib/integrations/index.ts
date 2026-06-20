@@ -40,6 +40,7 @@ import { pinpointAdapter } from "./pinpoint";
 import { pipedriveAdapter } from "./pipedrive";
 import { recruiteeAdapter } from "./recruitee";
 import { recruiterflowAdapter } from "./recruiterflow";
+import { recruitisAdapter } from "./recruitis";
 import { rocketreachAdapter } from "./rocketreach";
 import { signalhireAdapter } from "./signalhire";
 import { slackAdapter } from "./slack";
@@ -98,6 +99,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   pipedrive: pipedriveAdapter,
   recruitee: recruiteeAdapter,
   recruiterflow: recruiterflowAdapter,
+  recruitis: recruitisAdapter,
   rocketreach: rocketreachAdapter,
   signalhire: signalhireAdapter,
   slack: slackAdapter,
