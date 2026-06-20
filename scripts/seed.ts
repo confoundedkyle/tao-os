@@ -145,27 +145,57 @@ async function seedAgents() {
 
   for (const file of files) {
     const a = load(readFileSync(join(dir, file), "utf8")) as AgentYaml;
-    const { error } = await db.from("library_agents").upsert(
-      {
-        slug: a.slug,
-        name: a.name,
-        description: a.description,
+    const version = a.version ?? 1;
+    const { data: lib, error } = await db
+      .from("library_agents")
+      .upsert(
+        {
+          slug: a.slug,
+          name: a.name,
+          description: a.description,
+          instructions: a.instructions,
+          allowed_tools: a.allowed_tools,
+          model: a.model ?? null,
+          max_steps: a.max_steps ?? 12,
+          context: a.context ?? "recruiting-project",
+          version,
+          featured: a.featured ?? false,
+          summary: a.summary ?? null,
+          og_description: a.og_description ?? null,
+          lead: a.lead ?? null,
+          long_description: a.long_description ?? null,
+        },
+        { onConflict: "slug" },
+      )
+      .select("id")
+      .single();
+    if (error || !lib) throw new Error(`${file}: ${error?.message ?? "no row"}`);
+
+    // Propagate the new version to imported copies that are BEHIND it, so library
+    // improvements reach every workspace on deploy without a manual "Upgrade".
+    // Mirrors the in-app upgrade action (instructions/tools/model/max_steps/
+    // imported_version); the copy's name and archived state are left alone. Copies
+    // already at this version (incl. ones a user just edited at the current
+    // version) are untouched.
+    const { data: upgraded, error: upErr } = await db
+      .from("workspace_agents")
+      .update({
         instructions: a.instructions,
         allowed_tools: a.allowed_tools,
         model: a.model ?? null,
         max_steps: a.max_steps ?? 12,
-        context: a.context ?? "recruiting-project",
-        version: a.version ?? 1,
-        featured: a.featured ?? false,
-        summary: a.summary ?? null,
-        og_description: a.og_description ?? null,
-        lead: a.lead ?? null,
-        long_description: a.long_description ?? null,
-      },
-      { onConflict: "slug" },
+        imported_version: version,
+      })
+      .eq("library_agent_id", lib.id)
+      .is("archived_at", null)
+      .or(`imported_version.is.null,imported_version.lt.${version}`)
+      .select("id");
+    if (upErr) throw new Error(`${file} (upgrade copies): ${upErr.message}`);
+
+    const n = upgraded?.length ?? 0;
+    console.log(
+      `✓ agent ${a.slug} (v${version})${n ? ` — upgraded ${n} copies` : ""}`,
     );
-    if (error) throw new Error(`${file}: ${error.message}`);
-    console.log(`✓ agent ${a.slug} (v${a.version ?? 1})`);
   }
 }
 
