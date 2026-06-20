@@ -31,6 +31,9 @@ by hand. See the [ATS connectors](/docs/connectors).
 - See where each candidate sits in the process.
 - Feed candidates into agents (e.g. CV screening, outreach).
 
+**Example:** filter to the candidates at the "Screening" stage for an open role
+and run the CV Screener on just that group to rank them.
+
 ## Turning it on
 
 An admin enables it under **Settings → Modules**. Turning it off hides the module
@@ -55,6 +58,9 @@ Zoho CRM, and more — or you can add them manually. See the
 
 - Keep client companies and their contacts in one place.
 - Give agents (e.g. client prospecting research) the context they need.
+
+**Example:** before a business-development call, open the account to see its open
+deals and the right contact, then run Client Prospecting Research for a brief.
 
 ## Turning it on
 
@@ -82,6 +88,10 @@ agents can add the people they find here. See the
 - Build a niche bench of talent for repeat roles.
 - Store skills, notes, and CVs against each prospect.
 - Pull prospects into outreach when the right role opens.
+
+**Example:** you regularly place fintech backend engineers — keep a warm pool of
+them, and when a new role opens, pull the best-matched prospects straight into an
+outreach run.
 
 ## Turning it on
 

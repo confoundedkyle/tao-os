@@ -64,6 +64,37 @@ A selection of what ships today:
 > If a required connector isn't connected, the run is blocked with a clear
 > "Connect …" prompt until you set it up.
 
+## Choosing an agent
+
+- **Defining the role?** Start with *Job Requirement Analysis* or *Intake-to-JD
+  Builder* to turn messy notes into a clear brief.
+- **Finding people?** Use a sourcing agent that matches where your candidates are
+  — *GitHub Sourcer* for engineers, *Sourcing Shortlist from ATS* for your own
+  database, *Coresignal Sourcing* for the open market.
+- **Deciding who's best?** *CV Screener* and *Candidate Scorecard Rubric*.
+- **Reaching out?** *Outreach Writer* (drafts) or *Candidate Outreach from Sheet
+  via Email* (drafts **and** sends).
+
+## Example tasks you can type
+
+You can run an agent with no task at all (it does its standard job), or add a
+one-line steer:
+
+- \`Find 8 backend engineers with payments experience, EU-based\`
+- \`Screen the attached CVs and flag anyone missing Kubernetes in production\`
+- \`Draft a warm first message to the top 3, signed off as me\`
+- \`Build a scorecard for this role and weight Kubernetes highest\`
+
+## A typical end-to-end run
+
+1. *Job Requirement Analysis* turns the hiring manager's notes into a clear brief.
+2. *Candidate Scorecard Rubric* builds the evaluation criteria.
+3. A sourcing agent assembles a shortlist from your ATS or the open web.
+4. *CV Screener* ranks the shortlist against the brief.
+5. *Outreach Writer* drafts personalised first-touch messages.
+
+Each step saves its result back into the project, so the next agent builds on it.
+
 See also [What agents can do](/docs/capabilities) for the full list of actions,
 grouped by tool.
 `;

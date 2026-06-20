@@ -39,6 +39,19 @@ knows the role and your standards before it starts. See
 [Knowledge base](/docs/knowledge-base) and
 [What agents can do](/docs/capabilities).
 
+## A worked example
+
+Say you're filling a **Senior Backend Engineer** role for a client:
+
+1. Create the client **Northwind**, then a project **Senior Backend Engineer**.
+2. Drop in the **job description** and the hiring manager's **intake notes**.
+3. Run **Job Requirement Analysis** → you get a clean, structured brief.
+4. Connect **GitHub**, then run **GitHub Sourcer** → a shortlist of engineers who
+   contribute to the libraries in that stack, with contact details.
+5. Run **Outreach Writer** → personalised first-touch messages, in your voice.
+
+Every result is saved back into the project, ready to review, edit, or send.
+
 ## Run from anywhere
 
 Once Slack is connected, your whole team can run agents from a channel with
