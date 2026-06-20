@@ -455,6 +455,28 @@ export const DOC_CONNECTORS: Record<string, ConnectorDocContent> = {
       "The key field is `client-id:client-secret` — both are shown in Snov.io under account settings → API.",
     ],
   },
+  replyio: {
+    capabilities: [
+      "List your multichannel outreach sequences and their status",
+      "List and look up contacts already in Reply.io",
+    ],
+    useCases: [
+      "Check which candidates or clients are already in an outreach sequence before contacting them again",
+      "Pull a contact's details and engagement context from Reply.io into a task",
+      "Review sequence status and health to brief on an outreach campaign",
+    ],
+    whatYouNeed: ["A Reply.io account with API access"],
+    steps: [
+      "In Reply.io, open Settings → API key and copy your key.",
+      "In Calyflow, go to Settings → Connectors → Reply.io and paste it.",
+    ],
+    configuration: [
+      "Read-only: Calyflow reads your sequences and contacts and never sends or edits outreach in Reply.io.",
+    ],
+    links: [
+      { label: "Reply.io API docs", url: "https://docs.reply.io/api-reference/introduction" },
+    ],
+  },
 };
 
 export interface ConnectorDoc {

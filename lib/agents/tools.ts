@@ -44,6 +44,7 @@ import { pipedriveAdapter } from "../integrations/pipedrive";
 import { recruiteeAdapter } from "../integrations/recruitee";
 import { recruiterflowAdapter } from "../integrations/recruiterflow";
 import { recruitisAdapter } from "../integrations/recruitis";
+import { replyioAdapter } from "../integrations/replyio";
 import { rocketreachAdapter } from "../integrations/rocketreach";
 import { signalhireAdapter } from "../integrations/signalhire";
 import { slackAdapter } from "../integrations/slack";
@@ -2146,6 +2147,37 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    replyio_list_sequences: tool({
+      description:
+        "List outreach sequences in the connected Reply.io account as a Markdown table (name, status, health, created, sequence id). Filter by status (new, active, paused); page with skip.",
+      inputSchema: z.object({
+        status: z
+          .enum(["new", "active", "paused"])
+          .optional()
+          .describe("Filter by sequence status."),
+        skip: z.number().int().nonnegative().optional().describe("Offset for paging."),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.replyioToken) return { error: notConnected("Reply.io") };
+        return replyioAdapter.listSequences(ctx.replyioToken, args);
+      },
+    }),
+
+    replyio_list_contacts: tool({
+      description:
+        "List contacts in the connected Reply.io account as a Markdown table (name, email, company, title, phone, LinkedIn, contact id). Pass email to look up one contact; page with skip.",
+      inputSchema: z.object({
+        email: z.string().optional().describe("Look up a contact by email."),
+        skip: z.number().int().nonnegative().optional().describe("Offset for paging."),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.replyioToken) return { error: notConnected("Reply.io") };
+        return replyioAdapter.listContacts(ctx.replyioToken, args);
+      },
+    }),
+
     smartlead_list_campaigns: tool({
       description:
         "List cold-email campaigns in the connected Smartlead account (name, status, created date, campaign id). Statuses: DRAFTED, ACTIVE, PAUSED, STOPPED, ARCHIVED.",
@@ -2716,6 +2748,8 @@ export const ALL_TOOL_NAMES = [
   "rocketreach_check_lookup",
   "signalhire_search_people",
   "signalhire_enrich_person",
+  "replyio_list_sequences",
+  "replyio_list_contacts",
   "smartlead_list_campaigns",
   "smartlead_list_leads",
   "smartlead_campaign_analytics",
