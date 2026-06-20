@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
+import { env } from "@/lib/env";
+import { agenticPlatformModel } from "@/lib/ai-catalog";
 import { listCatalogModels, listProviders } from "@/lib/queries";
 import { providerLabel } from "@/lib/providers";
 import {
@@ -18,6 +20,12 @@ export default async function ProvidersPage() {
     listProviders(session.workspaceId),
     listCatalogModels(),
   ]);
+  // The Calyflow default runs on the LIVE platform model from env, not the value
+  // stored on its row at workspace creation (which can drift) — show the real one.
+  const platformModel = agenticPlatformModel(
+    env.platformProvider,
+    env.platformModel,
+  );
 
   return (
     <div className="grid max-w-3xl gap-6">
@@ -63,7 +71,9 @@ export default async function ProvidersPage() {
                     </Chip>
                   </div>
                   <Mono>
-                    {p.default_model ?? "no model"}
+                    {p.provider === "calyflow"
+                      ? platformModel
+                      : (p.default_model ?? "no model")}
                     {p.key_last4 ? ` · key ••••${p.key_last4}` : ""}
                   </Mono>
                 </div>
