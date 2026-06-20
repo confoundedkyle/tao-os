@@ -20,6 +20,7 @@ export interface ConnectorTokens {
   contactoutToken: string | null;
   coresignalToken: string | null;
   crelateToken: string | null;
+  dropcontactToken: string | null;
   fathomToken: string | null;
   firefliesToken: string | null;
   githubToken: string | null;
@@ -83,6 +84,7 @@ const SPECS: TokenSpec[] = [
   { field: "contactoutToken", prefix: "contactout_", provider: "contactout" },
   { field: "coresignalToken", prefix: "coresignal_", provider: "coresignal" },
   { field: "crelateToken", prefix: "crelate_", provider: "crelate" },
+  { field: "dropcontactToken", prefix: "dropcontact_", provider: "dropcontact" },
   { field: "fathomToken", prefix: "fathom_", provider: "fathom" },
   { field: "firefliesToken", prefix: "fireflies_", provider: "fireflies" },
   { field: "githubToken", prefix: "github_", provider: "github" },

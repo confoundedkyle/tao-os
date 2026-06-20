@@ -15,6 +15,7 @@ import { catsAdapter } from "../integrations/cats";
 import { contactoutAdapter } from "../integrations/contactout";
 import { coresignalAdapter } from "../integrations/coresignal";
 import { crelateAdapter } from "../integrations/crelate";
+import { dropcontactAdapter } from "../integrations/dropcontact";
 import { fathomAdapter } from "../integrations/fathom";
 import { firefliesAdapter } from "../integrations/fireflies";
 import { githubAdapter } from "../integrations/github";
@@ -1191,6 +1192,36 @@ function buildAll(ctx: ToolContext): ToolSet {
       execute: async (args) => {
         if (!ctx.crelateToken) return { error: notConnected("Crelate") };
         return crelateAdapter.listContacts(ctx.crelateToken, args);
+      },
+    }),
+
+    dropcontact_enrich: tool({
+      description:
+        "Enrich one contact via Dropcontact (GDPR-compliant, EU-focused): finds and verifies a professional email, and may add phone, job title, company, and LinkedIn. Provide whatever you know — at least one of email, fullName (or firstName + lastName), company, website, or linkedin. Enrichment is asynchronous: this returns a request id; read the result with dropcontact_get_result after a few seconds.",
+      inputSchema: z.object({
+        email: z.string().optional().describe("Known email, to verify/enrich."),
+        firstName: z.string().optional(),
+        lastName: z.string().optional(),
+        fullName: z.string().optional().describe("Full name if first/last aren't split."),
+        company: z.string().optional().describe("Company name."),
+        website: z.string().optional().describe("Company website or domain."),
+        linkedin: z.string().optional().describe("LinkedIn profile URL."),
+      }),
+      execute: async (args) => {
+        if (!ctx.dropcontactToken) return { error: notConnected("Dropcontact") };
+        return dropcontactAdapter.enrich(ctx.dropcontactToken, args);
+      },
+    }),
+
+    dropcontact_get_result: tool({
+      description:
+        "Read the result of a Dropcontact enrichment using the request id returned by dropcontact_enrich. May report the batch is still processing — if so, call again after working on something else for a moment.",
+      inputSchema: z.object({
+        requestId: z.string().describe("Request id from dropcontact_enrich."),
+      }),
+      execute: async (args) => {
+        if (!ctx.dropcontactToken) return { error: notConnected("Dropcontact") };
+        return dropcontactAdapter.getResult(ctx.dropcontactToken, args);
       },
     }),
 
@@ -2601,6 +2632,8 @@ export const ALL_TOOL_NAMES = [
   "crelate_list_jobs",
   "crelate_search_contacts",
   "crelate_list_contacts",
+  "dropcontact_enrich",
+  "dropcontact_get_result",
   "contactout_people_search",
   "contactout_linkedin_enrich",
   "contactout_person_enrich",

@@ -14,6 +14,7 @@ import { catsAdapter } from "./cats";
 import { contactoutAdapter } from "./contactout";
 import { coresignalAdapter } from "./coresignal";
 import { crelateAdapter } from "./crelate";
+import { dropcontactAdapter } from "./dropcontact";
 import { fathomAdapter } from "./fathom";
 import { firefliesAdapter } from "./fireflies";
 import { githubAdapter } from "./github";
@@ -73,6 +74,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   contactout: contactoutAdapter,
   coresignal: coresignalAdapter,
   crelate: crelateAdapter,
+  dropcontact: dropcontactAdapter,
   fathom: fathomAdapter,
   fireflies: firefliesAdapter,
   github: githubAdapter,
