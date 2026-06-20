@@ -411,6 +411,31 @@ export const DOC_CONNECTORS: Record<string, ConnectorDocContent> = {
       "Paste it in Calyflow under Settings → Connectors → Coresignal.",
     ],
   },
+  dropcontact: {
+    capabilities: [
+      "Find and verify a professional email for a contact",
+      "Add phone, job title, company, and LinkedIn from partial details",
+    ],
+    useCases: [
+      "Find a GDPR-compliant work email for a sourced European candidate",
+      "Enrich a thin candidate record (just a name + company) into a contactable one",
+      "Verify and complete client-contact details before a BD outreach run",
+    ],
+    whatYouNeed: [
+      "A Dropcontact account on a paid plan (API access requires a subscription)",
+    ],
+    steps: [
+      "In Dropcontact, open Settings → Your API key and copy the key.",
+      "In Calyflow, go to Settings → Connectors → Dropcontact and paste it.",
+    ],
+    configuration: [
+      "Enrichment is asynchronous: a request is submitted, then the result is fetched a few seconds later — agents handle this automatically.",
+      "Dropcontact is GDPR-native and EU-focused, processing data in Europe; lookups draw on your Dropcontact credit balance.",
+    ],
+    links: [
+      { label: "Dropcontact API docs", url: "https://developer.dropcontact.com/" },
+    ],
+  },
   gong: {
     useCases: [
       "Pull the summary of an intake call to brief an agent on the role",
