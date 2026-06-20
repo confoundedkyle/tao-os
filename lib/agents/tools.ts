@@ -7,6 +7,7 @@ import { airtableAdapter } from "../integrations/airtable";
 import { apolloAdapter } from "../integrations/apollo";
 import { ashbyAdapter } from "../integrations/ashby";
 import { attioAdapter } from "../integrations/attio";
+import { avomaAdapter } from "../integrations/avoma";
 import { bamboohrAdapter } from "../integrations/bamboohr";
 import { breezyhrAdapter } from "../integrations/breezyhr";
 import { brightdataAdapter } from "../integrations/brightdata";
@@ -568,6 +569,33 @@ function buildAll(ctx: ToolContext): ToolSet {
       execute: async (args) => {
         if (!ctx.fullenrichToken) return { error: notConnected("FullEnrich") };
         return fullenrichAdapter.getResult(ctx.fullenrichToken, args);
+      },
+    }),
+
+    avoma_list_meetings: tool({
+      description:
+        "List recorded calls in the connected Avoma account as a Markdown table (subject, date, attendees, meeting uuid, link). Defaults to the last 30 days; narrow with fromDate/toDate (YYYY-MM-DD) and page with page.",
+      inputSchema: z.object({
+        fromDate: z.string().optional().describe("Start date YYYY-MM-DD (defaults to 30 days ago)."),
+        toDate: z.string().optional().describe("End date YYYY-MM-DD (defaults to today)."),
+        page: z.number().int().positive().optional(),
+        pageSize: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.avomaToken) return { error: notConnected("Avoma") };
+        return avomaAdapter.listMeetings(ctx.avomaToken, args);
+      },
+    }),
+
+    avoma_get_transcript: tool({
+      description:
+        "Read the speaker-attributed transcript of one Avoma meeting, truncated if very long. Get the meetingUuid from avoma_list_meetings.",
+      inputSchema: z.object({
+        meetingUuid: z.string().describe("Meeting uuid from avoma_list_meetings."),
+      }),
+      execute: async (args) => {
+        if (!ctx.avomaToken) return { error: notConnected("Avoma") };
+        return avomaAdapter.getTranscript(ctx.avomaToken, args);
       },
     }),
 
@@ -2803,6 +2831,8 @@ export const ALL_TOOL_NAMES = [
   "github_commit_emails",
   "web_search",
   "web_scrape",
+  "avoma_list_meetings",
+  "avoma_get_transcript",
   "fathom_list_meetings",
   "fathom_get_summary",
   "fathom_get_transcript",

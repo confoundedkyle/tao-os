@@ -12,6 +12,7 @@ export interface ConnectorTokens {
   apolloToken: string | null;
   ashbyToken: string | null;
   attioToken: string | null;
+  avomaToken: string | null;
   bamboohrToken: string | null;
   breezyhrToken: string | null;
   brightdataToken: string | null;
@@ -81,6 +82,7 @@ const SPECS: TokenSpec[] = [
   { field: "apolloToken", prefix: "apollo_", provider: "apollo" },
   { field: "ashbyToken", prefix: "ashby_", provider: "ashby" },
   { field: "attioToken", prefix: "attio_", provider: "attio" },
+  { field: "avomaToken", prefix: "avoma_", provider: "avoma" },
   { field: "bamboohrToken", prefix: "bamboohr_", provider: "bamboohr" },
   { field: "breezyhrToken", prefix: "breezyhr_", provider: "breezyhr" },
   { field: "brightdataToken", prefix: "brightdata_", provider: "brightdata" },

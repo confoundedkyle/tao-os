@@ -94,6 +94,7 @@ export const CONNECTORS: Connector[] = [
 
   // Tools (sourcing & outreach)
   { name: "Apollo", category: "tool", blurb: "Source contact data from the 270M-profile B2B database.", provider: "apollo", live: true, auth: "apikey" },
+  { name: "Avoma", category: "tool", blurb: "Read transcripts and AI notes from your recorded intake and screening calls.", provider: "avoma", live: true, auth: "apikey", apiKeyHint: "Create a scoped API key in Avoma under Settings → API." },
   { name: "Bright Data", category: "tool", blurb: "Enrich profiles with large-scale public web data.", provider: "brightdata", live: true, auth: "apikey" },
   { name: "ContactOut", category: "tool", blurb: "Find personal emails and phones behind LinkedIn profiles.", provider: "contactout", live: true, auth: "apikey" },
   { name: "Coresignal", category: "tool", blurb: "Enrich candidates with fresh public employment data.", provider: "coresignal", live: true, auth: "apikey" },
@@ -221,6 +222,7 @@ export const CONNECTOR_DOMAINS: Record<string, string> = {
   "microsoft-outlook": "outlook.com",
   slack: "slack.com",
   apollo: "apollo.io",
+  avoma: "avoma.com",
   brightdata: "brightdata.com",
   close: "close.com",
   contactout: "contactout.com",

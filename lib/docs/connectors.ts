@@ -527,6 +527,28 @@ export const DOC_CONNECTORS: Record<string, ConnectorDocContent> = {
       { label: "Findymail API docs", url: "https://www.findymail.com/api/" },
     ],
   },
+  avoma: {
+    capabilities: [
+      "List recorded calls in a date window with attendees and links",
+      "Read the speaker-attributed transcript of a meeting",
+    ],
+    useCases: [
+      "Pull the transcript of a client intake call to capture exactly what was asked for",
+      "Review a candidate screening call without re-listening to the recording",
+      "Brief an agent on a role using the notes from the kickoff call",
+    ],
+    whatYouNeed: ["An Avoma account with a scoped API key"],
+    steps: [
+      "In Avoma, go to Settings → API and create a scoped API key.",
+      "In Calyflow, go to Settings → Connectors → Avoma and paste it.",
+    ],
+    configuration: [
+      "Read-only: Calyflow reads your meetings and transcripts and never changes anything in Avoma. The key returns the meetings of the user it belongs to.",
+    ],
+    links: [
+      { label: "Avoma API docs", url: "https://dev.avoma.com/" },
+    ],
+  },
   gong: {
     useCases: [
       "Pull the summary of an intake call to brief an agent on the role",
