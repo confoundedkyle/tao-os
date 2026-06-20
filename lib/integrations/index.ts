@@ -11,6 +11,7 @@ import { breezyhrAdapter } from "./breezyhr";
 import { brightdataAdapter } from "./brightdata";
 import { bullhornAdapter } from "./bullhorn";
 import { catsAdapter } from "./cats";
+import { closeAdapter } from "./close";
 import { contactoutAdapter } from "./contactout";
 import { coresignalAdapter } from "./coresignal";
 import { crelateAdapter } from "./crelate";
@@ -72,6 +73,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   brightdata: brightdataAdapter,
   bullhorn: bullhornAdapter,
   cats: catsAdapter,
+  close: closeAdapter,
   contactout: contactoutAdapter,
   coresignal: coresignalAdapter,
   crelate: crelateAdapter,

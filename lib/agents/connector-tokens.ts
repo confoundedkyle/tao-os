@@ -17,6 +17,7 @@ export interface ConnectorTokens {
   brightdataToken: string | null;
   bullhornToken: string | null;
   catsToken: string | null;
+  closeToken: string | null;
   contactoutToken: string | null;
   coresignalToken: string | null;
   crelateToken: string | null;
@@ -82,6 +83,7 @@ const SPECS: TokenSpec[] = [
   { field: "brightdataToken", prefix: "brightdata_", provider: "brightdata" },
   { field: "bullhornToken", prefix: "bullhorn_", provider: "bullhorn" },
   { field: "catsToken", prefix: "cats_", provider: "cats" },
+  { field: "closeToken", prefix: "close_", provider: "close" },
   { field: "contactoutToken", prefix: "contactout_", provider: "contactout" },
   { field: "coresignalToken", prefix: "coresignal_", provider: "coresignal" },
   { field: "crelateToken", prefix: "crelate_", provider: "crelate" },

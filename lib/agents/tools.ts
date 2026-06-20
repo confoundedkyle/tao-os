@@ -12,6 +12,7 @@ import { breezyhrAdapter } from "../integrations/breezyhr";
 import { brightdataAdapter } from "../integrations/brightdata";
 import { bullhornAdapter } from "../integrations/bullhorn";
 import { catsAdapter } from "../integrations/cats";
+import { closeAdapter } from "../integrations/close";
 import { contactoutAdapter } from "../integrations/contactout";
 import { coresignalAdapter } from "../integrations/coresignal";
 import { crelateAdapter } from "../integrations/crelate";
@@ -1143,6 +1144,34 @@ function buildAll(ctx: ToolContext): ToolSet {
       execute: async (args) => {
         if (!ctx.catsToken) return { error: notConnected("CATS") };
         return catsAdapter.listCandidates(ctx.catsToken, args);
+      },
+    }),
+
+    close_search_leads: tool({
+      description:
+        "Search leads (client companies/accounts) in the connected Close CRM as a Markdown table (lead, status, primary contact, email, phone, lead id). Pass query for Close's smart search (name, email, status, …); page with skip.",
+      inputSchema: z.object({
+        query: z.string().optional().describe("Close search query (name, email, status, …)."),
+        skip: z.number().int().nonnegative().optional().describe("Offset for paging."),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.closeToken) return { error: notConnected("Close") };
+        return closeAdapter.searchLeads(ctx.closeToken, args);
+      },
+    }),
+
+    close_list_opportunities: tool({
+      description:
+        "List BD opportunities (deals) in the connected Close CRM as a Markdown table (lead, status, value, confidence, created, opportunity id). Pass leadId (from close_search_leads) to scope to one account; page with skip.",
+      inputSchema: z.object({
+        leadId: z.string().optional().describe("Lead id to scope to one account's opportunities."),
+        skip: z.number().int().nonnegative().optional().describe("Offset for paging."),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.closeToken) return { error: notConnected("Close") };
+        return closeAdapter.listOpportunities(ctx.closeToken, args);
       },
     }),
 
@@ -2661,6 +2690,8 @@ export const ALL_TOOL_NAMES = [
   "vincere_list_talent_pools",
   "cats_list_jobs",
   "cats_list_candidates",
+  "close_search_leads",
+  "close_list_opportunities",
   "crelate_list_jobs",
   "crelate_search_contacts",
   "crelate_list_contacts",

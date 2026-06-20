@@ -222,6 +222,29 @@ export const DOC_CONNECTORS: Record<string, ConnectorDocContent> = {
   },
 
   // ── CRM ──────────────────────────────────────────────────────────────────
+  close: {
+    capabilities: [
+      "Search leads (client companies / accounts) and their primary contacts",
+      "List BD opportunities (deals) for the pipeline or a single account",
+    ],
+    useCases: [
+      "Brief yourself on a client account before a business-development call",
+      "Find the right contact at a target company for outreach",
+      "Prioritise which roles to work first based on open opportunities and their value",
+    ],
+    whatYouNeed: ["A Close account with permission to create an API key"],
+    steps: [
+      "In Close, go to Settings → Developer → API Keys.",
+      "Create a new API key and copy it.",
+      "In Calyflow, go to Settings → Connectors → Close and paste the key.",
+    ],
+    configuration: [
+      "Read-only: Calyflow queries Close for the leads and opportunities a task needs and never changes your CRM data.",
+    ],
+    links: [
+      { label: "Close API docs", url: "https://developer.close.com/" },
+    ],
+  },
   hubspot: {
     capabilities: [
       "Search client companies, contacts, and deals",
