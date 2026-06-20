@@ -4,6 +4,7 @@ import { db } from "./db";
 import { decrypt } from "./crypto";
 import { env } from "./env";
 import type { AiProvider } from "./types";
+import { agenticPlatformModel } from "./ai-catalog";
 
 export { SUPPORTED_PROVIDERS, providerLabel } from "./ai-catalog";
 
@@ -108,7 +109,9 @@ export async function resolveRunProviders(
       providers.push({
         row,
         apiKey: env.platformApiKey,
-        model: env.platformModel,
+        // Never run the platform default on a mini tier — fall back to a
+        // capable model for the provider so agent runs aren't degraded.
+        model: agenticPlatformModel(env.platformProvider, env.platformModel),
       });
     } else {
       if (!row.api_key_cipher || !row.default_model) continue;

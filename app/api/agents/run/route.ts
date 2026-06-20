@@ -25,7 +25,12 @@ import {
   requiredConnectorCategories,
 } from "@/lib/connectors";
 import { assembleContext } from "@/lib/context";
-import { parseEffort, effortMaxSteps, effortGuidance } from "@/lib/effort";
+import {
+  parseEffort,
+  effortMaxSteps,
+  effortGuidance,
+  effortModelTuning,
+} from "@/lib/effort";
 import { ALL_TOOL_NAMES, buildTools, type ToolContext } from "@/lib/agents/tools";
 import {
   resolveConnectorTokens,
@@ -377,6 +382,11 @@ export async function POST(request: NextRequest) {
             model,
           );
           const tools = buildTools(ctx, allowed);
+          // Map the effort slider to the model's reasoning lever for the run's
+          // effective provider (platform "calyflow" → its real provider).
+          const effectiveProvider =
+            provider === "calyflow" ? env.platformProvider : provider;
+          const tuning = effortModelTuning(effort, effectiveProvider, model);
           let streamError: unknown = null;
           const result = streamText({
             model: lm,
@@ -385,6 +395,13 @@ export async function POST(request: NextRequest) {
             tools,
             stopWhen: stepCountIs(effortMaxSteps(agent.max_steps, effort)),
             abortSignal: AbortSignal.timeout(540_000),
+            providerOptions:
+              tuning.providerOptions as Parameters<
+                typeof streamText
+              >[0]["providerOptions"],
+            ...(tuning.maxOutputTokens
+              ? { maxOutputTokens: tuning.maxOutputTokens }
+              : {}),
             onError: ({ error }) => {
               streamError = error;
             },

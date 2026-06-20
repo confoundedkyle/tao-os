@@ -1,6 +1,6 @@
 import "server-only";
 import { cache } from "react";
-import { providerLabel } from "./ai-catalog";
+import { isAgenticModel, providerLabel } from "./ai-catalog";
 import { db } from "./db";
 import { env } from "./env";
 import type {
@@ -298,7 +298,9 @@ export async function listCatalogModels(
   if (provider) query = query.eq("provider", provider);
   const { data, error } = await query;
   if (error) throw error;
-  return data as CatalogModel[];
+  // Hide lightweight mini/nano tiers from selection even if older rows linger
+  // in the table — they don't reliably run multi-step agents.
+  return (data as CatalogModel[]).filter((m) => isAgenticModel(m.model_id));
 }
 
 export async function listRuns(

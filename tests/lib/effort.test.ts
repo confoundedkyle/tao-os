@@ -4,6 +4,7 @@ import {
   EFFORT_LEVELS,
   effortGuidance,
   effortMaxSteps,
+  effortModelTuning,
   parseEffort,
 } from "@/lib/effort";
 
@@ -62,5 +63,37 @@ describe("effortGuidance", () => {
     const blocks = EFFORT_LEVELS.map((l) => effortGuidance(l.value));
     for (const b of blocks) expect(b.length).toBeGreaterThan(0);
     expect(new Set(blocks).size).toBe(EFFORT_LEVELS.length);
+  });
+});
+
+describe("effortModelTuning", () => {
+  it("maps effort to OpenAI reasoning effort 1:1 for gpt-5/o-series", () => {
+    for (const e of ["low", "medium", "high"] as const) {
+      const t = effortModelTuning(e, "openai", "gpt-5.1");
+      expect(t.providerOptions.openai).toEqual({ reasoningEffort: e });
+      expect(t.maxOutputTokens).toBeUndefined();
+    }
+  });
+
+  it("does NOT send reasoning effort to non-reasoning OpenAI models", () => {
+    expect(effortModelTuning("high", "openai", "gpt-4o").providerOptions).toEqual({});
+  });
+
+  it("enables Anthropic thinking for medium/high (with an output floor), off for low", () => {
+    const m = "claude-sonnet-4-6";
+    expect(effortModelTuning("low", "anthropic", m).providerOptions).toEqual({});
+    const med = effortModelTuning("medium", "anthropic", m);
+    const high = effortModelTuning("high", "anthropic", m);
+    const medBudget = (med.providerOptions.anthropic as { thinking: { budgetTokens: number } }).thinking.budgetTokens;
+    const highBudget = (high.providerOptions.anthropic as { thinking: { budgetTokens: number } }).thinking.budgetTokens;
+    expect(highBudget).toBeGreaterThan(medBudget);
+    expect(med.maxOutputTokens!).toBeGreaterThan(medBudget);
+    expect(high.maxOutputTokens!).toBeGreaterThan(highBudget);
+  });
+
+  it("is a no-op for providers without a reasoning lever", () => {
+    const t = effortModelTuning("high", "google", "gemini-3-pro-preview");
+    expect(t.providerOptions).toEqual({});
+    expect(t.maxOutputTokens).toBeUndefined();
   });
 });
