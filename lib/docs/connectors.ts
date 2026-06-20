@@ -572,6 +572,31 @@ export const DOC_CONNECTORS: Record<string, ConnectorDocContent> = {
       { label: "Wiza API docs", url: "https://docs.wiza.co/" },
     ],
   },
+  zoom: {
+    capabilities: [
+      "List your Zoom cloud recordings in a date window",
+      "Read the transcript of a recorded interview or intake call",
+    ],
+    useCases: [
+      "Pull the transcript of a candidate interview to write up a scorecard",
+      "Capture exactly what a hiring manager asked for from the intake call recording",
+      "Review a screening call without re-watching the recording",
+    ],
+    whatYouNeed: [
+      "A Zoom account with cloud recording, and admin rights to build a Server-to-Server OAuth app",
+    ],
+    steps: [
+      "In the Zoom Marketplace, build a Server-to-Server OAuth app and add the cloud_recording:read and user:read scopes.",
+      "Copy its Account ID, Client ID, and Client Secret.",
+      "In Calyflow, go to Settings → Connectors → Zoom and paste them as account-id:client-id:client-secret.",
+    ],
+    configuration: [
+      "Read-only: Calyflow reads your cloud recordings and transcripts and never changes anything in Zoom. Transcripts exist only for meetings recorded with audio transcription enabled.",
+    ],
+    links: [
+      { label: "Zoom Server-to-Server OAuth", url: "https://developers.zoom.us/docs/internal-apps/s2s-oauth/" },
+    ],
+  },
   gong: {
     useCases: [
       "Pull the summary of an intake call to brief an agent on the role",

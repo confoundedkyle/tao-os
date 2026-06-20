@@ -68,6 +68,7 @@ export interface ConnectorTokens {
   workableToken: string | null;
   zohoCrmToken: string | null;
   zohoRecruitToken: string | null;
+  zoomToken: string | null;
 }
 
 interface TokenSpec {
@@ -139,6 +140,7 @@ const SPECS: TokenSpec[] = [
   { field: "workableToken", prefix: "workable_", provider: "workable" },
   { field: "zohoCrmToken", prefix: "zohocrm_", provider: "zoho-crm" },
   { field: "zohoRecruitToken", prefix: "zohorecruit_", provider: "zoho-recruit" },
+  { field: "zoomToken", prefix: "zoom_", provider: "zoom" },
 ];
 
 /** All-null tokens — the base for a headless run that uses no connectors. */

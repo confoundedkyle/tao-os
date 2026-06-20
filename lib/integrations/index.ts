@@ -62,6 +62,7 @@ import { woodpeckerAdapter } from "./woodpecker";
 import { workableAdapter } from "./workable";
 import { zohoCrmAdapter } from "./zoho-crm";
 import { zohoRecruitAdapter } from "./zoho-recruit";
+import { zoomAdapter } from "./zoom";
 import type { ConnectorAdapter } from "./types";
 
 export type { ConnectorAdapter, ResourceRef } from "./types";
@@ -129,6 +130,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   workable: workableAdapter,
   "zoho-crm": zohoCrmAdapter,
   "zoho-recruit": zohoRecruitAdapter,
+  zoom: zoomAdapter,
 };
 
 export function getAdapter(provider: string): ConnectorAdapter | null {

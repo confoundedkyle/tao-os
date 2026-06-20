@@ -118,6 +118,7 @@ export const CONNECTORS: Connector[] = [
   { name: "tl;dv", category: "tool", blurb: "Read AI notes and transcripts from your recorded meetings.", provider: "tldv", live: true, auth: "apikey", apiKeyHint: "Create the key under personal settings → API Keys; API access requires the tl;dv Business plan." },
   { name: "Wiza", category: "tool", blurb: "Reveal verified emails and mobile numbers from LinkedIn profiles.", provider: "wiza", live: true, auth: "apikey", apiKeyHint: "Create an API key in Wiza under Settings → API." },
   { name: "Woodpecker", category: "tool", blurb: "Track cold-email campaigns and prospect replies, EU-style.", provider: "woodpecker", live: true, auth: "apikey", apiKeyHint: "Create the key in Woodpecker under Add-ons → API & Integrations → API keys." },
+  { name: "Zoom", category: "tool", blurb: "Read cloud recordings and transcripts of your interviews and intake calls.", provider: "zoom", live: true, auth: "apikey", apiKeyPlaceholder: "account-id:client-id:client-secret", apiKeyHint: "In the Zoom Marketplace, build a Server-to-Server OAuth app (scopes: cloud_recording:read, user:read) and paste its Account ID, Client ID, and Client Secret separated by colons." },
 ];
 
 // --- Agent connector requirements -----------------------------------------
@@ -249,6 +250,7 @@ export const CONNECTOR_DOMAINS: Record<string, string> = {
   tldv: "tldv.io",
   wiza: "wiza.co",
   woodpecker: "woodpecker.co",
+  zoom: "zoom.us",
 };
 
 /** Brand-logo URL for a domain, via Google's favicon service (no logo assets

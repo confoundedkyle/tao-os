@@ -64,6 +64,7 @@ import { woodpeckerAdapter } from "../integrations/woodpecker";
 import { workableAdapter } from "../integrations/workable";
 import { zohoCrmAdapter } from "../integrations/zoho-crm";
 import { zohoRecruitAdapter } from "../integrations/zoho-recruit";
+import { zoomAdapter } from "../integrations/zoom";
 import type { ConnectorTokens } from "./connector-tokens";
 import type { Doc } from "../types";
 
@@ -2765,6 +2766,32 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    zoom_list_recordings: tool({
+      description:
+        "List cloud recordings in the connected Zoom account as a Markdown table (topic, date, duration, whether a transcript exists, meeting uuid, link). Defaults to the last 30 days; narrow with fromDate/toDate (YYYY-MM-DD).",
+      inputSchema: z.object({
+        fromDate: z.string().optional().describe("Start date YYYY-MM-DD (defaults to 30 days ago)."),
+        toDate: z.string().optional().describe("End date YYYY-MM-DD (defaults to today)."),
+        pageSize: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.zoomToken) return { error: notConnected("Zoom") };
+        return zoomAdapter.listRecordings(ctx.zoomToken, args);
+      },
+    }),
+
+    zoom_get_transcript: tool({
+      description:
+        "Read the transcript of one Zoom cloud recording, truncated if very long. Get the meetingUuid from zoom_list_recordings (only meetings whose Transcript? column says yes have one).",
+      inputSchema: z.object({
+        meetingUuid: z.string().describe("Meeting uuid from zoom_list_recordings."),
+      }),
+      execute: async (args) => {
+        if (!ctx.zoomToken) return { error: notConnected("Zoom") };
+        return zoomAdapter.getTranscript(ctx.zoomToken, args);
+      },
+    }),
+
     calyflow_create_document: tool({
       description:
         "Save a Markdown document into the current project (e.g. your final analysis/summary). Returns the new document id.",
@@ -2968,5 +2995,7 @@ export const ALL_TOOL_NAMES = [
   "zohocrm_search_deals",
   "zohorecruit_search_candidates",
   "zohorecruit_search_job_openings",
+  "zoom_list_recordings",
+  "zoom_get_transcript",
   "calyflow_create_document",
 ] as const;
