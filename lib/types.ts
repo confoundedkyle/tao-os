@@ -374,6 +374,8 @@ export interface AgentRun {
   output_text: string | null;
   output_doc_id: string | null;
   error_message: string | null;
+  /** Assembled prompt (system + user message), stored only on failed runs. */
+  prompt: string | null;
   provider: string | null;
   model: string | null;
   input_tokens: number | null;

@@ -489,6 +489,28 @@ export async function POST(request: NextRequest) {
         () => null,
       );
 
+      // On failure, keep the assembled prompt (system + user message) so we can
+      // analyse what was sent without re-running. Capped, and null on success to
+      // avoid storing large prompts for every run. Also log a concise line for
+      // immediate visibility in server logs.
+      const failurePrompt = succeeded
+        ? null
+        : `${systemPrompt}\n\n# User message\n${userPrompt}`.slice(0, 100_000);
+      if (!succeeded) {
+        console.error("Agent run failed", {
+          runId,
+          agentId,
+          agentName: agent.name,
+          projectId,
+          workspaceId: session.workspaceId,
+          provider,
+          model,
+          steps: steps.length,
+          error: failure,
+          task: task.trim() || null,
+        });
+      }
+
       await db()
         .from("agent_runs")
         .update({
@@ -497,6 +519,7 @@ export async function POST(request: NextRequest) {
           output_text: outputText || null,
           output_doc_id: outputDocId,
           error_message: failure ? failure.slice(0, 500) : null,
+          prompt: failurePrompt,
           input_tokens: usage.inputTokens ?? null,
           output_tokens: usage.outputTokens ?? null,
           cache_read_tokens: usage.cachedInputTokens ?? null,
