@@ -6,7 +6,7 @@ export const metadata = {
   title: "Setup Help — Calyflow",
 };
 
-const { bookingUrl, hourlyRateEur, minimumHours } = config.setupHelp;
+const { bookingUrl, setupPriceEur } = config.setupHelp;
 
 const STEPS = [
   {
@@ -73,17 +73,16 @@ export default function SetupHelpPage() {
           </p>
           <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
             <span className="font-display text-4xl font-bold text-navy-900">
-              €{hourlyRateEur}
+              €{setupPriceEur.toLocaleString("en-US")}
             </span>
-            <span className="text-navy-800/55">/ hour</span>
             <span className="ml-1 text-navy-800/55">
-              · {minimumHours}-hour minimum to start
+              · agents workspace setup
             </span>
           </div>
           <p className="mt-3 text-sm text-navy-800/65">
-            That&apos;s our starting consulting rate. Most agencies are up and
-            running inside the first engagement. We&apos;ll scope the exact time
-            with you on the call before you commit to anything.
+            A flat price to get your agents workspace set up properly — done with
+            you, end to end. We&apos;ll confirm the scope with you on the call
+            before you commit to anything.
           </p>
         </Card>
 

@@ -10,8 +10,7 @@ export const config = {
     /** Book a call with Michal — the "I'm interested" CTA. */
     bookingUrl:
       "https://calendar.google.com/appointments/schedules/AcZssZ2inc48EODHiCN3-sg3yZEIcMXgOiM39InNXFdhmaKW87-P9ETcj7iLNUy1Hp7Pt_wbrdflTPFt",
-    /** Headline rate, kept here so copy and the page stay in one place. */
-    hourlyRateEur: 150,
-    minimumHours: 4,
+    /** Flat package price for a done-with-you agents workspace setup. */
+    setupPriceEur: 2000,
   },
 } as const;
