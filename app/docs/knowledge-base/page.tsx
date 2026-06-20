@@ -29,6 +29,24 @@ every run) for that client.
 
 Find it on a client's page under **Knowledge base**.
 
+## What to put in each
+
+**Workspace knowledge base — examples**
+
+- Your tone of voice ("warm, concise, no buzzwords; always offer a clear next step").
+- Your screening philosophy and red flags.
+- Boilerplate you reuse: outreach openers, your agency's pitch, how you present
+  candidates.
+- The markets, seniority, and functions you specialise in.
+
+**Client knowledge base — examples**
+
+- Must-haves and deal-breakers for that client ("must have led a team of 5+",
+  "no agency-hoppers").
+- How they like candidates presented, and their interview process.
+- Culture and selling points to use in outreach.
+- Comp ranges, locations, and visa/relocation stance.
+
 ## How agents use it
 
 Before an agent runs, Calyflow assembles a **"Project context"** block — your

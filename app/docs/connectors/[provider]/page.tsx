@@ -69,6 +69,16 @@ export default async function ConnectorPage({
         </ul>
       </DocSection>
 
+      {doc.useCases.length > 0 && (
+        <DocSection title="Common use cases">
+          <ul className="ml-5 list-disc space-y-1.5 text-navy-800/75">
+            {doc.useCases.map((u) => (
+              <li key={u}>{u}</li>
+            ))}
+          </ul>
+        </DocSection>
+      )}
+
       <DocSection title="What you'll need">
         <ul className="ml-5 list-disc space-y-1.5 text-navy-800/75">
           {doc.whatYouNeed.map((w) => (
@@ -93,21 +103,44 @@ export default async function ConnectorPage({
         )}
         {doc.links.length > 0 && (
           <ul className="mt-3 space-y-1 text-sm">
-            {doc.links.map((l) => (
-              <li key={l.url}>
-                <a
-                  href={l.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-semibold text-mint-700 hover:underline"
-                >
-                  {l.label} ↗
-                </a>
-              </li>
-            ))}
+            {doc.links.map((l) => {
+              const internal = l.url.startsWith("/");
+              return (
+                <li key={l.url}>
+                  <a
+                    href={l.url}
+                    target={internal ? undefined : "_blank"}
+                    rel={internal ? undefined : "noopener noreferrer"}
+                    className="font-semibold text-mint-700 hover:underline"
+                  >
+                    {l.label} {internal ? "→" : "↗"}
+                  </a>
+                </li>
+              );
+            })}
           </ul>
         )}
       </DocSection>
+
+      {doc.connectionOptions.length > 0 && (
+        <DocSection title="Connection options">
+          <ul className="ml-5 list-disc space-y-1.5 text-navy-800/75">
+            {doc.connectionOptions.map((o) => (
+              <li key={o}>{o}</li>
+            ))}
+          </ul>
+        </DocSection>
+      )}
+
+      {doc.configuration.length > 0 && (
+        <DocSection title="Configuration & data handling">
+          <ul className="ml-5 list-disc space-y-1.5 text-navy-800/75">
+            {doc.configuration.map((c) => (
+              <li key={c}>{c}</li>
+            ))}
+          </ul>
+        </DocSection>
+      )}
 
       <DocSection title="Self-hosting">
         {doc.selfHost ? (
