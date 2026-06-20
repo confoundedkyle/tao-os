@@ -94,3 +94,41 @@ const EFFORT_GUIDANCE: Record<Effort, string> = {
 export function effortGuidance(effort: Effort): string {
   return EFFORT_GUIDANCE[effort];
 }
+
+/**
+ * Model-level tuning for the effort slider: map Low/Medium/High to a reasoning
+ * model's "think harder" lever, which is the real driver of how much a reasoning
+ * model plans and chains tool calls. Returns `providerOptions` for the run's
+ * effective provider (OpenAI reasoning effort; Anthropic extended thinking),
+ * plus a `maxOutputTokens` floor when thinking is enabled (the budget must fit
+ * under the output limit). Empty for providers without a reasoning lever.
+ */
+export function effortModelTuning(
+  effort: Effort,
+  provider: string,
+  modelId: string,
+): {
+  providerOptions: Record<string, Record<string, unknown>>;
+  maxOutputTokens?: number;
+} {
+  // Only reasoning-capable models accept these levers — sending them to a
+  // non-reasoning model (e.g. gpt-4o) errors, so gate on the model family.
+  if (provider === "openai" && /^(?:gpt-5|o[1-9])/i.test(modelId)) {
+    // gpt-5 / o-series accept "low" | "medium" | "high" directly.
+    return { providerOptions: { openai: { reasoningEffort: effort } } };
+  }
+  if (provider === "anthropic" && /^claude-(?:sonnet|opus)-/i.test(modelId)) {
+    const budget = effort === "high" ? 6000 : effort === "medium" ? 3000 : 0;
+    if (budget > 0) {
+      return {
+        providerOptions: {
+          anthropic: { thinking: { type: "enabled", budgetTokens: budget } },
+        },
+        // Anthropic requires the output limit to exceed the thinking budget.
+        maxOutputTokens: budget + 8000,
+      };
+    }
+    return { providerOptions: {} };
+  }
+  return { providerOptions: {} };
+}
