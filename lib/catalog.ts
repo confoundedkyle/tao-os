@@ -1,8 +1,11 @@
 import "server-only";
 import { db } from "./db";
+import { isAgenticModel } from "./ai-catalog";
 
 // Model catalog sync — SPEC §10. The UI reads only from model_catalog; this
 // module fills it from models.dev (daily cron) or the bundled snapshot.
+// Lightweight mini/nano tiers are filtered out — they don't reliably run
+// multi-step agent loops, so we never store or surface them.
 
 interface SnapshotModel {
   provider: string;
@@ -16,11 +19,13 @@ interface SnapshotModel {
 export async function seedCatalogFromSnapshot(): Promise<number> {
   const snapshot = (await import("@/data/model-catalog-snapshot.json"))
     .default as { models: SnapshotModel[] };
-  const rows = snapshot.models.map((m) => ({
-    ...m,
-    raw: { source: "snapshot" },
-    synced_at: new Date().toISOString(),
-  }));
+  const rows = snapshot.models
+    .filter((m) => isAgenticModel(m.model_id))
+    .map((m) => ({
+      ...m,
+      raw: { source: "snapshot" },
+      synced_at: new Date().toISOString(),
+    }));
   const { error } = await db()
     .from("model_catalog")
     .upsert(rows, { onConflict: "provider,model_id" });
@@ -61,6 +66,7 @@ export async function syncCatalogFromModelsDev(): Promise<number> {
       | undefined;
     if (!provider?.models) continue;
     for (const [modelId, model] of Object.entries(provider.models)) {
+      if (!isAgenticModel(modelId)) continue; // keep mini/nano tiers out
       const cost = (model.cost ?? {}) as Record<string, number>;
       const limit = (model.limit ?? {}) as Record<string, number>;
       rows.push({
