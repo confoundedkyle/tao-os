@@ -37,6 +37,7 @@ import { hunterAdapter } from "../integrations/hunter";
 import { instantlyAdapter } from "../integrations/instantly";
 import { jazzhrAdapter } from "../integrations/jazzhr";
 import { jobadderAdapter } from "../integrations/jobadder";
+import { leadmagicAdapter } from "../integrations/leadmagic";
 import { lemlistAdapter } from "../integrations/lemlist";
 import { leverAdapter } from "../integrations/lever";
 import { loxoAdapter } from "../integrations/loxo";
@@ -1864,6 +1865,34 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    leadmagic_find_email: tool({
+      description:
+        "Find a verified work email via LeadMagic from a person's name and company (domain or company name). You only pay when a valid email is found. Returns the email plus status, name, and company.",
+      inputSchema: z.object({
+        firstName: z.string().optional(),
+        lastName: z.string().optional(),
+        fullName: z.string().optional().describe("Full name if first/last aren't split."),
+        domain: z.string().optional().describe("Company domain, e.g. acme.com."),
+        companyName: z.string().optional().describe("Company name (if you don't have the domain)."),
+      }),
+      execute: async (args) => {
+        if (!ctx.leadmagicToken) return { error: notConnected("LeadMagic") };
+        return leadmagicAdapter.findEmail(ctx.leadmagicToken, args);
+      },
+    }),
+
+    leadmagic_verify_email: tool({
+      description:
+        "Verify one email's deliverability via LeadMagic (valid / invalid / unknown). Use before adding an address to an outreach run.",
+      inputSchema: z.object({
+        email: z.string().describe("The email address to verify."),
+      }),
+      execute: async (args) => {
+        if (!ctx.leadmagicToken) return { error: notConnected("LeadMagic") };
+        return leadmagicAdapter.verifyEmail(ctx.leadmagicToken, args);
+      },
+    }),
+
     lemlist_list_campaigns: tool({
       description:
         "List outreach campaigns in the connected lemlist account (name, status, errors, campaign id). Filter by status: running, draft, paused, ended, archived, errors.",
@@ -3074,6 +3103,8 @@ export const ALL_TOOL_NAMES = [
   "jobadder_list_job_applications",
   "lever_list_postings",
   "lever_list_opportunities",
+  "leadmagic_find_email",
+  "leadmagic_verify_email",
   "lemlist_list_campaigns",
   "lemlist_list_activities",
   "lemlist_add_lead",

@@ -685,6 +685,28 @@ export const DOC_CONNECTORS: Record<string, ConnectorDocContent> = {
       { label: "Prospeo API docs", url: "https://prospeo.io/api-docs" },
     ],
   },
+  leadmagic: {
+    capabilities: [
+      "Find a verified work email from a name and company",
+      "Verify whether an email address is deliverable",
+    ],
+    useCases: [
+      "Find the likely work email for a sourced candidate, paying only for valid hits",
+      "Verify a list of emails before a campaign to protect deliverability",
+      "Enrich a thin lead into a reachable contact for BD outreach",
+    ],
+    whatYouNeed: ["A LeadMagic account with API access"],
+    steps: [
+      "In LeadMagic, open Settings → API and copy your API key.",
+      "In Calyflow, go to Settings → Connectors → LeadMagic and paste it.",
+    ],
+    configuration: [
+      "Lookups are synchronous; the email finder charges a credit only when a valid email is found.",
+    ],
+    links: [
+      { label: "LeadMagic API docs", url: "https://docs.leadmagic.io/" },
+    ],
+  },
   gong: {
     useCases: [
       "Pull the summary of an intake call to brief an agent on the role",

@@ -41,6 +41,7 @@ export interface ConnectorTokens {
   instantlyToken: string | null;
   jazzhrToken: string | null;
   jobadderToken: string | null;
+  leadmagicToken: string | null;
   lemlistToken: string | null;
   leverToken: string | null;
   loxoToken: string | null;
@@ -117,6 +118,7 @@ const SPECS: TokenSpec[] = [
   { field: "instantlyToken", prefix: "instantly_", provider: "instantly" },
   { field: "jazzhrToken", prefix: "jazzhr_", provider: "jazzhr" },
   { field: "jobadderToken", prefix: "jobadder_", provider: "jobadder" },
+  { field: "leadmagicToken", prefix: "leadmagic_", provider: "leadmagic" },
   { field: "lemlistToken", prefix: "lemlist_", provider: "lemlist" },
   { field: "leverToken", prefix: "lever_", provider: "lever" },
   { field: "loxoToken", prefix: "loxo_", provider: "loxo" },
