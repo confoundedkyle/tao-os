@@ -73,6 +73,7 @@ export const CONNECTORS: Connector[] = [
   // CRM
   { name: "Affinity", category: "crm", blurb: "Search people, companies, and deals from the relationship-intelligence CRM for exec search.", provider: "affinity", live: true, auth: "apikey", apiKeyHint: "Create an API key in Affinity under Settings → API." },
   { name: "Attio", category: "crm", blurb: "Query people, companies, and deals from the modern CRM.", provider: "attio", live: true, auth: "apikey" },
+  { name: "Capsule", category: "crm", blurb: "Read people, client companies, and deals from the lightweight CRM.", provider: "capsule", live: true, auth: "apikey", apiKeyHint: "Create a Personal Access Token in Capsule under My Preferences → API Authentication Tokens." },
   { name: "Close", category: "crm", blurb: "Read client leads and BD opportunities from the sales-focused CRM.", provider: "close", live: true, auth: "apikey", apiKeyHint: "Create an API key in Close under Settings → Developer → API Keys." },
   { name: "Copper", category: "crm", blurb: "Read people, client companies, and deals from the Google Workspace CRM.", provider: "copper", live: true, auth: "apikey", apiKeyPlaceholder: "email:api-key", apiKeyHint: "Create the key in Copper under Settings → Integrations → API Keys; pair it with the email of the user who generated it." },
   { name: "folk", category: "crm", blurb: "Read the people and client companies from the relationship-first CRM.", provider: "folk", live: true, auth: "apikey", apiKeyHint: "Create an API key in folk under Settings → Workspace → API." },
@@ -206,6 +207,7 @@ export const CONNECTOR_DOMAINS: Record<string, string> = {
   bullhorn: "bullhorn.com",
   calcom: "cal.com",
   calendly: "calendly.com",
+  capsule: "capsulecrm.com",
   cats: "catsone.com",
   crelate: "crelate.com",
   greenhouse: "greenhouse.io",

@@ -21,6 +21,7 @@ export interface ConnectorTokens {
   bullhornToken: string | null;
   calcomToken: string | null;
   calendlyToken: string | null;
+  capsuleToken: string | null;
   catsToken: string | null;
   closeToken: string | null;
   contactoutToken: string | null;
@@ -102,6 +103,7 @@ const SPECS: TokenSpec[] = [
   { field: "bullhornToken", prefix: "bullhorn_", provider: "bullhorn" },
   { field: "calcomToken", prefix: "calcom_", provider: "calcom" },
   { field: "calendlyToken", prefix: "calendly_", provider: "calendly" },
+  { field: "capsuleToken", prefix: "capsule_", provider: "capsule" },
   { field: "catsToken", prefix: "cats_", provider: "cats" },
   { field: "closeToken", prefix: "close_", provider: "close" },
   { field: "contactoutToken", prefix: "contactout_", provider: "contactout" },

@@ -244,6 +244,28 @@ export const DOC_CONNECTORS: Record<string, ConnectorDocContent> = {
       { label: "Affinity API docs", url: "https://api-docs.affinity.co/" },
     ],
   },
+  capsule: {
+    capabilities: [
+      "Search people and client companies (parties)",
+      "List deals (opportunities) with their value and milestone",
+    ],
+    useCases: [
+      "Brief yourself on a client account before a call using its Capsule record",
+      "Find the right contact at a target company for outreach",
+      "Prioritise which roles to work first based on open opportunities",
+    ],
+    whatYouNeed: ["A Capsule account with permission to create an API token"],
+    steps: [
+      "In Capsule, go to My Preferences → API Authentication Tokens and generate a token.",
+      "In Calyflow, go to Settings → Connectors → Capsule and paste the token.",
+    ],
+    configuration: [
+      "Read-only: Calyflow searches Capsule for the people, companies, and deals a task needs and never changes your CRM data.",
+    ],
+    links: [
+      { label: "Capsule API docs", url: "https://developer.capsulecrm.com/" },
+    ],
+  },
   close: {
     capabilities: [
       "Search leads (client companies / accounts) and their primary contacts",

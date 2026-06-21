@@ -16,6 +16,7 @@ import { brightdataAdapter } from "../integrations/brightdata";
 import { bullhornAdapter } from "../integrations/bullhorn";
 import { calcomAdapter } from "../integrations/calcom";
 import { calendlyAdapter } from "../integrations/calendly";
+import { capsuleAdapter } from "../integrations/capsule";
 import { catsAdapter } from "../integrations/cats";
 import { closeAdapter } from "../integrations/close";
 import { contactoutAdapter } from "../integrations/contactout";
@@ -1390,6 +1391,33 @@ function buildAll(ctx: ToolContext): ToolSet {
       execute: async (args) => {
         if (!ctx.calendlyToken) return { error: notConnected("Calendly") };
         return calendlyAdapter.getInvitees(ctx.calendlyToken, args);
+      },
+    }),
+
+    capsule_search_parties: tool({
+      description:
+        "Search people and client companies (parties) in the connected Capsule CRM as a Markdown table (name, type, email, phone, company/title, party id). Pass query for a text search; omit it to browse. Page with page.",
+      inputSchema: z.object({
+        query: z.string().optional().describe("Text search across people and companies."),
+        page: z.number().int().positive().optional(),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.capsuleToken) return { error: notConnected("Capsule") };
+        return capsuleAdapter.searchParties(ctx.capsuleToken, args);
+      },
+    }),
+
+    capsule_list_opportunities: tool({
+      description:
+        "List deals (opportunities) in the connected Capsule CRM as a Markdown table (opportunity, value, milestone, party, opportunity id). Page with page.",
+      inputSchema: z.object({
+        page: z.number().int().positive().optional(),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.capsuleToken) return { error: notConnected("Capsule") };
+        return capsuleAdapter.listOpportunities(ctx.capsuleToken, args);
       },
     }),
 
@@ -3160,6 +3188,8 @@ export const ALL_TOOL_NAMES = [
   "calcom_list_bookings",
   "calendly_list_events",
   "calendly_get_invitees",
+  "capsule_search_parties",
+  "capsule_list_opportunities",
   "cats_list_jobs",
   "cats_list_candidates",
   "close_search_leads",

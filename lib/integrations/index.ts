@@ -15,6 +15,7 @@ import { brightdataAdapter } from "./brightdata";
 import { bullhornAdapter } from "./bullhorn";
 import { calcomAdapter } from "./calcom";
 import { calendlyAdapter } from "./calendly";
+import { capsuleAdapter } from "./capsule";
 import { catsAdapter } from "./cats";
 import { closeAdapter } from "./close";
 import { contactoutAdapter } from "./contactout";
@@ -92,6 +93,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   bullhorn: bullhornAdapter,
   calcom: calcomAdapter,
   calendly: calendlyAdapter,
+  capsule: capsuleAdapter,
   cats: catsAdapter,
   close: closeAdapter,
   contactout: contactoutAdapter,
