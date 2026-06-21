@@ -49,6 +49,7 @@ import { microsoftExcelAdapter } from "./microsoft-excel";
 import { microsoftOutlookAdapter } from "./microsoft-outlook";
 import { mondayAdapter } from "./monday";
 import { notionAdapter } from "./notion";
+import { nymeriaAdapter } from "./nymeria";
 import { peopledatalabsAdapter } from "./peopledatalabs";
 import { pinpointAdapter } from "./pinpoint";
 import { pipedriveAdapter } from "./pipedrive";
@@ -127,6 +128,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   "microsoft-outlook": microsoftOutlookAdapter,
   monday: mondayAdapter,
   notion: notionAdapter,
+  nymeria: nymeriaAdapter,
   peopledatalabs: peopledatalabsAdapter,
   pinpoint: pinpointAdapter,
   pipedrive: pipedriveAdapter,

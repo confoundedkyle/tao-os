@@ -55,6 +55,7 @@ export interface ConnectorTokens {
   microsoftOutlookToken: string | null;
   mondayToken: string | null;
   notionToken: string | null;
+  nymeriaToken: string | null;
   peopledatalabsToken: string | null;
   pinpointToken: string | null;
   pipedriveToken: string | null;
@@ -137,6 +138,7 @@ const SPECS: TokenSpec[] = [
   { field: "microsoftOutlookToken", prefix: "outlook_", provider: "microsoft-outlook" },
   { field: "mondayToken", prefix: "monday_", provider: "monday" },
   { field: "notionToken", prefix: "notion_", provider: "notion" },
+  { field: "nymeriaToken", prefix: "nymeria_", provider: "nymeria" },
   { field: "peopledatalabsToken", prefix: "peopledatalabs_", provider: "peopledatalabs" },
   { field: "pinpointToken", prefix: "pinpoint_", provider: "pinpoint" },
   { field: "pipedriveToken", prefix: "pipedrive_", provider: "pipedrive" },

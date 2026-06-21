@@ -51,6 +51,7 @@ import { microsoftExcelAdapter } from "../integrations/microsoft-excel";
 import { microsoftOutlookAdapter } from "../integrations/microsoft-outlook";
 import { mondayAdapter } from "../integrations/monday";
 import { notionAdapter } from "../integrations/notion";
+import { nymeriaAdapter } from "../integrations/nymeria";
 import { peopledatalabsAdapter } from "../integrations/peopledatalabs";
 import { pinpointAdapter } from "../integrations/pinpoint";
 import { pipedriveAdapter } from "../integrations/pipedrive";
@@ -2315,6 +2316,19 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    nymeria_enrich_person: tool({
+      description:
+        "Enrich a person via Nymeria from a LinkedIn profile URL or an email — returns their work/personal email and mobile phone plus job title and company. Costs a credit when a match is found.",
+      inputSchema: z.object({
+        linkedinUrl: z.string().optional().describe("LinkedIn profile URL."),
+        email: z.string().optional().describe("A known email to enrich from."),
+      }),
+      execute: async (args) => {
+        if (!ctx.nymeriaToken) return { error: notConnected("Nymeria") };
+        return nymeriaAdapter.enrichPerson(ctx.nymeriaToken, args);
+      },
+    }),
+
     peopledatalabs_enrich_person: tool({
       description:
         "Resolve one person via People Data Labs from an email, a LinkedIn profile URL, or a name plus a company or location anchor. Returns title, company, work email, personal emails, phones, LinkedIn, and a 0-10 match likelihood. Costs a credit only when a match is found — enrich selectively, never in bulk.",
@@ -3279,6 +3293,7 @@ export const ALL_TOOL_NAMES = [
   "notion_search",
   "notion_query_database",
   "notion_read_page",
+  "nymeria_enrich_person",
   "peopledatalabs_enrich_person",
   "peopledatalabs_search_people",
   "pinpoint_list_jobs",

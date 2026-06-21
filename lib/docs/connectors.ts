@@ -816,6 +816,27 @@ export const DOC_CONNECTORS: Record<string, ConnectorDocContent> = {
       { label: "Calendly API docs", url: "https://developer.calendly.com/" },
     ],
   },
+  nymeria: {
+    capabilities: [
+      "Enrich a person's emails and mobile from a LinkedIn URL or email",
+    ],
+    useCases: [
+      "Turn a sourced LinkedIn profile into a contactable email and phone",
+      "Find a direct mobile for a candidate before a calling campaign",
+      "Fill in a missing work email from a personal email you already have",
+    ],
+    whatYouNeed: ["A Nymeria account with API access"],
+    steps: [
+      "In Nymeria, open Settings → API keys and copy your key.",
+      "In Calyflow, go to Settings → Connectors → Nymeria and paste it.",
+    ],
+    configuration: [
+      "Lookups are synchronous and draw on your Nymeria credits; a credit is charged when a match is found.",
+    ],
+    links: [
+      { label: "Nymeria API docs", url: "https://www.nymeria.io/developers" },
+    ],
+  },
   gong: {
     useCases: [
       "Pull the summary of an intake call to brief an agent on the role",
