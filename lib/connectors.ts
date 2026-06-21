@@ -71,6 +71,7 @@ export const CONNECTORS: Connector[] = [
   { name: "Zoho Recruit", category: "ats", blurb: "Import candidates from Zoho's staffing-ready ATS.", provider: "zoho-recruit", live: true, auth: "oauth" },
 
   // CRM
+  { name: "Affinity", category: "crm", blurb: "Search people, companies, and deals from the relationship-intelligence CRM for exec search.", provider: "affinity", live: true, auth: "apikey", apiKeyHint: "Create an API key in Affinity under Settings → API." },
   { name: "Attio", category: "crm", blurb: "Query people, companies, and deals from the modern CRM.", provider: "attio", live: true, auth: "apikey" },
   { name: "Close", category: "crm", blurb: "Read client leads and BD opportunities from the sales-focused CRM.", provider: "close", live: true, auth: "apikey", apiKeyHint: "Create an API key in Close under Settings → Developer → API Keys." },
   { name: "folk", category: "crm", blurb: "Read the people and client companies from the relationship-first CRM.", provider: "folk", live: true, auth: "apikey", apiKeyHint: "Create an API key in folk under Settings → Workspace → API." },
@@ -212,6 +213,7 @@ export const CONNECTOR_DOMAINS: Record<string, string> = {
   vincere: "vincere.io",
   workable: "workable.com",
   "zoho-recruit": "zoho.com",
+  affinity: "affinity.co",
   attio: "attio.com",
   hubspot: "hubspot.com",
   monday: "monday.com",

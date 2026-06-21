@@ -3,6 +3,7 @@ import { tool, type ToolSet } from "ai";
 import { z } from "zod";
 import { db } from "../db";
 import { listDocuments, getDocument } from "../queries";
+import { affinityAdapter } from "../integrations/affinity";
 import { airtableAdapter } from "../integrations/airtable";
 import { apolloAdapter } from "../integrations/apollo";
 import { ashbyAdapter } from "../integrations/ashby";
@@ -233,6 +234,48 @@ function buildAll(ctx: ToolContext): ToolSet {
       execute: async ({ query }) => {
         if (!ctx.ashbyToken) return { error: notConnected("Ashby") };
         return ashbyAdapter.searchCandidates(ctx.ashbyToken, { query });
+      },
+    }),
+
+    affinity_search_persons: tool({
+      description:
+        "Search people in the connected Affinity CRM as a Markdown table (name, email, person id). Pass query to search by name or email; page with pageToken.",
+      inputSchema: z.object({
+        query: z.string().optional().describe("Search by name or email."),
+        pageToken: z.string().optional().describe("Pagination token from a previous page."),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.affinityToken) return { error: notConnected("Affinity") };
+        return affinityAdapter.searchPersons(ctx.affinityToken, args);
+      },
+    }),
+
+    affinity_search_organizations: tool({
+      description:
+        "Search companies in the connected Affinity CRM as a Markdown table (organization, domain, organization id). Pass query to search by name or domain; page with pageToken.",
+      inputSchema: z.object({
+        query: z.string().optional().describe("Search by company name or domain."),
+        pageToken: z.string().optional().describe("Pagination token from a previous page."),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.affinityToken) return { error: notConnected("Affinity") };
+        return affinityAdapter.searchOrganizations(ctx.affinityToken, args);
+      },
+    }),
+
+    affinity_list_opportunities: tool({
+      description:
+        "List deals (opportunities) in the connected Affinity CRM as a Markdown table (opportunity, opportunity id). Pass query to filter by name; page with pageToken.",
+      inputSchema: z.object({
+        query: z.string().optional().describe("Filter by opportunity name."),
+        pageToken: z.string().optional().describe("Pagination token from a previous page."),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.affinityToken) return { error: notConnected("Affinity") };
+        return affinityAdapter.listOpportunities(ctx.affinityToken, args);
       },
     }),
 
@@ -2867,6 +2910,9 @@ export const ALL_TOOL_NAMES = [
   "ashby_list_jobs",
   "ashby_list_candidates",
   "ashby_search_candidates",
+  "affinity_search_persons",
+  "affinity_search_organizations",
+  "affinity_list_opportunities",
   "attio_list_objects",
   "attio_query_records",
   "bamboohr_list_jobs",

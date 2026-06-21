@@ -222,6 +222,28 @@ export const DOC_CONNECTORS: Record<string, ConnectorDocContent> = {
   },
 
   // ── CRM ──────────────────────────────────────────────────────────────────
+  affinity: {
+    capabilities: [
+      "Search people and the companies (organizations) in your Affinity CRM",
+      "List deals (opportunities) in your pipeline",
+    ],
+    useCases: [
+      "Brief yourself on a client or candidate before a call using their Affinity record",
+      "Find the right contact at a target company for business development",
+      "Check warm relationships and open deals before working a new account",
+    ],
+    whatYouNeed: ["An Affinity account with permission to create an API key"],
+    steps: [
+      "In Affinity, go to Settings → API and create an API key.",
+      "In Calyflow, go to Settings → Connectors → Affinity and paste the key.",
+    ],
+    configuration: [
+      "Read-only: Calyflow searches Affinity for the people, companies, and deals a task needs and never changes your CRM data.",
+    ],
+    links: [
+      { label: "Affinity API docs", url: "https://api-docs.affinity.co/" },
+    ],
+  },
   close: {
     capabilities: [
       "Search leads (client companies / accounts) and their primary contacts",

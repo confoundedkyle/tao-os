@@ -2,6 +2,7 @@ import "server-only";
 import { db } from "../db";
 import { decrypt, encrypt } from "../crypto";
 import type { Connection } from "../types";
+import { affinityAdapter } from "./affinity";
 import { airtableAdapter } from "./airtable";
 import { apolloAdapter } from "./apollo";
 import { ashbyAdapter } from "./ashby";
@@ -71,6 +72,7 @@ export type { ConnectorAdapter, ResourceRef } from "./types";
 // Registry of live connectors. Catalog display lives in lib/connectors.ts; this
 // is the set with a working backend.
 const ADAPTERS: Record<string, ConnectorAdapter> = {
+  affinity: affinityAdapter,
   airtable: airtableAdapter,
   apollo: apolloAdapter,
   ashby: ashbyAdapter,
