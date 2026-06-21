@@ -729,6 +729,27 @@ export const DOC_CONNECTORS: Record<string, ConnectorDocContent> = {
       { label: "LeadMagic API docs", url: "https://docs.leadmagic.io/" },
     ],
   },
+  calcom: {
+    capabilities: [
+      "List booked meetings with their times, status, and attendees",
+    ],
+    useCases: [
+      "Check which candidate interviews are booked this week",
+      "See who booked a screening call (attendee name and email)",
+      "Confirm a candidate booked a slot before prepping for it",
+    ],
+    whatYouNeed: ["A Cal.com account with API access"],
+    steps: [
+      "In Cal.com, go to Settings → Developer → API keys and create a key (it starts with cal_).",
+      "In Calyflow, go to Settings → Connectors → Cal.com and paste it.",
+    ],
+    configuration: [
+      "Read-only: Calyflow reads your bookings and their attendees and never books or changes anything in Cal.com.",
+    ],
+    links: [
+      { label: "Cal.com API docs", url: "https://cal.com/docs/api-reference/v2/introduction" },
+    ],
+  },
   calendly: {
     capabilities: [
       "List booked interview events with their times and status",

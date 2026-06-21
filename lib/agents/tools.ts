@@ -13,6 +13,7 @@ import { bamboohrAdapter } from "../integrations/bamboohr";
 import { breezyhrAdapter } from "../integrations/breezyhr";
 import { brightdataAdapter } from "../integrations/brightdata";
 import { bullhornAdapter } from "../integrations/bullhorn";
+import { calcomAdapter } from "../integrations/calcom";
 import { calendlyAdapter } from "../integrations/calendly";
 import { catsAdapter } from "../integrations/cats";
 import { closeAdapter } from "../integrations/close";
@@ -1314,6 +1315,23 @@ function buildAll(ctx: ToolContext): ToolSet {
       execute: async () => {
         if (!ctx.vincereToken) return { error: notConnected("Vincere") };
         return vincereAdapter.listTalentPools(ctx.vincereToken);
+      },
+    }),
+
+    calcom_list_bookings: tool({
+      description:
+        "List booked meetings in the connected Cal.com account as a Markdown table (event, status, start, attendee, email, booking uid). Filter by status (upcoming, past, cancelled, unconfirmed, recurring); page with the cursor surfaced under the table.",
+      inputSchema: z.object({
+        status: z
+          .enum(["upcoming", "recurring", "past", "cancelled", "unconfirmed"])
+          .optional()
+          .describe("Filter by booking status."),
+        cursor: z.string().optional().describe("Pagination cursor from a previous page."),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.calcomToken) return { error: notConnected("Cal.com") };
+        return calcomAdapter.listBookings(ctx.calcomToken, args);
       },
     }),
 
@@ -3105,6 +3123,7 @@ export const ALL_TOOL_NAMES = [
   "vincere_search_contacts",
   "vincere_search_applications",
   "vincere_list_talent_pools",
+  "calcom_list_bookings",
   "calendly_list_events",
   "calendly_get_invitees",
   "cats_list_jobs",

@@ -12,6 +12,7 @@ import { bamboohrAdapter } from "./bamboohr";
 import { breezyhrAdapter } from "./breezyhr";
 import { brightdataAdapter } from "./brightdata";
 import { bullhornAdapter } from "./bullhorn";
+import { calcomAdapter } from "./calcom";
 import { calendlyAdapter } from "./calendly";
 import { catsAdapter } from "./cats";
 import { closeAdapter } from "./close";
@@ -87,6 +88,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   breezyhr: breezyhrAdapter,
   brightdata: brightdataAdapter,
   bullhorn: bullhornAdapter,
+  calcom: calcomAdapter,
   calendly: calendlyAdapter,
   cats: catsAdapter,
   close: closeAdapter,
