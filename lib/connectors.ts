@@ -95,6 +95,7 @@ export const CONNECTORS: Connector[] = [
 
   // --- Comms (team messaging — where recruiting agents reach hiring managers) ---
   { name: "Slack", category: "comms", blurb: "Run recruiting agents and receive project reports in your team's Slack — a channel per project.", provider: "slack", live: true, auth: "oauth", oauthAppHint: "Connect in one click with the Calyflow Slack app. Self-hosting? Create your own app at api.slack.com, add the redirect URI shown above, and set SLACK_CLIENT_ID / SLACK_CLIENT_SECRET." },
+  { name: "Twilio", category: "comms", blurb: "Read the SMS and call history with candidates from your Twilio number.", provider: "twilio", live: true, auth: "apikey", apiKeyPlaceholder: "account-sid:auth-token", apiKeyHint: "Both are on your Twilio Console dashboard; the Account SID starts with AC. Paste them separated by a colon." },
 
   // Tools (sourcing & outreach)
   { name: "Adzuna", category: "tool", blurb: "Search the job market and salary data for benchmarking and demand signals.", provider: "adzuna", live: true, auth: "apikey", apiKeyPlaceholder: "app-id:app-key", apiKeyHint: "Register for an app_id and app_key at developer.adzuna.com and paste them separated by a colon." },
@@ -271,6 +272,7 @@ export const CONNECTOR_DOMAINS: Record<string, string> = {
   smartlead: "smartlead.ai",
   snov: "snov.io",
   tldv: "tldv.io",
+  twilio: "twilio.com",
   wiza: "wiza.co",
   woodpecker: "woodpecker.co",
   zoom: "zoom.us",

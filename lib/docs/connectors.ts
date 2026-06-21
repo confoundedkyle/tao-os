@@ -440,6 +440,28 @@ export const DOC_CONNECTORS: Record<string, ConnectorDocContent> = {
   },
 
   // ── Comms ────────────────────────────────────────────────────────────────
+  twilio: {
+    capabilities: [
+      "List the SMS history with a candidate or number",
+      "List the call history (status, direction, duration)",
+    ],
+    useCases: [
+      "Review the text history with a candidate before following up",
+      "Check whether a candidate replied to an outreach text",
+      "Pull the call log for a number to see screening-call activity",
+    ],
+    whatYouNeed: ["A Twilio account (Account SID + Auth Token from the Console)"],
+    steps: [
+      "Open your Twilio Console dashboard and copy the Account SID (starts with AC) and Auth Token.",
+      "In Calyflow, go to Settings → Connectors → Twilio and paste them as account-sid:auth-token.",
+    ],
+    configuration: [
+      "Read-only: Calyflow reads your message and call logs and never sends texts or places calls.",
+    ],
+    links: [
+      { label: "Twilio API docs", url: "https://www.twilio.com/docs/messaging/api" },
+    ],
+  },
   slack: {
     capabilities: [
       "Run any recruiting agent from a Slack channel with /calyflow or @Calyflow",

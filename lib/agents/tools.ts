@@ -68,6 +68,7 @@ import { smartrecruitersAdapter } from "../integrations/smartrecruiters";
 import { snovAdapter } from "../integrations/snov";
 import { teamtailorAdapter } from "../integrations/teamtailor";
 import { tldvAdapter } from "../integrations/tldv";
+import { twilioAdapter } from "../integrations/twilio";
 import { vincereAdapter } from "../integrations/vincere";
 import { wizaAdapter } from "../integrations/wiza";
 import { woodpeckerAdapter } from "../integrations/woodpecker";
@@ -2865,6 +2866,34 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    twilio_list_messages: tool({
+      description:
+        "List recent SMS messages in the connected Twilio account as a Markdown table (from, to, direction, status, message, sent). Filter by To or From phone number (E.164, e.g. +14155551234).",
+      inputSchema: z.object({
+        to: z.string().optional().describe("Filter by recipient number (E.164)."),
+        from: z.string().optional().describe("Filter by sender number (E.164)."),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.twilioToken) return { error: notConnected("Twilio") };
+        return twilioAdapter.listMessages(ctx.twilioToken, args);
+      },
+    }),
+
+    twilio_list_calls: tool({
+      description:
+        "List recent calls in the connected Twilio account as a Markdown table (from, to, direction, status, duration, started). Filter by To or From phone number (E.164).",
+      inputSchema: z.object({
+        to: z.string().optional().describe("Filter by called number (E.164)."),
+        from: z.string().optional().describe("Filter by caller number (E.164)."),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.twilioToken) return { error: notConnected("Twilio") };
+        return twilioAdapter.listCalls(ctx.twilioToken, args);
+      },
+    }),
+
     workable_list_jobs: tool({
       description:
         "List jobs in the connected Workable ATS (title, state, department, location, shortcode). Filter by state: draft, published, closed, archived. Use to find the role you are sourcing for — the shortcode scopes candidate lookups.",
@@ -3331,6 +3360,8 @@ export const ALL_TOOL_NAMES = [
   "tldv_list_meetings",
   "tldv_get_notes",
   "tldv_get_transcript",
+  "twilio_list_messages",
+  "twilio_list_calls",
   "wiza_reveal",
   "wiza_get_result",
   "woodpecker_list_campaigns",

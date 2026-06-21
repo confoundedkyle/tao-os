@@ -72,6 +72,7 @@ export interface ConnectorTokens {
   snovToken: string | null;
   teamtailorToken: string | null;
   tldvToken: string | null;
+  twilioToken: string | null;
   vincereToken: string | null;
   wizaToken: string | null;
   woodpeckerToken: string | null;
@@ -155,6 +156,7 @@ const SPECS: TokenSpec[] = [
   { field: "snovToken", prefix: "snov_", provider: "snov" },
   { field: "teamtailorToken", prefix: "teamtailor_", provider: "teamtailor" },
   { field: "tldvToken", prefix: "tldv_", provider: "tldv" },
+  { field: "twilioToken", prefix: "twilio_", provider: "twilio" },
   { field: "vincereToken", prefix: "vincere_", provider: "vincere" },
   { field: "wizaToken", prefix: "wiza_", provider: "wiza" },
   { field: "woodpeckerToken", prefix: "woodpecker_", provider: "woodpecker" },

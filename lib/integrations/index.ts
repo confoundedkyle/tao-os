@@ -66,6 +66,7 @@ import { smartrecruitersAdapter } from "./smartrecruiters";
 import { snovAdapter } from "./snov";
 import { teamtailorAdapter } from "./teamtailor";
 import { tldvAdapter } from "./tldv";
+import { twilioAdapter } from "./twilio";
 import { vincereAdapter } from "./vincere";
 import { wizaAdapter } from "./wiza";
 import { woodpeckerAdapter } from "./woodpecker";
@@ -145,6 +146,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   snov: snovAdapter,
   teamtailor: teamtailorAdapter,
   tldv: tldvAdapter,
+  twilio: twilioAdapter,
   vincere: vincereAdapter,
   wiza: wizaAdapter,
   woodpecker: woodpeckerAdapter,
