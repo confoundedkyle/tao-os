@@ -3,6 +3,7 @@ import { tool, type ToolSet } from "ai";
 import { z } from "zod";
 import { db } from "../db";
 import { listDocuments, getDocument } from "../queries";
+import { adzunaAdapter } from "../integrations/adzuna";
 import { affinityAdapter } from "../integrations/affinity";
 import { airtableAdapter } from "../integrations/airtable";
 import { apolloAdapter } from "../integrations/apollo";
@@ -1052,6 +1053,37 @@ function buildAll(ctx: ToolContext): ToolSet {
       execute: async ({ email }) => {
         if (!ctx.hunterToken) return { error: notConnected("Hunter.io") };
         return hunterAdapter.emailVerifier(ctx.hunterToken, email);
+      },
+    }),
+
+    adzuna_search_jobs: tool({
+      description:
+        "Search the job market via Adzuna (title, company, location, salary range, posted date, link). Use for live demand and competitor postings. Defaults to the UK (gb); set country (gb, us, au, ca, de, fr, …), and filter with what (keywords), where (location), and salaryMin.",
+      inputSchema: z.object({
+        what: z.string().optional().describe("Keywords, e.g. 'react developer'."),
+        where: z.string().optional().describe("Location, e.g. 'London'."),
+        country: z.string().optional().describe("Country code (default gb)."),
+        salaryMin: z.number().int().positive().optional().describe("Minimum salary filter."),
+        page: z.number().int().positive().optional(),
+        limit: z.number().int().positive().optional().describe("Max 50."),
+      }),
+      execute: async (args) => {
+        if (!ctx.adzunaToken) return { error: notConnected("Adzuna") };
+        return adzunaAdapter.searchJobs(ctx.adzunaToken, args);
+      },
+    }),
+
+    adzuna_salary_histogram: tool({
+      description:
+        "Get the salary distribution for a job title via Adzuna (count of jobs per salary band) — useful for benchmarking a role's pay. Provide what (title); optional country and where.",
+      inputSchema: z.object({
+        what: z.string().describe("Job title, e.g. 'data scientist'."),
+        where: z.string().optional().describe("Location, e.g. 'Manchester'."),
+        country: z.string().optional().describe("Country code (default gb)."),
+      }),
+      execute: async (args) => {
+        if (!ctx.adzunaToken) return { error: notConnected("Adzuna") };
+        return adzunaAdapter.salaryHistogram(ctx.adzunaToken, args);
       },
     }),
 
@@ -3109,6 +3141,8 @@ export const ALL_TOOL_NAMES = [
   "hunter_domain_search",
   "hunter_email_finder",
   "hunter_email_verifier",
+  "adzuna_search_jobs",
+  "adzuna_salary_histogram",
   "apollo_search_people",
   "apollo_enrich_person",
   "apollo_search_organizations",

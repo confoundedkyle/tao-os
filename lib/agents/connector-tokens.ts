@@ -8,6 +8,7 @@ import { getValidAccessToken } from "../integrations";
 // is a one-line change to SPECS plus the matching ToolContext field.
 
 export interface ConnectorTokens {
+  adzunaToken: string | null;
   affinityToken: string | null;
   airtableToken: string | null;
   apolloToken: string | null;
@@ -88,6 +89,7 @@ interface TokenSpec {
 }
 
 const SPECS: TokenSpec[] = [
+  { field: "adzunaToken", prefix: "adzuna_", provider: "adzuna" },
   { field: "affinityToken", prefix: "affinity_", provider: "affinity" },
   { field: "airtableToken", prefix: "airtable_", provider: "airtable" },
   { field: "apolloToken", prefix: "apollo_", provider: "apollo" },

@@ -729,6 +729,28 @@ export const DOC_CONNECTORS: Record<string, ConnectorDocContent> = {
       { label: "LeadMagic API docs", url: "https://docs.leadmagic.io/" },
     ],
   },
+  adzuna: {
+    capabilities: [
+      "Search live job postings by title, location, and salary",
+      "Get the salary distribution for a role for benchmarking",
+    ],
+    useCases: [
+      "Benchmark a role's salary before advising a client on a range",
+      "Gauge live market demand and competitor postings for a role",
+      "Map where a skill is being hired across regions",
+    ],
+    whatYouNeed: ["An Adzuna developer account (a free app_id + app_key)"],
+    steps: [
+      "Register at developer.adzuna.com to get an app_id and app_key.",
+      "In Calyflow, go to Settings → Connectors → Adzuna and paste them as app-id:app-key.",
+    ],
+    configuration: [
+      "Read-only public job-market data; defaults to the UK (gb) but supports many country codes (us, au, ca, de, fr, …).",
+    ],
+    links: [
+      { label: "Adzuna API docs", url: "https://developer.adzuna.com/" },
+    ],
+  },
   calcom: {
     capabilities: [
       "List booked meetings with their times, status, and attendees",
