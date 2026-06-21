@@ -80,6 +80,7 @@ export const CONNECTORS: Connector[] = [
   { name: "monday.com", category: "crm", blurb: "Read the candidate and client boards your agency already runs.", provider: "monday", live: true, auth: "apikey", apiKeyHint: "Copy your personal API token from your monday.com profile picture → Developers → API token." },
   { name: "Notion", category: "crm", blurb: "Read the databases and pages your team already runs recruiting on.", provider: "notion", live: true, auth: "oauth" },
   { name: "Pipedrive", category: "crm", blurb: "Pull your BD pipeline and client deals into Calyflow.", provider: "pipedrive", live: true, auth: "apikey" },
+  { name: "Zendesk Sell", category: "crm", blurb: "Read contacts, client companies, and deals from the Zendesk sales CRM.", provider: "zendesk-sell", live: true, auth: "apikey", apiKeyHint: "Create an access token in Zendesk Sell under Settings → OAuth → Access Tokens." },
   { name: "Zoho CRM", category: "crm", blurb: "Sync clients and deals from Zoho's sales suite.", provider: "zoho-crm", live: true, auth: "oauth" },
 
   // Data (spreadsheets & flexible databases)
@@ -186,6 +187,7 @@ export function providerToolPrefix(provider: string): string {
     "google-sheets": "googlesheets_",
     "microsoft-excel": "excel_",
     "microsoft-outlook": "outlook_",
+    "zendesk-sell": "zendesksell_",
     "zoho-crm": "zohocrm_",
     "zoho-recruit": "zohorecruit_",
   };
@@ -222,6 +224,7 @@ export const CONNECTOR_DOMAINS: Record<string, string> = {
   monday: "monday.com",
   notion: "notion.so",
   pipedrive: "pipedrive.com",
+  "zendesk-sell": "zendesk.com",
   "zoho-crm": "zoho.com",
   airtable: "airtable.com",
   "google-sheets": "sheets.google.com",

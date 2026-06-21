@@ -312,6 +312,28 @@ export const DOC_CONNECTORS: Record<string, ConnectorDocContent> = {
       { label: "Copper API docs", url: "https://developer.copper.com/" },
     ],
   },
+  "zendesk-sell": {
+    capabilities: [
+      "Search people and client companies (contacts)",
+      "List deals in the BD pipeline",
+    ],
+    useCases: [
+      "Brief yourself on a client account before a call using its Zendesk Sell record",
+      "Find the right contact at a target company for outreach",
+      "Prioritise which roles to work first based on open deals",
+    ],
+    whatYouNeed: ["A Zendesk Sell account with permission to create an access token"],
+    steps: [
+      "In Zendesk Sell, go to Settings → OAuth → Access Tokens and add a token.",
+      "In Calyflow, go to Settings → Connectors → Zendesk Sell and paste the token.",
+    ],
+    configuration: [
+      "Read-only: Calyflow searches Zendesk Sell for the contacts and deals a task needs and never changes your CRM data.",
+    ],
+    links: [
+      { label: "Zendesk Sell API", url: "https://developer.zendesk.com/api-reference/sales-crm/introduction/" },
+    ],
+  },
   hubspot: {
     capabilities: [
       "Search client companies, contacts, and deals",

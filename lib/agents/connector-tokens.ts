@@ -71,6 +71,7 @@ export interface ConnectorTokens {
   wizaToken: string | null;
   woodpeckerToken: string | null;
   workableToken: string | null;
+  zendeskSellToken: string | null;
   zohoCrmToken: string | null;
   zohoRecruitToken: string | null;
   zoomToken: string | null;
@@ -148,6 +149,7 @@ const SPECS: TokenSpec[] = [
   { field: "wizaToken", prefix: "wiza_", provider: "wiza" },
   { field: "woodpeckerToken", prefix: "woodpecker_", provider: "woodpecker" },
   { field: "workableToken", prefix: "workable_", provider: "workable" },
+  { field: "zendeskSellToken", prefix: "zendesksell_", provider: "zendesk-sell" },
   { field: "zohoCrmToken", prefix: "zohocrm_", provider: "zoho-crm" },
   { field: "zohoRecruitToken", prefix: "zohorecruit_", provider: "zoho-recruit" },
   { field: "zoomToken", prefix: "zoom_", provider: "zoom" },

@@ -67,6 +67,7 @@ import { vincereAdapter } from "../integrations/vincere";
 import { wizaAdapter } from "../integrations/wiza";
 import { woodpeckerAdapter } from "../integrations/woodpecker";
 import { workableAdapter } from "../integrations/workable";
+import { zendeskSellAdapter } from "../integrations/zendesk-sell";
 import { zohoCrmAdapter } from "../integrations/zoho-crm";
 import { zohoRecruitAdapter } from "../integrations/zoho-recruit";
 import { zoomAdapter } from "../integrations/zoom";
@@ -2866,6 +2867,47 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    zendesksell_search_people: tool({
+      description:
+        "Search people (contacts) in the connected Zendesk Sell CRM as a Markdown table (name, email, phone, company, title, contact id). Pass name to filter; page with page.",
+      inputSchema: z.object({
+        name: z.string().optional().describe("Filter by person name."),
+        page: z.number().int().positive().optional(),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.zendeskSellToken) return { error: notConnected("Zendesk Sell") };
+        return zendeskSellAdapter.searchPeople(ctx.zendeskSellToken, args);
+      },
+    }),
+
+    zendesksell_search_companies: tool({
+      description:
+        "Search companies (client accounts) in the connected Zendesk Sell CRM as a Markdown table (company, email, phone, website, contact id). Pass name to filter; page with page.",
+      inputSchema: z.object({
+        name: z.string().optional().describe("Filter by company name."),
+        page: z.number().int().positive().optional(),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.zendeskSellToken) return { error: notConnected("Zendesk Sell") };
+        return zendeskSellAdapter.searchCompanies(ctx.zendeskSellToken, args);
+      },
+    }),
+
+    zendesksell_list_deals: tool({
+      description:
+        "List deals in the connected Zendesk Sell CRM as a Markdown table (deal, value, hot, company, deal id). Page with page.",
+      inputSchema: z.object({
+        page: z.number().int().positive().optional(),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.zendeskSellToken) return { error: notConnected("Zendesk Sell") };
+        return zendeskSellAdapter.listDeals(ctx.zendeskSellToken, args);
+      },
+    }),
+
     zohocrm_search_contacts: tool({
       description:
         "Search contacts in the connected Zoho CRM by name, email, or other text (2+ characters). Returns name, email, phone, account, and title.",
@@ -3169,6 +3211,9 @@ export const ALL_TOOL_NAMES = [
   "woodpecker_campaign_stats",
   "workable_list_jobs",
   "workable_list_candidates",
+  "zendesksell_search_people",
+  "zendesksell_search_companies",
+  "zendesksell_list_deals",
   "zohocrm_search_contacts",
   "zohocrm_search_accounts",
   "zohocrm_search_deals",

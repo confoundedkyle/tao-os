@@ -65,6 +65,7 @@ import { vincereAdapter } from "./vincere";
 import { wizaAdapter } from "./wiza";
 import { woodpeckerAdapter } from "./woodpecker";
 import { workableAdapter } from "./workable";
+import { zendeskSellAdapter } from "./zendesk-sell";
 import { zohoCrmAdapter } from "./zoho-crm";
 import { zohoRecruitAdapter } from "./zoho-recruit";
 import { zoomAdapter } from "./zoom";
@@ -138,6 +139,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   wiza: wizaAdapter,
   woodpecker: woodpeckerAdapter,
   workable: workableAdapter,
+  "zendesk-sell": zendeskSellAdapter,
   "zoho-crm": zohoCrmAdapter,
   "zoho-recruit": zohoRecruitAdapter,
   zoom: zoomAdapter,
