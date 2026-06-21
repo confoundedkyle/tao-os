@@ -18,6 +18,7 @@ export interface ConnectorTokens {
   breezyhrToken: string | null;
   brightdataToken: string | null;
   bullhornToken: string | null;
+  calendlyToken: string | null;
   catsToken: string | null;
   closeToken: string | null;
   contactoutToken: string | null;
@@ -96,6 +97,7 @@ const SPECS: TokenSpec[] = [
   { field: "breezyhrToken", prefix: "breezyhr_", provider: "breezyhr" },
   { field: "brightdataToken", prefix: "brightdata_", provider: "brightdata" },
   { field: "bullhornToken", prefix: "bullhorn_", provider: "bullhorn" },
+  { field: "calendlyToken", prefix: "calendly_", provider: "calendly" },
   { field: "catsToken", prefix: "cats_", provider: "cats" },
   { field: "closeToken", prefix: "close_", provider: "close" },
   { field: "contactoutToken", prefix: "contactout_", provider: "contactout" },

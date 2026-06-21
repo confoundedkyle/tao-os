@@ -13,6 +13,7 @@ import { bamboohrAdapter } from "../integrations/bamboohr";
 import { breezyhrAdapter } from "../integrations/breezyhr";
 import { brightdataAdapter } from "../integrations/brightdata";
 import { bullhornAdapter } from "../integrations/bullhorn";
+import { calendlyAdapter } from "../integrations/calendly";
 import { catsAdapter } from "../integrations/cats";
 import { closeAdapter } from "../integrations/close";
 import { contactoutAdapter } from "../integrations/contactout";
@@ -1313,6 +1314,32 @@ function buildAll(ctx: ToolContext): ToolSet {
       execute: async () => {
         if (!ctx.vincereToken) return { error: notConnected("Vincere") };
         return vincereAdapter.listTalentPools(ctx.vincereToken);
+      },
+    }),
+
+    calendly_list_events: tool({
+      description:
+        "List scheduled events (booked meetings) in the connected Calendly account as a Markdown table (event, status, start, end, event uuid). Filter by status (active or canceled) and minStartTime (ISO 8601); get the invitees of one event with calendly_get_invitees.",
+      inputSchema: z.object({
+        status: z.enum(["active", "canceled"]).optional().describe("Filter by event status."),
+        minStartTime: z.string().optional().describe("Only events starting at/after this ISO 8601 time."),
+        count: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.calendlyToken) return { error: notConnected("Calendly") };
+        return calendlyAdapter.listEvents(ctx.calendlyToken, args);
+      },
+    }),
+
+    calendly_get_invitees: tool({
+      description:
+        "List the invitees (who booked) for one Calendly event as a Markdown table (name, email, status, booked date). Get the eventUuid from calendly_list_events.",
+      inputSchema: z.object({
+        eventUuid: z.string().describe("Event uuid from calendly_list_events."),
+      }),
+      execute: async (args) => {
+        if (!ctx.calendlyToken) return { error: notConnected("Calendly") };
+        return calendlyAdapter.getInvitees(ctx.calendlyToken, args);
       },
     }),
 
@@ -3078,6 +3105,8 @@ export const ALL_TOOL_NAMES = [
   "vincere_search_contacts",
   "vincere_search_applications",
   "vincere_list_talent_pools",
+  "calendly_list_events",
+  "calendly_get_invitees",
   "cats_list_jobs",
   "cats_list_candidates",
   "close_search_leads",

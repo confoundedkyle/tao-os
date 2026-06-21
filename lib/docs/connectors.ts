@@ -729,6 +729,28 @@ export const DOC_CONNECTORS: Record<string, ConnectorDocContent> = {
       { label: "LeadMagic API docs", url: "https://docs.leadmagic.io/" },
     ],
   },
+  calendly: {
+    capabilities: [
+      "List booked interview events with their times and status",
+      "See who booked an event (invitee name and email)",
+    ],
+    useCases: [
+      "Check which candidate interviews are booked this week",
+      "Pull the invitee details for a scheduled screening call",
+      "Confirm a candidate booked the slot before prepping for it",
+    ],
+    whatYouNeed: ["A Calendly account with API access"],
+    steps: [
+      "In Calendly, go to Integrations → API & Webhooks → Personal access tokens and create a token.",
+      "In Calyflow, go to Settings → Connectors → Calendly and paste it.",
+    ],
+    configuration: [
+      "Read-only: Calyflow reads your scheduled events and their invitees and never books or changes anything in Calendly.",
+    ],
+    links: [
+      { label: "Calendly API docs", url: "https://developer.calendly.com/" },
+    ],
+  },
   gong: {
     useCases: [
       "Pull the summary of an intake call to brief an agent on the role",
