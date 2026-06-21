@@ -21,6 +21,7 @@ export interface ConnectorTokens {
   catsToken: string | null;
   closeToken: string | null;
   contactoutToken: string | null;
+  copperToken: string | null;
   coresignalToken: string | null;
   crelateToken: string | null;
   dropcontactToken: string | null;
@@ -95,6 +96,7 @@ const SPECS: TokenSpec[] = [
   { field: "catsToken", prefix: "cats_", provider: "cats" },
   { field: "closeToken", prefix: "close_", provider: "close" },
   { field: "contactoutToken", prefix: "contactout_", provider: "contactout" },
+  { field: "copperToken", prefix: "copper_", provider: "copper" },
   { field: "coresignalToken", prefix: "coresignal_", provider: "coresignal" },
   { field: "crelateToken", prefix: "crelate_", provider: "crelate" },
   { field: "dropcontactToken", prefix: "dropcontact_", provider: "dropcontact" },

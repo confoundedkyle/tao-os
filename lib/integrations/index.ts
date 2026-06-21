@@ -15,6 +15,7 @@ import { bullhornAdapter } from "./bullhorn";
 import { catsAdapter } from "./cats";
 import { closeAdapter } from "./close";
 import { contactoutAdapter } from "./contactout";
+import { copperAdapter } from "./copper";
 import { coresignalAdapter } from "./coresignal";
 import { crelateAdapter } from "./crelate";
 import { dropcontactAdapter } from "./dropcontact";
@@ -85,6 +86,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   cats: catsAdapter,
   close: closeAdapter,
   contactout: contactoutAdapter,
+  copper: copperAdapter,
   coresignal: coresignalAdapter,
   crelate: crelateAdapter,
   dropcontact: dropcontactAdapter,

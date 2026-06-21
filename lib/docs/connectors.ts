@@ -290,6 +290,28 @@ export const DOC_CONNECTORS: Record<string, ConnectorDocContent> = {
       { label: "folk API docs", url: "https://developer.folk.app/" },
     ],
   },
+  copper: {
+    capabilities: [
+      "Search people, client companies, and deals (opportunities)",
+      "Pull BD pipeline context into research and outreach",
+    ],
+    useCases: [
+      "Brief yourself on a client account before a call using its Copper record",
+      "Find the right contact at a target company for outreach",
+      "Prioritise which roles to work first based on open opportunities",
+    ],
+    whatYouNeed: ["A Copper account, and the email of the user who created the API key"],
+    steps: [
+      "In Copper, go to Settings → Integrations → API Keys and generate a key.",
+      "In Calyflow, go to Settings → Connectors → Copper and paste it as email:api-key (the email of the user who generated the key).",
+    ],
+    configuration: [
+      "Read-only: Calyflow searches Copper for the people, companies, and deals a task needs and never changes your CRM data.",
+    ],
+    links: [
+      { label: "Copper API docs", url: "https://developer.copper.com/" },
+    ],
+  },
   hubspot: {
     capabilities: [
       "Search client companies, contacts, and deals",

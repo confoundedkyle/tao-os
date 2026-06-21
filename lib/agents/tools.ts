@@ -16,6 +16,7 @@ import { bullhornAdapter } from "../integrations/bullhorn";
 import { catsAdapter } from "../integrations/cats";
 import { closeAdapter } from "../integrations/close";
 import { contactoutAdapter } from "../integrations/contactout";
+import { copperAdapter } from "../integrations/copper";
 import { coresignalAdapter } from "../integrations/coresignal";
 import { crelateAdapter } from "../integrations/crelate";
 import { dropcontactAdapter } from "../integrations/dropcontact";
@@ -1364,6 +1365,48 @@ function buildAll(ctx: ToolContext): ToolSet {
       execute: async (args) => {
         if (!ctx.closeToken) return { error: notConnected("Close") };
         return closeAdapter.listOpportunities(ctx.closeToken, args);
+      },
+    }),
+
+    copper_search_people: tool({
+      description:
+        "Search people in the connected Copper CRM as a Markdown table (name, email, phone, company, title, person id). Pass name to filter; page with page.",
+      inputSchema: z.object({
+        name: z.string().optional().describe("Filter by person name."),
+        page: z.number().int().positive().optional(),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.copperToken) return { error: notConnected("Copper") };
+        return copperAdapter.searchPeople(ctx.copperToken, args);
+      },
+    }),
+
+    copper_search_companies: tool({
+      description:
+        "Search companies (client accounts) in the connected Copper CRM as a Markdown table (company, email domain, phone, company id). Pass name to filter; page with page.",
+      inputSchema: z.object({
+        name: z.string().optional().describe("Filter by company name."),
+        page: z.number().int().positive().optional(),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.copperToken) return { error: notConnected("Copper") };
+        return copperAdapter.searchCompanies(ctx.copperToken, args);
+      },
+    }),
+
+    copper_search_opportunities: tool({
+      description:
+        "Search deals (opportunities) in the connected Copper CRM as a Markdown table (opportunity, status, value, company, opportunity id). Pass name to filter; page with page.",
+      inputSchema: z.object({
+        name: z.string().optional().describe("Filter by opportunity name."),
+        page: z.number().int().positive().optional(),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.copperToken) return { error: notConnected("Copper") };
+        return copperAdapter.searchOpportunities(ctx.copperToken, args);
       },
     }),
 
@@ -2941,6 +2984,9 @@ export const ALL_TOOL_NAMES = [
   "cats_list_candidates",
   "close_search_leads",
   "close_list_opportunities",
+  "copper_search_people",
+  "copper_search_companies",
+  "copper_search_opportunities",
   "crelate_list_jobs",
   "crelate_search_contacts",
   "crelate_list_contacts",
