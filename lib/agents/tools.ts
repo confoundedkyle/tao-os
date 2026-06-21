@@ -49,6 +49,7 @@ import { notionAdapter } from "../integrations/notion";
 import { peopledatalabsAdapter } from "../integrations/peopledatalabs";
 import { pinpointAdapter } from "../integrations/pinpoint";
 import { pipedriveAdapter } from "../integrations/pipedrive";
+import { prospeoAdapter } from "../integrations/prospeo";
 import { recruiteeAdapter } from "../integrations/recruitee";
 import { recruiterflowAdapter } from "../integrations/recruiterflow";
 import { recruitisAdapter } from "../integrations/recruitis";
@@ -2271,6 +2272,32 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    prospeo_enrich_person: tool({
+      description:
+        "Find a verified work email via Prospeo from a person's full name + company website, or a LinkedIn URL. Costs a credit only when a verified email is found. Returns the email plus status, name, and company.",
+      inputSchema: z.object({
+        fullName: z.string().optional().describe("Person's full name."),
+        companyWebsite: z.string().optional().describe("Company website or domain (use with fullName)."),
+        linkedinUrl: z.string().optional().describe("LinkedIn profile URL (alternative to name+company)."),
+      }),
+      execute: async (args) => {
+        if (!ctx.prospeoToken) return { error: notConnected("Prospeo") };
+        return prospeoAdapter.enrichPerson(ctx.prospeoToken, args);
+      },
+    }),
+
+    prospeo_find_mobile: tool({
+      description:
+        "Find a direct mobile number via Prospeo from a LinkedIn profile URL. Costs credits only if a number is found.",
+      inputSchema: z.object({
+        linkedinUrl: z.string().describe("LinkedIn profile URL."),
+      }),
+      execute: async (args) => {
+        if (!ctx.prospeoToken) return { error: notConnected("Prospeo") };
+        return prospeoAdapter.findMobile(ctx.prospeoToken, args);
+      },
+    }),
+
     recruitee_list_offers: tool({
       description:
         "List jobs (offers) in the connected Recruitee ATS (title, status, department, location, offer id). Use to find the role you are sourcing for.",
@@ -3074,6 +3101,8 @@ export const ALL_TOOL_NAMES = [
   "pipedrive_search_persons",
   "pipedrive_search_organizations",
   "pipedrive_search_deals",
+  "prospeo_enrich_person",
+  "prospeo_find_mobile",
   "recruitee_list_offers",
   "recruitee_list_candidates",
   "recruiterflow_list_jobs",

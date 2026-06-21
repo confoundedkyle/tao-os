@@ -663,6 +663,28 @@ export const DOC_CONNECTORS: Record<string, ConnectorDocContent> = {
       { label: "Grain API docs", url: "https://developers.grain.com/" },
     ],
   },
+  prospeo: {
+    capabilities: [
+      "Find a verified work email from a name + company website, or a LinkedIn URL",
+      "Find a direct mobile number from a LinkedIn profile",
+    ],
+    useCases: [
+      "Find a verified email for a sourced candidate before reaching out",
+      "Get a direct mobile number for a candidate from their LinkedIn profile",
+      "Enrich a thin lead into a reachable contact for BD outreach",
+    ],
+    whatYouNeed: ["A Prospeo account with API access"],
+    steps: [
+      "In Prospeo, open Settings → API and copy your API key.",
+      "In Calyflow, go to Settings → Connectors → Prospeo and paste it.",
+    ],
+    configuration: [
+      "Lookups are synchronous and draw on your Prospeo credits; a verified-email search only charges a credit when a verified email is found.",
+    ],
+    links: [
+      { label: "Prospeo API docs", url: "https://prospeo.io/api-docs" },
+    ],
+  },
   gong: {
     useCases: [
       "Pull the summary of an intake call to brief an agent on the role",

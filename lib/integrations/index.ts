@@ -47,6 +47,7 @@ import { notionAdapter } from "./notion";
 import { peopledatalabsAdapter } from "./peopledatalabs";
 import { pinpointAdapter } from "./pinpoint";
 import { pipedriveAdapter } from "./pipedrive";
+import { prospeoAdapter } from "./prospeo";
 import { recruiteeAdapter } from "./recruitee";
 import { recruiterflowAdapter } from "./recruiterflow";
 import { recruitisAdapter } from "./recruitis";
@@ -118,6 +119,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   peopledatalabs: peopledatalabsAdapter,
   pinpoint: pinpointAdapter,
   pipedrive: pipedriveAdapter,
+  prospeo: prospeoAdapter,
   recruitee: recruiteeAdapter,
   recruiterflow: recruiterflowAdapter,
   recruitis: recruitisAdapter,
