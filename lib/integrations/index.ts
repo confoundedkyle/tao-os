@@ -36,6 +36,7 @@ import { grainAdapter } from "./grain";
 import { greenhouseAdapter } from "./greenhouse";
 import { hubspotAdapter } from "./hubspot";
 import { hunterAdapter } from "./hunter";
+import { insightlyAdapter } from "./insightly";
 import { instantlyAdapter } from "./instantly";
 import { jazzhrAdapter } from "./jazzhr";
 import { jobadderAdapter } from "./jobadder";
@@ -116,6 +117,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   greenhouse: greenhouseAdapter,
   hubspot: hubspotAdapter,
   hunter: hunterAdapter,
+  insightly: insightlyAdapter,
   instantly: instantlyAdapter,
   jazzhr: jazzhrAdapter,
   jobadder: jobadderAdapter,

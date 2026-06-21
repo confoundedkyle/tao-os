@@ -356,6 +356,28 @@ export const DOC_CONNECTORS: Record<string, ConnectorDocContent> = {
       { label: "Zendesk Sell API", url: "https://developer.zendesk.com/api-reference/sales-crm/introduction/" },
     ],
   },
+  insightly: {
+    capabilities: [
+      "List contacts and client organisations",
+      "List deals (opportunities) with their value and state",
+    ],
+    useCases: [
+      "Brief yourself on a client account before a call using its Insightly record",
+      "Find the right contact at a target company for outreach",
+      "Prioritise which roles to work first based on open opportunities",
+    ],
+    whatYouNeed: ["An Insightly account (your per-user API key and its pod/region)"],
+    steps: [
+      "In Insightly, open User Settings → API to find your API key and its URL (e.g. api.na1.insightly.com — the 'na1' is your pod).",
+      "In Calyflow, go to Settings → Connectors → Insightly and paste it as pod:api-key.",
+    ],
+    configuration: [
+      "Read-only: Calyflow reads the contacts, companies, and deals a task needs and never changes your CRM data.",
+    ],
+    links: [
+      { label: "Insightly API docs", url: "https://api.na1.insightly.com/v3.1/" },
+    ],
+  },
   hubspot: {
     capabilities: [
       "Search client companies, contacts, and deals",

@@ -42,6 +42,7 @@ export interface ConnectorTokens {
   greenhouseToken: string | null;
   hubspotToken: string | null;
   hunterToken: string | null;
+  insightlyToken: string | null;
   instantlyToken: string | null;
   jazzhrToken: string | null;
   jobadderToken: string | null;
@@ -126,6 +127,7 @@ const SPECS: TokenSpec[] = [
   { field: "greenhouseToken", prefix: "greenhouse_", provider: "greenhouse" },
   { field: "hubspotToken", prefix: "hubspot_", provider: "hubspot" },
   { field: "hunterToken", prefix: "hunter_", provider: "hunter" },
+  { field: "insightlyToken", prefix: "insightly_", provider: "insightly" },
   { field: "instantlyToken", prefix: "instantly_", provider: "instantly" },
   { field: "jazzhrToken", prefix: "jazzhr_", provider: "jazzhr" },
   { field: "jobadderToken", prefix: "jobadder_", provider: "jobadder" },

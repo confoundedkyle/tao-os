@@ -38,6 +38,7 @@ import { grainAdapter } from "../integrations/grain";
 import { greenhouseAdapter } from "../integrations/greenhouse";
 import { hubspotAdapter } from "../integrations/hubspot";
 import { hunterAdapter } from "../integrations/hunter";
+import { insightlyAdapter } from "../integrations/insightly";
 import { instantlyAdapter } from "../integrations/instantly";
 import { jazzhrAdapter } from "../integrations/jazzhr";
 import { jobadderAdapter } from "../integrations/jobadder";
@@ -1935,6 +1936,45 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    insightly_list_contacts: tool({
+      description:
+        "List contacts in the connected Insightly CRM as a Markdown table (name, email, phone, company, title, contact id). Page with skip.",
+      inputSchema: z.object({
+        skip: z.number().int().nonnegative().optional().describe("Offset for paging."),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.insightlyToken) return { error: notConnected("Insightly") };
+        return insightlyAdapter.listContacts(ctx.insightlyToken, args);
+      },
+    }),
+
+    insightly_list_organisations: tool({
+      description:
+        "List organisations (client companies) in the connected Insightly CRM as a Markdown table (company, phone, organisation id). Page with skip.",
+      inputSchema: z.object({
+        skip: z.number().int().nonnegative().optional().describe("Offset for paging."),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.insightlyToken) return { error: notConnected("Insightly") };
+        return insightlyAdapter.listOrganisations(ctx.insightlyToken, args);
+      },
+    }),
+
+    insightly_list_opportunities: tool({
+      description:
+        "List deals (opportunities) in the connected Insightly CRM as a Markdown table (opportunity, value, state, opportunity id). Page with skip.",
+      inputSchema: z.object({
+        skip: z.number().int().nonnegative().optional().describe("Offset for paging."),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.insightlyToken) return { error: notConnected("Insightly") };
+        return insightlyAdapter.listOpportunities(ctx.insightlyToken, args);
+      },
+    }),
+
     instantly_list_campaigns: tool({
       description:
         "List cold-email campaigns in the connected Instantly.ai workspace (name, status, campaign id). search filters by name; paginate by passing the startingAfter cursor from the previous page.",
@@ -3288,6 +3328,9 @@ export const ALL_TOOL_NAMES = [
   "hubspot_search_contacts",
   "hubspot_search_companies",
   "hubspot_search_deals",
+  "insightly_list_contacts",
+  "insightly_list_organisations",
+  "insightly_list_opportunities",
   "instantly_list_campaigns",
   "instantly_list_leads",
   "instantly_campaign_analytics",
