@@ -78,6 +78,7 @@ export interface ConnectorTokens {
   stackexchangeToken: string | null;
   teamtailorToken: string | null;
   tldvToken: string | null;
+  trestleToken: string | null;
   twilioToken: string | null;
   vincereToken: string | null;
   wizaToken: string | null;
@@ -169,6 +170,7 @@ const SPECS: TokenSpec[] = [
   { field: "stackexchangeToken", prefix: "stackexchange_", provider: "stackexchange" },
   { field: "teamtailorToken", prefix: "teamtailor_", provider: "teamtailor" },
   { field: "tldvToken", prefix: "tldv_", provider: "tldv" },
+  { field: "trestleToken", prefix: "trestle_", provider: "trestle" },
   { field: "twilioToken", prefix: "twilio_", provider: "twilio" },
   { field: "vincereToken", prefix: "vincere_", provider: "vincere" },
   { field: "wizaToken", prefix: "wiza_", provider: "wiza" },

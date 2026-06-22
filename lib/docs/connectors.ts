@@ -1011,6 +1011,27 @@ export const DOC_CONNECTORS: Record<string, ConnectorDocContent> = {
       { label: "Stack Exchange API docs", url: "https://api.stackexchange.com/docs" },
     ],
   },
+  trestle: {
+    capabilities: [
+      "Validate a phone number — valid/invalid, line type, carrier, and activity",
+    ],
+    useCases: [
+      "Check a candidate's number is a reachable mobile before a calling campaign",
+      "Filter out disconnected or VOIP numbers from a list",
+      "Identify the carrier and line type for a contact number",
+    ],
+    whatYouNeed: ["A Trestle account with API access"],
+    steps: [
+      "In Trestle, open your account → API and copy your API key.",
+      "In Calyflow, go to Settings → Connectors → Trestle and paste it.",
+    ],
+    configuration: [
+      "Each lookup draws on your Trestle credits; the activity score (0–100) reflects recent activity on the number.",
+    ],
+    links: [
+      { label: "Trestle API docs", url: "https://docs.trestleiq.com/" },
+    ],
+  },
   gong: {
     useCases: [
       "Pull the summary of an intake call to brief an agent on the role",

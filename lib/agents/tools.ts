@@ -74,6 +74,7 @@ import { snovAdapter } from "../integrations/snov";
 import { stackexchangeAdapter } from "../integrations/stackexchange";
 import { teamtailorAdapter } from "../integrations/teamtailor";
 import { tldvAdapter } from "../integrations/tldv";
+import { trestleAdapter } from "../integrations/trestle";
 import { twilioAdapter } from "../integrations/twilio";
 import { vincereAdapter } from "../integrations/vincere";
 import { wizaAdapter } from "../integrations/wiza";
@@ -3024,6 +3025,18 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    trestle_validate_phone: tool({
+      description:
+        "Validate a phone number via Trestle — returns whether it's valid plus its line type (Mobile, Landline, NonFixedVOIP, …), carrier, and an activity score (0–100). Use to clean a candidate's number before a calling campaign.",
+      inputSchema: z.object({
+        phone: z.string().describe("Phone number in E.164 format, e.g. +14155551234."),
+      }),
+      execute: async (args) => {
+        if (!ctx.trestleToken) return { error: notConnected("Trestle") };
+        return trestleAdapter.validatePhone(ctx.trestleToken, args);
+      },
+    }),
+
     aircall_list_calls: tool({
       description:
         "List recent calls in the connected Aircall account as a Markdown table (direction, status, duration, number, started, call id). Page with page.",
@@ -3568,6 +3581,7 @@ export const ALL_TOOL_NAMES = [
   "tldv_list_meetings",
   "tldv_get_notes",
   "tldv_get_transcript",
+  "trestle_validate_phone",
   "aircall_list_calls",
   "aircall_list_contacts",
   "twilio_list_messages",
