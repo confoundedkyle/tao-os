@@ -52,6 +52,7 @@ import { mailshakeAdapter } from "./mailshake";
 import { manatalAdapter } from "./manatal";
 import { microsoftExcelAdapter } from "./microsoft-excel";
 import { microsoftOutlookAdapter } from "./microsoft-outlook";
+import { millionverifierAdapter } from "./millionverifier";
 import { mondayAdapter } from "./monday";
 import { neverbounceAdapter } from "./neverbounce";
 import { notionAdapter } from "./notion";
@@ -144,6 +145,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   manatal: manatalAdapter,
   "microsoft-excel": microsoftExcelAdapter,
   "microsoft-outlook": microsoftOutlookAdapter,
+  millionverifier: millionverifierAdapter,
   monday: mondayAdapter,
   neverbounce: neverbounceAdapter,
   notion: notionAdapter,

@@ -58,6 +58,7 @@ export interface ConnectorTokens {
   manatalToken: string | null;
   microsoftExcelToken: string | null;
   microsoftOutlookToken: string | null;
+  millionverifierToken: string | null;
   mondayToken: string | null;
   neverbounceToken: string | null;
   notionToken: string | null;
@@ -154,6 +155,7 @@ const SPECS: TokenSpec[] = [
   { field: "manatalToken", prefix: "manatal_", provider: "manatal" },
   { field: "microsoftExcelToken", prefix: "excel_", provider: "microsoft-excel" },
   { field: "microsoftOutlookToken", prefix: "outlook_", provider: "microsoft-outlook" },
+  { field: "millionverifierToken", prefix: "millionverifier_", provider: "millionverifier" },
   { field: "mondayToken", prefix: "monday_", provider: "monday" },
   { field: "neverbounceToken", prefix: "neverbounce_", provider: "neverbounce" },
   { field: "notionToken", prefix: "notion_", provider: "notion" },

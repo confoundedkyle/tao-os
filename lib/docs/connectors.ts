@@ -947,6 +947,27 @@ export const DOC_CONNECTORS: Record<string, ConnectorDocContent> = {
       { label: "Calendly API docs", url: "https://developer.calendly.com/" },
     ],
   },
+  millionverifier: {
+    capabilities: [
+      "Verify whether an email address is deliverable, with a quality label",
+    ],
+    useCases: [
+      "Verify a candidate's email before adding it to an outreach run",
+      "Clean a list of emails cheaply in bulk to protect sender deliverability",
+      "Catch disposable or catch-all addresses before sending",
+    ],
+    whatYouNeed: ["A MillionVerifier account with API access"],
+    steps: [
+      "In MillionVerifier, open your account → API and copy your API key.",
+      "In Calyflow, go to Settings → Connectors → MillionVerifier and paste it.",
+    ],
+    configuration: [
+      "Each verification draws on your MillionVerifier credits; returns ok / catch_all / unknown / disposable / invalid.",
+    ],
+    links: [
+      { label: "MillionVerifier API docs", url: "https://developer.millionverifier.com/" },
+    ],
+  },
   neverbounce: {
     capabilities: [
       "Verify whether an email address is deliverable",
