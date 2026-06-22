@@ -77,6 +77,7 @@ import { wizaAdapter } from "../integrations/wiza";
 import { woodpeckerAdapter } from "../integrations/woodpecker";
 import { workableAdapter } from "../integrations/workable";
 import { zendeskSellAdapter } from "../integrations/zendesk-sell";
+import { zerobounceAdapter } from "../integrations/zerobounce";
 import { zohoCrmAdapter } from "../integrations/zoho-crm";
 import { zohoRecruitAdapter } from "../integrations/zoho-recruit";
 import { zoomAdapter } from "../integrations/zoom";
@@ -3169,6 +3170,19 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    zerobounce_verify_email: tool({
+      description:
+        "Verify one email's deliverability via ZeroBounce. Returns a status (valid, invalid, catch-all, unknown, spamtrap, abuse, do_not_mail) plus a sub-status reason. Use before adding an address to an outreach run.",
+      inputSchema: z.object({
+        email: z.string().describe("The email address to verify."),
+        ipAddress: z.string().optional().describe("Optional IP to record for the check."),
+      }),
+      execute: async (args) => {
+        if (!ctx.zerobounceToken) return { error: notConnected("ZeroBounce") };
+        return zerobounceAdapter.verifyEmail(ctx.zerobounceToken, args);
+      },
+    }),
+
     zohocrm_search_contacts: tool({
       description:
         "Search contacts in the connected Zoho CRM by name, email, or other text (2+ characters). Returns name, email, phone, account, and title.",
@@ -3493,6 +3507,7 @@ export const ALL_TOOL_NAMES = [
   "zendesksell_search_people",
   "zendesksell_search_companies",
   "zendesksell_list_deals",
+  "zerobounce_verify_email",
   "zohocrm_search_contacts",
   "zohocrm_search_accounts",
   "zohocrm_search_deals",

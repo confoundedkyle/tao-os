@@ -925,6 +925,27 @@ export const DOC_CONNECTORS: Record<string, ConnectorDocContent> = {
       { label: "Mailshake API docs", url: "https://docs.mailshake.com/category/171-api" },
     ],
   },
+  zerobounce: {
+    capabilities: [
+      "Verify whether an email address is deliverable, with a status reason",
+    ],
+    useCases: [
+      "Verify a candidate's email before adding it to an outreach run",
+      "Clean a list of emails to protect sender deliverability",
+      "Check a risky-looking address (catch-all, role, disposable) before sending",
+    ],
+    whatYouNeed: ["A ZeroBounce account with API access"],
+    steps: [
+      "In ZeroBounce, open your account → API and copy your API key.",
+      "In Calyflow, go to Settings → Connectors → ZeroBounce and paste it.",
+    ],
+    configuration: [
+      "Each verification draws on your ZeroBounce credits; returns valid / invalid / catch-all / unknown / spamtrap / abuse / do_not_mail plus a sub-status.",
+    ],
+    links: [
+      { label: "ZeroBounce API docs", url: "https://www.zerobounce.net/docs/" },
+    ],
+  },
   gong: {
     useCases: [
       "Pull the summary of an intake call to brief an agent on the role",
