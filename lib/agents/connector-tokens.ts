@@ -67,6 +67,7 @@ export interface ConnectorTokens {
   recruitisToken: string | null;
   replyioToken: string | null;
   rocketreachToken: string | null;
+  salesflareToken: string | null;
   signalhireToken: string | null;
   slackToken: string | null;
   smartleadToken: string | null;
@@ -153,6 +154,7 @@ const SPECS: TokenSpec[] = [
   { field: "recruitisToken", prefix: "recruitis_", provider: "recruitis" },
   { field: "replyioToken", prefix: "replyio_", provider: "replyio" },
   { field: "rocketreachToken", prefix: "rocketreach_", provider: "rocketreach" },
+  { field: "salesflareToken", prefix: "salesflare_", provider: "salesflare" },
   { field: "signalhireToken", prefix: "signalhire_", provider: "signalhire" },
   { field: "slackToken", prefix: "slack_", provider: "slack" },
   { field: "smartleadToken", prefix: "smartlead_", provider: "smartlead" },

@@ -63,6 +63,7 @@ import { recruiterflowAdapter } from "../integrations/recruiterflow";
 import { recruitisAdapter } from "../integrations/recruitis";
 import { replyioAdapter } from "../integrations/replyio";
 import { rocketreachAdapter } from "../integrations/rocketreach";
+import { salesflareAdapter } from "../integrations/salesflare";
 import { signalhireAdapter } from "../integrations/signalhire";
 import { slackAdapter } from "../integrations/slack";
 import { smartleadAdapter } from "../integrations/smartlead";
@@ -2786,6 +2787,48 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    salesflare_search_contacts: tool({
+      description:
+        "Search contacts in the connected Salesflare CRM as a Markdown table (name, email, phone, account, contact id). Filter by name or email; page with offset.",
+      inputSchema: z.object({
+        name: z.string().optional().describe("Filter by contact name."),
+        email: z.string().optional().describe("Filter by email."),
+        offset: z.number().int().nonnegative().optional().describe("Offset for paging."),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.salesflareToken) return { error: notConnected("Salesflare") };
+        return salesflareAdapter.searchContacts(ctx.salesflareToken, args);
+      },
+    }),
+
+    salesflare_list_accounts: tool({
+      description:
+        "List accounts (client companies) in the connected Salesflare CRM as a Markdown table (account, website, phone, email, account id). Filter by name; page with offset.",
+      inputSchema: z.object({
+        name: z.string().optional().describe("Filter by account name."),
+        offset: z.number().int().nonnegative().optional().describe("Offset for paging."),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.salesflareToken) return { error: notConnected("Salesflare") };
+        return salesflareAdapter.listAccounts(ctx.salesflareToken, args);
+      },
+    }),
+
+    salesflare_list_opportunities: tool({
+      description:
+        "List deals (opportunities) in the connected Salesflare CRM as a Markdown table (opportunity, value, status, account, opportunity id). Page with offset.",
+      inputSchema: z.object({
+        offset: z.number().int().nonnegative().optional().describe("Offset for paging."),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.salesflareToken) return { error: notConnected("Salesflare") };
+        return salesflareAdapter.listOpportunities(ctx.salesflareToken, args);
+      },
+    }),
+
     signalhire_search_people: tool({
       description:
         "Search SignalHire profiles by title, company, location, or keywords. Returns name, title, company, location, and profile UID — no contact details. Free of credit cost (draws from a daily search quota); treat results as candidates for signalhire_enrich_person.",
@@ -3416,6 +3459,9 @@ export const ALL_TOOL_NAMES = [
   "rocketreach_search_people",
   "rocketreach_lookup_person",
   "rocketreach_check_lookup",
+  "salesflare_search_contacts",
+  "salesflare_list_accounts",
+  "salesflare_list_opportunities",
   "signalhire_search_people",
   "signalhire_enrich_person",
   "replyio_list_sequences",

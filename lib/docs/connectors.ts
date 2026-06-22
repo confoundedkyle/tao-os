@@ -334,6 +334,28 @@ export const DOC_CONNECTORS: Record<string, ConnectorDocContent> = {
       { label: "Copper API docs", url: "https://developer.copper.com/" },
     ],
   },
+  salesflare: {
+    capabilities: [
+      "Search contacts and accounts (client companies)",
+      "List deals (opportunities) with their value and status",
+    ],
+    useCases: [
+      "Brief yourself on a client account before a call using its Salesflare record",
+      "Find the right contact at a target company for outreach",
+      "Prioritise which roles to work first based on open opportunities",
+    ],
+    whatYouNeed: ["A Salesflare account with permission to create an API key"],
+    steps: [
+      "In Salesflare, go to Settings → API key and create a key.",
+      "In Calyflow, go to Settings → Connectors → Salesflare and paste it.",
+    ],
+    configuration: [
+      "Read-only: Calyflow searches Salesflare for the contacts, accounts, and deals a task needs and never changes your CRM data.",
+    ],
+    links: [
+      { label: "Salesflare API docs", url: "https://api.salesflare.com/docs" },
+    ],
+  },
   "zendesk-sell": {
     capabilities: [
       "Search people and client companies (contacts)",
