@@ -947,6 +947,27 @@ export const DOC_CONNECTORS: Record<string, ConnectorDocContent> = {
       { label: "Calendly API docs", url: "https://developer.calendly.com/" },
     ],
   },
+  neverbounce: {
+    capabilities: [
+      "Verify whether an email address is deliverable",
+    ],
+    useCases: [
+      "Verify a candidate's email before adding it to an outreach run",
+      "Clean a list of emails to protect sender deliverability",
+      "Catch disposable or catch-all addresses before sending",
+    ],
+    whatYouNeed: ["A NeverBounce account with API access"],
+    steps: [
+      "In NeverBounce, open your account → Apps → Custom Integration and copy your API key (starts with secret_).",
+      "In Calyflow, go to Settings → Connectors → NeverBounce and paste it.",
+    ],
+    configuration: [
+      "Each verification draws on your NeverBounce credits; returns valid / invalid / disposable / catchall / unknown.",
+    ],
+    links: [
+      { label: "NeverBounce API docs", url: "https://developers.neverbounce.com/" },
+    ],
+  },
   nymeria: {
     capabilities: [
       "Enrich a person's emails and mobile from a LinkedIn URL or email",

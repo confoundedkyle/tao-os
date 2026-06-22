@@ -53,6 +53,7 @@ import { manatalAdapter } from "./manatal";
 import { microsoftExcelAdapter } from "./microsoft-excel";
 import { microsoftOutlookAdapter } from "./microsoft-outlook";
 import { mondayAdapter } from "./monday";
+import { neverbounceAdapter } from "./neverbounce";
 import { notionAdapter } from "./notion";
 import { nymeriaAdapter } from "./nymeria";
 import { peopledatalabsAdapter } from "./peopledatalabs";
@@ -144,6 +145,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   "microsoft-excel": microsoftExcelAdapter,
   "microsoft-outlook": microsoftOutlookAdapter,
   monday: mondayAdapter,
+  neverbounce: neverbounceAdapter,
   notion: notionAdapter,
   nymeria: nymeriaAdapter,
   peopledatalabs: peopledatalabsAdapter,

@@ -55,6 +55,7 @@ import { manatalAdapter } from "../integrations/manatal";
 import { microsoftExcelAdapter } from "../integrations/microsoft-excel";
 import { microsoftOutlookAdapter } from "../integrations/microsoft-outlook";
 import { mondayAdapter } from "../integrations/monday";
+import { neverbounceAdapter } from "../integrations/neverbounce";
 import { notionAdapter } from "../integrations/notion";
 import { nymeriaAdapter } from "../integrations/nymeria";
 import { peopledatalabsAdapter } from "../integrations/peopledatalabs";
@@ -2430,6 +2431,18 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    neverbounce_verify_email: tool({
+      description:
+        "Verify one email's deliverability via NeverBounce (valid / invalid / disposable / catchall / unknown). Use before adding an address to an outreach run.",
+      inputSchema: z.object({
+        email: z.string().describe("The email address to verify."),
+      }),
+      execute: async (args) => {
+        if (!ctx.neverbounceToken) return { error: notConnected("NeverBounce") };
+        return neverbounceAdapter.verifyEmail(ctx.neverbounceToken, args);
+      },
+    }),
+
     nymeria_enrich_person: tool({
       description:
         "Enrich a person via Nymeria from a LinkedIn profile URL or an email — returns their work/personal email and mobile phone plus job title and company. Costs a credit when a match is found.",
@@ -3619,6 +3632,7 @@ export const ALL_TOOL_NAMES = [
   "notion_search",
   "notion_query_database",
   "notion_read_page",
+  "neverbounce_verify_email",
   "nymeria_enrich_person",
   "peopledatalabs_enrich_person",
   "peopledatalabs_search_people",

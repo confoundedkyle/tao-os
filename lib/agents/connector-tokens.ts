@@ -59,6 +59,7 @@ export interface ConnectorTokens {
   microsoftExcelToken: string | null;
   microsoftOutlookToken: string | null;
   mondayToken: string | null;
+  neverbounceToken: string | null;
   notionToken: string | null;
   nymeriaToken: string | null;
   peopledatalabsToken: string | null;
@@ -154,6 +155,7 @@ const SPECS: TokenSpec[] = [
   { field: "microsoftExcelToken", prefix: "excel_", provider: "microsoft-excel" },
   { field: "microsoftOutlookToken", prefix: "outlook_", provider: "microsoft-outlook" },
   { field: "mondayToken", prefix: "monday_", provider: "monday" },
+  { field: "neverbounceToken", prefix: "neverbounce_", provider: "neverbounce" },
   { field: "notionToken", prefix: "notion_", provider: "notion" },
   { field: "nymeriaToken", prefix: "nymeria_", provider: "nymeria" },
   { field: "peopledatalabsToken", prefix: "peopledatalabs_", provider: "peopledatalabs" },
