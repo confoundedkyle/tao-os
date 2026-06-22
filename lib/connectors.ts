@@ -104,6 +104,7 @@ export const CONNECTORS: Connector[] = [
   { name: "Adzuna", category: "tool", blurb: "Search the job market and salary data for benchmarking and demand signals.", provider: "adzuna", live: true, auth: "apikey", apiKeyPlaceholder: "app-id:app-key", apiKeyHint: "Register for an app_id and app_key at developer.adzuna.com and paste them separated by a colon." },
   { name: "Apollo", category: "tool", blurb: "Source contact data from the 270M-profile B2B database.", provider: "apollo", live: true, auth: "apikey" },
   { name: "Avoma", category: "tool", blurb: "Read transcripts and AI notes from your recorded intake and screening calls.", provider: "avoma", live: true, auth: "apikey", apiKeyHint: "Create a scoped API key in Avoma under Settings → API." },
+  { name: "Bouncer", category: "tool", blurb: "Verify email deliverability before reaching out.", provider: "bouncer", live: true, auth: "apikey", apiKeyHint: "Copy your API key from Bouncer under your account → API." },
   { name: "Bright Data", category: "tool", blurb: "Enrich profiles with large-scale public web data.", provider: "brightdata", live: true, auth: "apikey" },
   { name: "Cal.com", category: "tool", blurb: "Read booked meetings and their attendees from the open-source scheduler.", provider: "calcom", live: true, auth: "apikey", apiKeyHint: "Create an API key in Cal.com under Settings → Developer → API keys (it starts with cal_)." },
   { name: "Calendly", category: "tool", blurb: "Read booked interview events and who scheduled them.", provider: "calendly", live: true, auth: "apikey", apiKeyHint: "Create a personal access token in Calendly under Integrations → API & Webhooks → Personal access tokens." },
@@ -211,6 +212,7 @@ export function providerToolPrefix(provider: string): string {
 export const CONNECTOR_DOMAINS: Record<string, string> = {
   ashby: "ashbyhq.com",
   bamboohr: "bamboohr.com",
+  bouncer: "usebouncer.com",
   breezyhr: "breezy.hr",
   bullhorn: "bullhorn.com",
   calcom: "cal.com",

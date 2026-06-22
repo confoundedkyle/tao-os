@@ -861,6 +861,27 @@ export const DOC_CONNECTORS: Record<string, ConnectorDocContent> = {
       { label: "Adzuna API docs", url: "https://developer.adzuna.com/" },
     ],
   },
+  bouncer: {
+    capabilities: [
+      "Verify whether an email address is deliverable, with a reason",
+    ],
+    useCases: [
+      "Verify a candidate's email before adding it to an outreach run",
+      "Clean a list of emails to protect sender deliverability",
+      "Check a risky-looking address before sending",
+    ],
+    whatYouNeed: ["A Bouncer account with API access"],
+    steps: [
+      "In Bouncer, open your account → API and copy your API key.",
+      "In Calyflow, go to Settings → Connectors → Bouncer and paste it.",
+    ],
+    configuration: [
+      "Each verification draws on your Bouncer credits; returns deliverable / undeliverable / risky / unknown plus a reason.",
+    ],
+    links: [
+      { label: "Bouncer API docs", url: "https://docs.usebouncer.com/" },
+    ],
+  },
   calcom: {
     capabilities: [
       "List booked meetings with their times, status, and attendees",

@@ -17,6 +17,7 @@ export interface ConnectorTokens {
   attioToken: string | null;
   avomaToken: string | null;
   bamboohrToken: string | null;
+  bouncerToken: string | null;
   breezyhrToken: string | null;
   brightdataToken: string | null;
   bullhornToken: string | null;
@@ -107,6 +108,7 @@ const SPECS: TokenSpec[] = [
   { field: "attioToken", prefix: "attio_", provider: "attio" },
   { field: "avomaToken", prefix: "avoma_", provider: "avoma" },
   { field: "bamboohrToken", prefix: "bamboohr_", provider: "bamboohr" },
+  { field: "bouncerToken", prefix: "bouncer_", provider: "bouncer" },
   { field: "breezyhrToken", prefix: "breezyhr_", provider: "breezyhr" },
   { field: "brightdataToken", prefix: "brightdata_", provider: "brightdata" },
   { field: "bullhornToken", prefix: "bullhorn_", provider: "bullhorn" },

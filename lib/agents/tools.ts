@@ -12,6 +12,7 @@ import { ashbyAdapter } from "../integrations/ashby";
 import { attioAdapter } from "../integrations/attio";
 import { avomaAdapter } from "../integrations/avoma";
 import { bamboohrAdapter } from "../integrations/bamboohr";
+import { bouncerAdapter } from "../integrations/bouncer";
 import { breezyhrAdapter } from "../integrations/breezyhr";
 import { brightdataAdapter } from "../integrations/brightdata";
 import { bullhornAdapter } from "../integrations/bullhorn";
@@ -1171,6 +1172,18 @@ function buildAll(ctx: ToolContext): ToolSet {
       execute: async (args) => {
         if (!ctx.apolloToken) return { error: notConnected("Apollo") };
         return apolloAdapter.searchOrganizations(ctx.apolloToken, args);
+      },
+    }),
+
+    bouncer_verify_email: tool({
+      description:
+        "Verify one email's deliverability via Bouncer (deliverable / undeliverable / risky / unknown, plus a reason). Use before adding an address to an outreach run.",
+      inputSchema: z.object({
+        email: z.string().describe("The email address to verify."),
+      }),
+      execute: async (args) => {
+        if (!ctx.bouncerToken) return { error: notConnected("Bouncer") };
+        return bouncerAdapter.verifyEmail(ctx.bouncerToken, args);
       },
     }),
 
@@ -3401,6 +3414,7 @@ export const ALL_TOOL_NAMES = [
   "apollo_search_people",
   "apollo_enrich_person",
   "apollo_search_organizations",
+  "bouncer_verify_email",
   "brightdata_scrape_linkedin_profiles",
   "brightdata_scrape_linkedin_companies",
   "brightdata_get_snapshot",

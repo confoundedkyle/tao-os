@@ -11,6 +11,7 @@ import { ashbyAdapter } from "./ashby";
 import { attioAdapter } from "./attio";
 import { avomaAdapter } from "./avoma";
 import { bamboohrAdapter } from "./bamboohr";
+import { bouncerAdapter } from "./bouncer";
 import { breezyhrAdapter } from "./breezyhr";
 import { brightdataAdapter } from "./brightdata";
 import { bullhornAdapter } from "./bullhorn";
@@ -97,6 +98,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   attio: attioAdapter,
   avoma: avomaAdapter,
   bamboohr: bamboohrAdapter,
+  bouncer: bouncerAdapter,
   breezyhr: breezyhrAdapter,
   brightdata: brightdataAdapter,
   bullhorn: bullhornAdapter,
