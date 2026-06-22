@@ -881,6 +881,28 @@ export const DOC_CONNECTORS: Record<string, ConnectorDocContent> = {
       { label: "Nymeria API docs", url: "https://www.nymeria.io/developers" },
     ],
   },
+  mailshake: {
+    capabilities: [
+      "List your cold-email campaigns",
+      "List the recipients of a campaign",
+    ],
+    useCases: [
+      "Check which candidates or clients are already in an outreach campaign",
+      "Review a campaign's recipient list before adding more",
+      "Avoid double-contacting someone already in a sequence",
+    ],
+    whatYouNeed: ["A Mailshake account with API access"],
+    steps: [
+      "In Mailshake, open Extensions → API and copy your API key.",
+      "In Calyflow, go to Settings → Connectors → Mailshake and paste it.",
+    ],
+    configuration: [
+      "Read-only: Calyflow reads your campaigns and recipients and never sends or edits outreach in Mailshake.",
+    ],
+    links: [
+      { label: "Mailshake API docs", url: "https://docs.mailshake.com/category/171-api" },
+    ],
+  },
   gong: {
     useCases: [
       "Pull the summary of an intake call to brief an agent on the role",

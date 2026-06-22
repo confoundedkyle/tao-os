@@ -51,6 +51,7 @@ export interface ConnectorTokens {
   leverToken: string | null;
   loxoToken: string | null;
   lushaToken: string | null;
+  mailshakeToken: string | null;
   manatalToken: string | null;
   microsoftExcelToken: string | null;
   microsoftOutlookToken: string | null;
@@ -136,6 +137,7 @@ const SPECS: TokenSpec[] = [
   { field: "leverToken", prefix: "lever_", provider: "lever" },
   { field: "loxoToken", prefix: "loxo_", provider: "loxo" },
   { field: "lushaToken", prefix: "lusha_", provider: "lusha" },
+  { field: "mailshakeToken", prefix: "mailshake_", provider: "mailshake" },
   { field: "manatalToken", prefix: "manatal_", provider: "manatal" },
   { field: "microsoftExcelToken", prefix: "excel_", provider: "microsoft-excel" },
   { field: "microsoftOutlookToken", prefix: "outlook_", provider: "microsoft-outlook" },

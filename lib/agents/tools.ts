@@ -47,6 +47,7 @@ import { lemlistAdapter } from "../integrations/lemlist";
 import { leverAdapter } from "../integrations/lever";
 import { loxoAdapter } from "../integrations/loxo";
 import { lushaAdapter } from "../integrations/lusha";
+import { mailshakeAdapter } from "../integrations/mailshake";
 import { manatalAdapter } from "../integrations/manatal";
 import { microsoftExcelAdapter } from "../integrations/microsoft-excel";
 import { microsoftOutlookAdapter } from "../integrations/microsoft-outlook";
@@ -2331,6 +2332,35 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    mailshake_list_campaigns: tool({
+      description:
+        "List cold-email campaigns in the connected Mailshake account as a Markdown table (campaign, created, archived, campaign id). Pass search to filter by name; page with the nextToken surfaced under the table.",
+      inputSchema: z.object({
+        search: z.string().optional().describe("Filter campaigns by name."),
+        nextToken: z.string().optional().describe("Pagination token from a previous page."),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.mailshakeToken) return { error: notConnected("Mailshake") };
+        return mailshakeAdapter.listCampaigns(ctx.mailshakeToken, args);
+      },
+    }),
+
+    mailshake_list_recipients: tool({
+      description:
+        "List the recipients of one Mailshake campaign as a Markdown table (name, email, added, recipient id). Get the campaignId from mailshake_list_campaigns; page with nextToken.",
+      inputSchema: z.object({
+        campaignId: z.number().int().positive().describe("Campaign id from mailshake_list_campaigns."),
+        search: z.string().optional().describe("Filter recipients by name or email."),
+        nextToken: z.string().optional().describe("Pagination token from a previous page."),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.mailshakeToken) return { error: notConnected("Mailshake") };
+        return mailshakeAdapter.listRecipients(ctx.mailshakeToken, args);
+      },
+    }),
+
     pinpoint_list_jobs: tool({
       description:
         "List jobs in the connected Pinpoint ATS (title, status, visibility, workplace type, job id). Paginate with page; no server-side filters.",
@@ -3353,6 +3383,8 @@ export const ALL_TOOL_NAMES = [
   "loxo_list_job_candidates",
   "lusha_search_person",
   "lusha_enrich_contacts",
+  "mailshake_list_campaigns",
+  "mailshake_list_recipients",
   "manatal_list_jobs",
   "manatal_search_candidates",
   "manatal_list_job_candidates",

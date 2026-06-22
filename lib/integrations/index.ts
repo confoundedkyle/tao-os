@@ -45,6 +45,7 @@ import { lemlistAdapter } from "./lemlist";
 import { leverAdapter } from "./lever";
 import { loxoAdapter } from "./loxo";
 import { lushaAdapter } from "./lusha";
+import { mailshakeAdapter } from "./mailshake";
 import { manatalAdapter } from "./manatal";
 import { microsoftExcelAdapter } from "./microsoft-excel";
 import { microsoftOutlookAdapter } from "./microsoft-outlook";
@@ -126,6 +127,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   lever: leverAdapter,
   loxo: loxoAdapter,
   lusha: lushaAdapter,
+  mailshake: mailshakeAdapter,
   manatal: manatalAdapter,
   "microsoft-excel": microsoftExcelAdapter,
   "microsoft-outlook": microsoftOutlookAdapter,
