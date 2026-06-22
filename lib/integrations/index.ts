@@ -4,6 +4,7 @@ import { decrypt, encrypt } from "../crypto";
 import type { Connection } from "../types";
 import { adzunaAdapter } from "./adzuna";
 import { affinityAdapter } from "./affinity";
+import { aircallAdapter } from "./aircall";
 import { airtableAdapter } from "./airtable";
 import { apolloAdapter } from "./apollo";
 import { ashbyAdapter } from "./ashby";
@@ -89,6 +90,7 @@ export type { ConnectorAdapter, ResourceRef } from "./types";
 const ADAPTERS: Record<string, ConnectorAdapter> = {
   adzuna: adzunaAdapter,
   affinity: affinityAdapter,
+  aircall: aircallAdapter,
   airtable: airtableAdapter,
   apollo: apolloAdapter,
   ashby: ashbyAdapter,

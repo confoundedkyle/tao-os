@@ -5,6 +5,7 @@ import { db } from "../db";
 import { listDocuments, getDocument } from "../queries";
 import { adzunaAdapter } from "../integrations/adzuna";
 import { affinityAdapter } from "../integrations/affinity";
+import { aircallAdapter } from "../integrations/aircall";
 import { airtableAdapter } from "../integrations/airtable";
 import { apolloAdapter } from "../integrations/apollo";
 import { ashbyAdapter } from "../integrations/ashby";
@@ -3010,6 +3011,32 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    aircall_list_calls: tool({
+      description:
+        "List recent calls in the connected Aircall account as a Markdown table (direction, status, duration, number, started, call id). Page with page.",
+      inputSchema: z.object({
+        page: z.number().int().positive().optional(),
+        limit: z.number().int().positive().optional().describe("Max 50."),
+      }),
+      execute: async (args) => {
+        if (!ctx.aircallToken) return { error: notConnected("Aircall") };
+        return aircallAdapter.listCalls(ctx.aircallToken, args);
+      },
+    }),
+
+    aircall_list_contacts: tool({
+      description:
+        "List contacts in the connected Aircall account as a Markdown table (name, company, phone, email, contact id). Page with page.",
+      inputSchema: z.object({
+        page: z.number().int().positive().optional(),
+        limit: z.number().int().positive().optional().describe("Max 50."),
+      }),
+      execute: async (args) => {
+        if (!ctx.aircallToken) return { error: notConnected("Aircall") };
+        return aircallAdapter.listContacts(ctx.aircallToken, args);
+      },
+    }),
+
     twilio_list_messages: tool({
       description:
         "List recent SMS messages in the connected Twilio account as a Markdown table (from, to, direction, status, message, sent). Filter by To or From phone number (E.164, e.g. +14155551234).",
@@ -3527,6 +3554,8 @@ export const ALL_TOOL_NAMES = [
   "tldv_list_meetings",
   "tldv_get_notes",
   "tldv_get_transcript",
+  "aircall_list_calls",
+  "aircall_list_contacts",
   "twilio_list_messages",
   "twilio_list_calls",
   "wiza_reveal",

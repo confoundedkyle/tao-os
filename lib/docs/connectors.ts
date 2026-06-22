@@ -484,6 +484,28 @@ export const DOC_CONNECTORS: Record<string, ConnectorDocContent> = {
   },
 
   // ── Comms ────────────────────────────────────────────────────────────────
+  aircall: {
+    capabilities: [
+      "List the call log (direction, status, duration, number)",
+      "List your Aircall contacts",
+    ],
+    useCases: [
+      "Review screening-call activity for a candidate's number",
+      "Check the call history before following up with a candidate",
+      "Pull a contact's details from Aircall into a task",
+    ],
+    whatYouNeed: ["An Aircall account with an API key (API ID + token)"],
+    steps: [
+      "In Aircall, go to Settings → Integrations & API → API Keys and create a key.",
+      "In Calyflow, go to Settings → Connectors → Aircall and paste it as api-id:api-token.",
+    ],
+    configuration: [
+      "Read-only: Calyflow reads your call log and contacts and never places calls or edits anything in Aircall.",
+    ],
+    links: [
+      { label: "Aircall API docs", url: "https://developer.aircall.io/api-references/" },
+    ],
+  },
   twilio: {
     capabilities: [
       "List the SMS history with a candidate or number",

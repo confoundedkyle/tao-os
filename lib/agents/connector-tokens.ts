@@ -10,6 +10,7 @@ import { getValidAccessToken } from "../integrations";
 export interface ConnectorTokens {
   adzunaToken: string | null;
   affinityToken: string | null;
+  aircallToken: string | null;
   airtableToken: string | null;
   apolloToken: string | null;
   ashbyToken: string | null;
@@ -99,6 +100,7 @@ interface TokenSpec {
 const SPECS: TokenSpec[] = [
   { field: "adzunaToken", prefix: "adzuna_", provider: "adzuna" },
   { field: "affinityToken", prefix: "affinity_", provider: "affinity" },
+  { field: "aircallToken", prefix: "aircall_", provider: "aircall" },
   { field: "airtableToken", prefix: "airtable_", provider: "airtable" },
   { field: "apolloToken", prefix: "apollo_", provider: "apollo" },
   { field: "ashbyToken", prefix: "ashby_", provider: "ashby" },

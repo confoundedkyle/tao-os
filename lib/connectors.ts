@@ -96,6 +96,7 @@ export const CONNECTORS: Connector[] = [
   { name: "Microsoft Outlook", category: "email", blurb: "Send candidate outreach from your Outlook / Microsoft 365 mailbox.", provider: "microsoft-outlook", live: true, auth: "oauth" },
 
   // --- Comms (team messaging — where recruiting agents reach hiring managers) ---
+  { name: "Aircall", category: "comms", blurb: "Read the call log and contacts from your Aircall phone line.", provider: "aircall", live: true, auth: "apikey", apiKeyPlaceholder: "api-id:api-token", apiKeyHint: "Create an API key in Aircall under Settings → Integrations & API → API Keys; paste the API ID and token separated by a colon." },
   { name: "Slack", category: "comms", blurb: "Run recruiting agents and receive project reports in your team's Slack — a channel per project.", provider: "slack", live: true, auth: "oauth", oauthAppHint: "Connect in one click with the Calyflow Slack app. Self-hosting? Create your own app at api.slack.com, add the redirect URI shown above, and set SLACK_CLIENT_ID / SLACK_CLIENT_SECRET." },
   { name: "Twilio", category: "comms", blurb: "Read the SMS and call history with candidates from your Twilio number.", provider: "twilio", live: true, auth: "apikey", apiKeyPlaceholder: "account-sid:auth-token", apiKeyHint: "Both are on your Twilio Console dashboard; the Account SID starts with AC. Paste them separated by a colon." },
 
@@ -234,6 +235,7 @@ export const CONNECTOR_DOMAINS: Record<string, string> = {
   "zoho-recruit": "zoho.com",
   adzuna: "adzuna.com",
   affinity: "affinity.co",
+  aircall: "aircall.io",
   attio: "attio.com",
   hubspot: "hubspot.com",
   monday: "monday.com",
