@@ -946,6 +946,28 @@ export const DOC_CONNECTORS: Record<string, ConnectorDocContent> = {
       { label: "ZeroBounce API docs", url: "https://www.zerobounce.net/docs/" },
     ],
   },
+  stackexchange: {
+    capabilities: [
+      "Search Stack Exchange users by name, ranked by reputation",
+      "List the top answerers for a skill tag to source developers",
+    ],
+    useCases: [
+      "Source strong developers for a technology by its top Stack Overflow answerers",
+      "Look up a candidate's Stack Overflow profile and reputation",
+      "Build a shortlist of experts in a niche skill (e.g. rust, kubernetes)",
+    ],
+    whatYouNeed: ["A Stack Apps API key (free; raises your daily request quota)"],
+    steps: [
+      "Register an app at stackapps.com to get a key.",
+      "In Calyflow, go to Settings → Connectors → Stack Exchange and paste it.",
+    ],
+    configuration: [
+      "Read-only public profile data (no contact details); defaults to stackoverflow but supports other Stack Exchange sites. Pair with an enrichment connector to find contact info for sourced people.",
+    ],
+    links: [
+      { label: "Stack Exchange API docs", url: "https://api.stackexchange.com/docs" },
+    ],
+  },
   gong: {
     useCases: [
       "Pull the summary of an intake call to brief an agent on the role",

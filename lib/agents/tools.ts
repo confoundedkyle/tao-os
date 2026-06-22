@@ -69,6 +69,7 @@ import { slackAdapter } from "../integrations/slack";
 import { smartleadAdapter } from "../integrations/smartlead";
 import { smartrecruitersAdapter } from "../integrations/smartrecruiters";
 import { snovAdapter } from "../integrations/snov";
+import { stackexchangeAdapter } from "../integrations/stackexchange";
 import { teamtailorAdapter } from "../integrations/teamtailor";
 import { tldvAdapter } from "../integrations/tldv";
 import { twilioAdapter } from "../integrations/twilio";
@@ -2660,6 +2661,35 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    stackexchange_search_users: tool({
+      description:
+        "Search Stack Exchange users by name (default site stackoverflow), sorted by reputation — for sourcing developers. Returns name, reputation, location, profile link, user id. Set site for other Stack Exchange sites (e.g. serverfault, superuser).",
+      inputSchema: z.object({
+        name: z.string().describe("Name to search for."),
+        site: z.string().optional().describe("Stack Exchange site (default stackoverflow)."),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.stackexchangeToken) return { error: notConnected("Stack Exchange") };
+        return stackexchangeAdapter.searchUsers(ctx.stackexchangeToken, args);
+      },
+    }),
+
+    stackexchange_top_answerers: tool({
+      description:
+        "List the top answerers for a Stack Overflow skill tag (e.g. python, react, kubernetes) — strong developers to source for that technology. Returns name, reputation, answer count, score, profile link, user id. Set period to month or all_time (default).",
+      inputSchema: z.object({
+        tag: z.string().describe("Skill tag, e.g. python or react."),
+        period: z.enum(["month", "all_time"]).optional().describe("Time window (default all_time)."),
+        site: z.string().optional().describe("Stack Exchange site (default stackoverflow)."),
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.stackexchangeToken) return { error: notConnected("Stack Exchange") };
+        return stackexchangeAdapter.topAnswerers(ctx.stackexchangeToken, args);
+      },
+    }),
+
     replyio_list_sequences: tool({
       description:
         "List outreach sequences in the connected Reply.io account as a Markdown table (name, status, health, created, sequence id). Filter by status (new, active, paused); page with skip.",
@@ -3489,6 +3519,8 @@ export const ALL_TOOL_NAMES = [
   "snov_verify_email",
   "snov_get_task_result",
   "snov_get_profile",
+  "stackexchange_search_users",
+  "stackexchange_top_answerers",
   "teamtailor_list_jobs",
   "teamtailor_list_candidates",
   "teamtailor_list_job_candidates",

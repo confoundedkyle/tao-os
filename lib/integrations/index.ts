@@ -67,6 +67,7 @@ import { slackAdapter } from "./slack";
 import { smartleadAdapter } from "./smartlead";
 import { smartrecruitersAdapter } from "./smartrecruiters";
 import { snovAdapter } from "./snov";
+import { stackexchangeAdapter } from "./stackexchange";
 import { teamtailorAdapter } from "./teamtailor";
 import { tldvAdapter } from "./tldv";
 import { twilioAdapter } from "./twilio";
@@ -151,6 +152,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   smartlead: smartleadAdapter,
   smartrecruiters: smartrecruitersAdapter,
   snov: snovAdapter,
+  stackexchange: stackexchangeAdapter,
   teamtailor: teamtailorAdapter,
   tldv: tldvAdapter,
   twilio: twilioAdapter,

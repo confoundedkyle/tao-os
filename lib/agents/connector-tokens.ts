@@ -73,6 +73,7 @@ export interface ConnectorTokens {
   smartleadToken: string | null;
   smartrecruitersToken: string | null;
   snovToken: string | null;
+  stackexchangeToken: string | null;
   teamtailorToken: string | null;
   tldvToken: string | null;
   twilioToken: string | null;
@@ -161,6 +162,7 @@ const SPECS: TokenSpec[] = [
   { field: "smartleadToken", prefix: "smartlead_", provider: "smartlead" },
   { field: "smartrecruitersToken", prefix: "smartrecruiters_", provider: "smartrecruiters" },
   { field: "snovToken", prefix: "snov_", provider: "snov" },
+  { field: "stackexchangeToken", prefix: "stackexchange_", provider: "stackexchange" },
   { field: "teamtailorToken", prefix: "teamtailor_", provider: "teamtailor" },
   { field: "tldvToken", prefix: "tldv_", provider: "tldv" },
   { field: "twilioToken", prefix: "twilio_", provider: "twilio" },
