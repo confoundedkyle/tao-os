@@ -76,6 +76,7 @@ export interface ConnectorTokens {
   smartrecruitersToken: string | null;
   snovToken: string | null;
   stackexchangeToken: string | null;
+  surfeToken: string | null;
   teamtailorToken: string | null;
   tldvToken: string | null;
   trestleToken: string | null;
@@ -168,6 +169,7 @@ const SPECS: TokenSpec[] = [
   { field: "smartrecruitersToken", prefix: "smartrecruiters_", provider: "smartrecruiters" },
   { field: "snovToken", prefix: "snov_", provider: "snov" },
   { field: "stackexchangeToken", prefix: "stackexchange_", provider: "stackexchange" },
+  { field: "surfeToken", prefix: "surfe_", provider: "surfe" },
   { field: "teamtailorToken", prefix: "teamtailor_", provider: "teamtailor" },
   { field: "tldvToken", prefix: "tldv_", provider: "tldv" },
   { field: "trestleToken", prefix: "trestle_", provider: "trestle" },

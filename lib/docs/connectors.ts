@@ -1032,6 +1032,29 @@ export const DOC_CONNECTORS: Record<string, ConnectorDocContent> = {
       { label: "Trestle API docs", url: "https://docs.trestleiq.com/" },
     ],
   },
+  surfe: {
+    capabilities: [
+      "Enrich a contact's work email and mobile number",
+      "Enrich from a name + company or a LinkedIn profile",
+    ],
+    useCases: [
+      "Turn a sourced LinkedIn profile into a contactable email and mobile",
+      "Find a direct mobile for a candidate before a calling campaign",
+      "Enrich a thin lead into a reachable contact for BD outreach",
+    ],
+    whatYouNeed: ["A Surfe account with API access"],
+    steps: [
+      "In Surfe, open Settings → API and copy your API key.",
+      "In Calyflow, go to Settings → Connectors → Surfe and paste it.",
+    ],
+    configuration: [
+      "Enrichment is asynchronous: a request is submitted, then the result is fetched a few seconds later — agents handle this automatically.",
+      "Surfe bills separate email and mobile credits; a credit is used when a match is found.",
+    ],
+    links: [
+      { label: "Surfe API docs", url: "https://developers.surfe.com/" },
+    ],
+  },
   gong: {
     useCases: [
       "Pull the summary of an intake call to brief an agent on the role",

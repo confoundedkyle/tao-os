@@ -72,6 +72,7 @@ import { smartleadAdapter } from "../integrations/smartlead";
 import { smartrecruitersAdapter } from "../integrations/smartrecruiters";
 import { snovAdapter } from "../integrations/snov";
 import { stackexchangeAdapter } from "../integrations/stackexchange";
+import { surfeAdapter } from "../integrations/surfe";
 import { teamtailorAdapter } from "../integrations/teamtailor";
 import { tldvAdapter } from "../integrations/tldv";
 import { trestleAdapter } from "../integrations/trestle";
@@ -2705,6 +2706,34 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    surfe_enrich_person: tool({
+      description:
+        "Enrich a contact's email and mobile number via Surfe. Provide a LinkedIn profile URL, or firstName + lastName with a companyName or companyDomain. Asynchronous: this returns an enrichment id; read the result with surfe_get_result after a few seconds.",
+      inputSchema: z.object({
+        firstName: z.string().optional(),
+        lastName: z.string().optional(),
+        companyName: z.string().optional().describe("Company name."),
+        companyDomain: z.string().optional().describe("Company website or domain."),
+        linkedinUrl: z.string().optional().describe("LinkedIn profile URL."),
+      }),
+      execute: async (args) => {
+        if (!ctx.surfeToken) return { error: notConnected("Surfe") };
+        return surfeAdapter.enrich(ctx.surfeToken, args);
+      },
+    }),
+
+    surfe_get_result: tool({
+      description:
+        "Read the result of a Surfe enrichment using the enrichment id returned by surfe_enrich_person. May report it's still processing — if so, call again after working on something else for a moment.",
+      inputSchema: z.object({
+        enrichmentId: z.string().describe("Enrichment id from surfe_enrich_person."),
+      }),
+      execute: async (args) => {
+        if (!ctx.surfeToken) return { error: notConnected("Surfe") };
+        return surfeAdapter.getResult(ctx.surfeToken, args);
+      },
+    }),
+
     replyio_list_sequences: tool({
       description:
         "List outreach sequences in the connected Reply.io account as a Markdown table (name, status, health, created, sequence id). Filter by status (new, active, paused); page with skip.",
@@ -3575,6 +3604,8 @@ export const ALL_TOOL_NAMES = [
   "snov_get_profile",
   "stackexchange_search_users",
   "stackexchange_top_answerers",
+  "surfe_enrich_person",
+  "surfe_get_result",
   "teamtailor_list_jobs",
   "teamtailor_list_candidates",
   "teamtailor_list_job_candidates",

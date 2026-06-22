@@ -70,6 +70,7 @@ import { smartleadAdapter } from "./smartlead";
 import { smartrecruitersAdapter } from "./smartrecruiters";
 import { snovAdapter } from "./snov";
 import { stackexchangeAdapter } from "./stackexchange";
+import { surfeAdapter } from "./surfe";
 import { teamtailorAdapter } from "./teamtailor";
 import { tldvAdapter } from "./tldv";
 import { trestleAdapter } from "./trestle";
@@ -158,6 +159,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   smartrecruiters: smartrecruitersAdapter,
   snov: snovAdapter,
   stackexchange: stackexchangeAdapter,
+  surfe: surfeAdapter,
   teamtailor: teamtailorAdapter,
   tldv: tldvAdapter,
   trestle: trestleAdapter,
