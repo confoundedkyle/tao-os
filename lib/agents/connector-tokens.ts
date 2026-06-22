@@ -79,6 +79,7 @@ export interface ConnectorTokens {
   surfeToken: string | null;
   teamtailorToken: string | null;
   tldvToken: string | null;
+  tombaToken: string | null;
   trestleToken: string | null;
   twilioToken: string | null;
   vincereToken: string | null;
@@ -172,6 +173,7 @@ const SPECS: TokenSpec[] = [
   { field: "surfeToken", prefix: "surfe_", provider: "surfe" },
   { field: "teamtailorToken", prefix: "teamtailor_", provider: "teamtailor" },
   { field: "tldvToken", prefix: "tldv_", provider: "tldv" },
+  { field: "tombaToken", prefix: "tomba_", provider: "tomba" },
   { field: "trestleToken", prefix: "trestle_", provider: "trestle" },
   { field: "twilioToken", prefix: "twilio_", provider: "twilio" },
   { field: "vincereToken", prefix: "vincere_", provider: "vincere" },

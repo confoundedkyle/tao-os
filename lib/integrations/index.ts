@@ -73,6 +73,7 @@ import { stackexchangeAdapter } from "./stackexchange";
 import { surfeAdapter } from "./surfe";
 import { teamtailorAdapter } from "./teamtailor";
 import { tldvAdapter } from "./tldv";
+import { tombaAdapter } from "./tomba";
 import { trestleAdapter } from "./trestle";
 import { twilioAdapter } from "./twilio";
 import { vincereAdapter } from "./vincere";
@@ -162,6 +163,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   surfe: surfeAdapter,
   teamtailor: teamtailorAdapter,
   tldv: tldvAdapter,
+  tomba: tombaAdapter,
   trestle: trestleAdapter,
   twilio: twilioAdapter,
   vincere: vincereAdapter,

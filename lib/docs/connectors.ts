@@ -1011,6 +1011,28 @@ export const DOC_CONNECTORS: Record<string, ConnectorDocContent> = {
       { label: "Stack Exchange API docs", url: "https://api.stackexchange.com/docs" },
     ],
   },
+  tomba: {
+    capabilities: [
+      "Find a verified work email from a name and company domain",
+      "Verify whether an email address is deliverable",
+    ],
+    useCases: [
+      "Find the likely work email for a sourced candidate, with a confidence score",
+      "Verify a list of emails before a campaign to protect deliverability",
+      "Enrich a thin lead into a reachable contact for BD outreach",
+    ],
+    whatYouNeed: ["A Tomba account with API access (a key and a secret)"],
+    steps: [
+      "In Tomba, open Settings → API and copy your key (ta_…) and secret (ts_…).",
+      "In Calyflow, go to Settings → Connectors → Tomba and paste them as key:secret.",
+    ],
+    configuration: [
+      "Lookups are synchronous and draw on your Tomba credits; the finder returns a confidence score.",
+    ],
+    links: [
+      { label: "Tomba API docs", url: "https://docs.tomba.io/" },
+    ],
+  },
   trestle: {
     capabilities: [
       "Validate a phone number — valid/invalid, line type, carrier, and activity",

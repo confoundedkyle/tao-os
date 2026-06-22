@@ -75,6 +75,7 @@ import { stackexchangeAdapter } from "../integrations/stackexchange";
 import { surfeAdapter } from "../integrations/surfe";
 import { teamtailorAdapter } from "../integrations/teamtailor";
 import { tldvAdapter } from "../integrations/tldv";
+import { tombaAdapter } from "../integrations/tomba";
 import { trestleAdapter } from "../integrations/trestle";
 import { twilioAdapter } from "../integrations/twilio";
 import { vincereAdapter } from "../integrations/vincere";
@@ -3054,6 +3055,32 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    tomba_find_email: tool({
+      description:
+        "Find a verified work email via Tomba from a person's first name, last name, and company domain. Returns the email plus a confidence score, title, and company.",
+      inputSchema: z.object({
+        firstName: z.string().describe("First name."),
+        lastName: z.string().describe("Last name."),
+        domain: z.string().describe("Company domain, e.g. acme.com."),
+      }),
+      execute: async (args) => {
+        if (!ctx.tombaToken) return { error: notConnected("Tomba") };
+        return tombaAdapter.findEmail(ctx.tombaToken, args);
+      },
+    }),
+
+    tomba_verify_email: tool({
+      description:
+        "Verify one email's deliverability via Tomba (deliverable / risky / undeliverable, plus a status). Use before adding an address to an outreach run.",
+      inputSchema: z.object({
+        email: z.string().describe("The email address to verify."),
+      }),
+      execute: async (args) => {
+        if (!ctx.tombaToken) return { error: notConnected("Tomba") };
+        return tombaAdapter.verifyEmail(ctx.tombaToken, args);
+      },
+    }),
+
     trestle_validate_phone: tool({
       description:
         "Validate a phone number via Trestle — returns whether it's valid plus its line type (Mobile, Landline, NonFixedVOIP, …), carrier, and an activity score (0–100). Use to clean a candidate's number before a calling campaign.",
@@ -3612,6 +3639,8 @@ export const ALL_TOOL_NAMES = [
   "tldv_list_meetings",
   "tldv_get_notes",
   "tldv_get_transcript",
+  "tomba_find_email",
+  "tomba_verify_email",
   "trestle_validate_phone",
   "aircall_list_calls",
   "aircall_list_contacts",
