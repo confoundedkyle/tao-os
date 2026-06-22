@@ -817,6 +817,28 @@ export const DOC_CONNECTORS: Record<string, ConnectorDocContent> = {
       { label: "Prospeo API docs", url: "https://prospeo.io/api-docs" },
     ],
   },
+  klenty: {
+    capabilities: [
+      "List the sales cadences (outreach sequences) in the account",
+      "Look up a prospect by email and see their status",
+    ],
+    useCases: [
+      "Check whether a candidate is already in an outreach cadence before contacting them again",
+      "Pull a prospect's status and details from Klenty into a task",
+      "Review which cadences are running before adding people",
+    ],
+    whatYouNeed: ["A Klenty account with API access, and the user email the key belongs to"],
+    steps: [
+      "In Klenty, go to Settings → API and copy your API key.",
+      "In Calyflow, go to Settings → Connectors → Klenty and paste it as your-login-email:api-key.",
+    ],
+    configuration: [
+      "Read-only: Calyflow reads your cadences and prospects and never sends or edits outreach in Klenty.",
+    ],
+    links: [
+      { label: "Klenty API docs", url: "https://support.klenty.com/en/articles/3197537-getting-started-with-klenty-api" },
+    ],
+  },
   leadmagic: {
     capabilities: [
       "Find a verified work email from a name and company",

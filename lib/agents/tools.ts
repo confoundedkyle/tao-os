@@ -44,6 +44,7 @@ import { insightlyAdapter } from "../integrations/insightly";
 import { instantlyAdapter } from "../integrations/instantly";
 import { jazzhrAdapter } from "../integrations/jazzhr";
 import { jobadderAdapter } from "../integrations/jobadder";
+import { klentyAdapter } from "../integrations/klenty";
 import { leadmagicAdapter } from "../integrations/leadmagic";
 import { lemlistAdapter } from "../integrations/lemlist";
 import { leverAdapter } from "../integrations/lever";
@@ -2034,6 +2035,28 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    klenty_list_cadences: tool({
+      description:
+        "List the sales cadences (outreach sequences) in the connected Klenty account as a Markdown table (cadence, cadence id).",
+      inputSchema: z.object({}),
+      execute: async () => {
+        if (!ctx.klentyToken) return { error: notConnected("Klenty") };
+        return klentyAdapter.listCadences(ctx.klentyToken);
+      },
+    }),
+
+    klenty_get_prospect: tool({
+      description:
+        "Look up one prospect in the connected Klenty account by email — returns name, title, company, phone, LinkedIn, and prospect status.",
+      inputSchema: z.object({
+        email: z.string().describe("The prospect's email address."),
+      }),
+      execute: async (args) => {
+        if (!ctx.klentyToken) return { error: notConnected("Klenty") };
+        return klentyAdapter.getProspect(ctx.klentyToken, args);
+      },
+    }),
+
     leadmagic_find_email: tool({
       description:
         "Find a verified work email via LeadMagic from a person's name and company (domain or company name). You only pay when a valid email is found. Returns the email plus status, name, and company.",
@@ -3570,6 +3593,8 @@ export const ALL_TOOL_NAMES = [
   "jobadder_list_job_applications",
   "lever_list_postings",
   "lever_list_opportunities",
+  "klenty_list_cadences",
+  "klenty_get_prospect",
   "leadmagic_find_email",
   "leadmagic_verify_email",
   "lemlist_list_campaigns",
