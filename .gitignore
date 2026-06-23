@@ -24,6 +24,11 @@
 .DS_Store
 *.pem
 
+# private IP / system config that must never be committed (e.g. the Sourcing
+# Plan harness). Provisioned to the private `system-config` bucket out-of-band.
+/secrets/
+*.harness.md
+
 # debug
 npm-debug.log*
 yarn-debug.log*

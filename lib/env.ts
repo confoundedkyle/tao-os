@@ -191,6 +191,13 @@ export const env = {
   get mockAi() {
     return process.env.MOCK_AI === "true";
   },
+
+  /** Optional self-host fallback for the Sourcing Plan harness (the prompt/IP).
+   *  Normally pulled from the private `system-config` Storage bucket; set this
+   *  on instances that don't provision the bucket. See lib/sourcing-plan/harness.ts. */
+  get sourcingPlanHarness() {
+    return process.env.SOURCING_PLAN_HARNESS ?? "";
+  },
 };
 
 function required(name: string): string {

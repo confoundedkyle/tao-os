@@ -782,6 +782,67 @@ export async function getActiveAgentConversation(
   return { conversationId: convId, turns };
 }
 
+/** The project's single active sourcing-plan document (markdown), or null. One
+ *  active plan per project; regenerating archives the previous one. */
+export async function getActiveSourcingPlan(
+  workspaceId: string,
+  projectId: string,
+): Promise<Doc | null> {
+  const { data } = await db()
+    .from("documents")
+    .select("*")
+    .eq("workspace_id", workspaceId)
+    .eq("scope_type", "project")
+    .eq("scope_id", projectId)
+    .eq("doc_type", "sourcing_plan")
+    .eq("is_active", true)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return (data as Doc | null) ?? null;
+}
+
+/** The sourcing-plan generate/revise chat for a project, turns oldest-first.
+ *  Mirrors getActiveAgentConversation but reads sourcing_plan_runs (which carry
+ *  no workspace_agent_id). Pass conversationId to load that chat; omit for the
+ *  most recent. */
+export async function getActiveSourcingPlanConversation(
+  workspaceId: string,
+  projectId: string,
+  conversationId?: string | null,
+): Promise<{ conversationId: string; turns: AgentChatTurn[] } | null> {
+  const project = await getProject(workspaceId, projectId);
+  if (!project) return null;
+
+  let convId =
+    conversationId && UUID_RE.test(conversationId) ? conversationId : null;
+  if (!convId) {
+    const { data: latest } = await db()
+      .from("sourcing_plan_runs")
+      .select("conversation_id")
+      .eq("project_id", projectId)
+      .not("conversation_id", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    convId = (latest?.conversation_id as string | null) ?? null;
+  }
+  if (!convId) return null;
+
+  const { data, error } = await db()
+    .from("sourcing_plan_runs")
+    .select(
+      "id, task, output_text, steps, output_doc_id, status, error_message, created_at",
+    )
+    .eq("project_id", projectId)
+    .eq("conversation_id", convId)
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  const turns = (data ?? []) as AgentChatTurn[];
+  if (turns.length === 0 && !conversationId) return null;
+  return { conversationId: convId, turns };
+}
+
 export async function listRecentAgentRuns(
   workspaceId: string,
   limit = 8,

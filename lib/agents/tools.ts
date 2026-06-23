@@ -3,6 +3,7 @@ import { tool, type ToolSet } from "ai";
 import { z } from "zod";
 import { db } from "../db";
 import { listDocuments, getDocument } from "../queries";
+import { appendProgressEntry } from "../sourcing-plan/progress";
 import { adzunaAdapter } from "../integrations/adzuna";
 import { affinityAdapter } from "../integrations/affinity";
 import { aircallAdapter } from "../integrations/aircall";
@@ -3614,6 +3615,58 @@ function buildAll(ctx: ToolContext): ToolSet {
         return { documentId: data.id, title };
       },
     }),
+    calyflow_log_sourcing_progress: tool({
+      description:
+        "Append a one-line entry to this project's Sourcing Plan progress log, " +
+        "recording what you just did so the next run continues from where you " +
+        "left off. Call this once, after you finish, when the project has an " +
+        "active sourcing plan (shown in your # Project context). Summarise the " +
+        "channel/search, the outcome (e.g. candidate counts), and any next step.",
+      inputSchema: z.object({
+        note: z
+          .string()
+          .describe(
+            "One line: what you searched, what you found (counts), and the next step.",
+          ),
+      }),
+      execute: async ({ note }) => {
+        // The project's single active sourcing-plan document (one per project).
+        const { data: plan } = await db()
+          .from("documents")
+          .select("id, extracted_text")
+          .eq("workspace_id", ctx.workspaceId)
+          .eq("scope_type", "project")
+          .eq("scope_id", ctx.projectId)
+          .eq("doc_type", "sourcing_plan")
+          .eq("is_active", true)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (!plan) {
+          return {
+            skipped:
+              "No active sourcing plan in this project — nothing to log to. " +
+              "Generate one in the Sourcing Plan tab first.",
+          };
+        }
+        const dateLabel = new Date().toLocaleDateString("en-GB", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        });
+        const updated = appendProgressEntry(
+          (plan.extracted_text as string | null) ?? "",
+          dateLabel,
+          note,
+        );
+        const { error } = await db()
+          .from("documents")
+          .update({ extracted_text: updated })
+          .eq("id", plan.id);
+        if (error) return { error: "Could not update the progress log." };
+        return { logged: true, date: dateLabel };
+      },
+    }),
   };
 }
 
@@ -3849,4 +3902,5 @@ export const ALL_TOOL_NAMES = [
   "zoom_list_recordings",
   "zoom_get_transcript",
   "calyflow_create_document",
+  "calyflow_log_sourcing_progress",
 ] as const;

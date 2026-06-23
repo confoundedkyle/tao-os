@@ -64,7 +64,7 @@ export interface Project {
 
 export type DocScope = "workspace" | "client" | "project" | "prospect";
 export type DocKind = "kb" | "file";
-export type DocType = "jd" | "intake_notes" | "cv" | "scorecard" | "note" | "output" | "other";
+export type DocType = "jd" | "intake_notes" | "cv" | "scorecard" | "note" | "output" | "other" | "sourcing_plan";
 
 export interface Doc {
   id: string;
