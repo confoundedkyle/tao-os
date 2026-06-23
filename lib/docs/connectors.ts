@@ -334,6 +334,27 @@ export const DOC_CONNECTORS: Record<string, ConnectorDocContent> = {
       { label: "Copper API docs", url: "https://developer.copper.com/" },
     ],
   },
+  serpapi: {
+    capabilities: [
+      "Run a Google search and read the organic results (title, snippet, link)",
+    ],
+    useCases: [
+      'X-ray source candidates, e.g. site:linkedin.com/in "React" "Berlin"',
+      "Find a candidate's public profiles, talks, or portfolio across the web",
+      "Research a target company before a BD outreach",
+    ],
+    whatYouNeed: ["A SerpApi account with an API key"],
+    steps: [
+      "In SerpApi, open Your Account → API Key and copy your private key.",
+      "In Calyflow, go to Settings → Connectors → SerpApi and paste it.",
+    ],
+    configuration: [
+      "Each search draws on your SerpApi search quota; results mirror a live Google search.",
+    ],
+    links: [
+      { label: "SerpApi docs", url: "https://serpapi.com/search-api" },
+    ],
+  },
   salesflare: {
     capabilities: [
       "Search contacts and accounts (client companies)",

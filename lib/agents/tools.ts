@@ -69,6 +69,7 @@ import { recruitisAdapter } from "../integrations/recruitis";
 import { replyioAdapter } from "../integrations/replyio";
 import { rocketreachAdapter } from "../integrations/rocketreach";
 import { salesflareAdapter } from "../integrations/salesflare";
+import { serpapiAdapter } from "../integrations/serpapi";
 import { signalhireAdapter } from "../integrations/signalhire";
 import { slackAdapter } from "../integrations/slack";
 import { smartleadAdapter } from "../integrations/smartlead";
@@ -2954,6 +2955,20 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    serpapi_google_search: tool({
+      description:
+        "Run a Google search via SerpApi and get the organic results as a Markdown table (position, title, snippet, link). Use for X-ray sourcing, e.g. site:linkedin.com/in \"React\" \"Berlin\". Page with start (0, 10, 20, …).",
+      inputSchema: z.object({
+        query: z.string().describe("The Google search query."),
+        num: z.number().int().positive().optional().describe("Results to return (max 20)."),
+        start: z.number().int().nonnegative().optional().describe("Result offset for paging (0, 10, 20…)."),
+      }),
+      execute: async (args) => {
+        if (!ctx.serpapiToken) return { error: notConnected("SerpApi") };
+        return serpapiAdapter.googleSearch(ctx.serpapiToken, args);
+      },
+    }),
+
     signalhire_search_people: tool({
       description:
         "Search SignalHire profiles by title, company, location, or keywords. Returns name, title, company, location, and profile UID — no contact details. Free of credit cost (draws from a daily search quota); treat results as candidates for signalhire_enrich_person.",
@@ -3669,6 +3684,7 @@ export const ALL_TOOL_NAMES = [
   "salesflare_search_contacts",
   "salesflare_list_accounts",
   "salesflare_list_opportunities",
+  "serpapi_google_search",
   "signalhire_search_people",
   "signalhire_enrich_person",
   "replyio_list_sequences",
