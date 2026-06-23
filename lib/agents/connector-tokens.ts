@@ -86,6 +86,7 @@ export interface ConnectorTokens {
   stackexchangeToken: string | null;
   surfeToken: string | null;
   teamtailorToken: string | null;
+  telegramToken: string | null;
   tldvToken: string | null;
   tombaToken: string | null;
   trestleToken: string | null;
@@ -188,6 +189,7 @@ const SPECS: TokenSpec[] = [
   { field: "stackexchangeToken", prefix: "stackexchange_", provider: "stackexchange" },
   { field: "surfeToken", prefix: "surfe_", provider: "surfe" },
   { field: "teamtailorToken", prefix: "teamtailor_", provider: "teamtailor" },
+  { field: "telegramToken", prefix: "telegram_", provider: "telegram" },
   { field: "tldvToken", prefix: "tldv_", provider: "tldv" },
   { field: "tombaToken", prefix: "tomba_", provider: "tomba" },
   { field: "trestleToken", prefix: "trestle_", provider: "trestle" },

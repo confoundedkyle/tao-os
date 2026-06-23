@@ -100,6 +100,7 @@ export const CONNECTORS: Connector[] = [
   { name: "Discord", category: "comms", blurb: "Read channels and message history from your Discord talent community.", provider: "discord", live: true, auth: "apikey", apiKeyHint: "Create a bot at discord.com/developers, copy its token, and invite it to your server with read access." },
   { name: "MessageBird", category: "comms", blurb: "Read the SMS history with candidates from your MessageBird (Bird) number.", provider: "messagebird", live: true, auth: "apikey", apiKeyHint: "Create a live access key in MessageBird/Bird under Developers → API access (Access Keys)." },
   { name: "Slack", category: "comms", blurb: "Run recruiting agents and receive project reports in your team's Slack — a channel per project.", provider: "slack", live: true, auth: "oauth", oauthAppHint: "Connect in one click with the Calyflow Slack app. Self-hosting? Create your own app at api.slack.com, add the redirect URI shown above, and set SLACK_CLIENT_ID / SLACK_CLIENT_SECRET." },
+  { name: "Telegram", category: "comms", blurb: "Read recent messages from your Telegram bot or candidate-community group.", provider: "telegram", live: true, auth: "apikey", apiKeyHint: "Create a bot with @BotFather in Telegram and paste the token it gives you." },
   { name: "Twilio", category: "comms", blurb: "Read the SMS and call history with candidates from your Twilio number.", provider: "twilio", live: true, auth: "apikey", apiKeyPlaceholder: "account-sid:auth-token", apiKeyHint: "Both are on your Twilio Console dashboard; the Account SID starts with AC. Paste them separated by a colon." },
 
   // Tools (sourcing & outreach)
@@ -244,6 +245,7 @@ export const CONNECTOR_DOMAINS: Record<string, string> = {
   recruitis: "recruitis.io",
   smartrecruiters: "smartrecruiters.com",
   teamtailor: "teamtailor.com",
+  telegram: "telegram.org",
   vincere: "vincere.io",
   workable: "workable.com",
   "zoho-recruit": "zoho.com",

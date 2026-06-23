@@ -82,6 +82,7 @@ import { snovAdapter } from "../integrations/snov";
 import { stackexchangeAdapter } from "../integrations/stackexchange";
 import { surfeAdapter } from "../integrations/surfe";
 import { teamtailorAdapter } from "../integrations/teamtailor";
+import { telegramAdapter } from "../integrations/telegram";
 import { tldvAdapter } from "../integrations/tldv";
 import { tombaAdapter } from "../integrations/tomba";
 import { trestleAdapter } from "../integrations/trestle";
@@ -3251,6 +3252,18 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    telegram_get_updates: tool({
+      description:
+        "Read recent messages received by the connected Telegram bot (and its groups) as a Markdown table (from, message, chat, sent).",
+      inputSchema: z.object({
+        limit: z.number().int().positive().optional().describe("Max 100."),
+      }),
+      execute: async (args) => {
+        if (!ctx.telegramToken) return { error: notConnected("Telegram") };
+        return telegramAdapter.getUpdates(ctx.telegramToken, args);
+      },
+    }),
+
     twilio_list_messages: tool({
       description:
         "List recent SMS messages in the connected Twilio account as a Markdown table (from, to, direction, status, message, sent). Filter by To or From phone number (E.164, e.g. +14155551234).",
@@ -3786,6 +3799,7 @@ export const ALL_TOOL_NAMES = [
   "aircall_list_calls",
   "aircall_list_contacts",
   "messagebird_list_messages",
+  "telegram_get_updates",
   "twilio_list_messages",
   "twilio_list_calls",
   "wiza_reveal",

@@ -570,6 +570,27 @@ export const DOC_CONNECTORS: Record<string, ConnectorDocContent> = {
       { label: "MessageBird API docs", url: "https://developers.messagebird.com/api/" },
     ],
   },
+  telegram: {
+    capabilities: [
+      "Read recent messages received by your Telegram bot and its groups",
+    ],
+    useCases: [
+      "Catch up on activity in a candidate-community group your bot is in",
+      "Read recent messages sent to your recruiting bot",
+      "Pull recent chatter for context when briefing an agent",
+    ],
+    whatYouNeed: ["A Telegram bot token from @BotFather"],
+    steps: [
+      "In Telegram, message @BotFather, create a bot, and copy the token it gives you.",
+      "In Calyflow, go to Settings → Connectors → Telegram and paste the token.",
+    ],
+    configuration: [
+      "Read-only: Calyflow reads recent updates and never sends messages. To see group messages, add the bot to the group and disable its privacy mode in @BotFather.",
+    ],
+    links: [
+      { label: "Telegram Bot API docs", url: "https://core.telegram.org/bots/api" },
+    ],
+  },
   twilio: {
     capabilities: [
       "List the SMS history with a candidate or number",
