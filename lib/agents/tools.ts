@@ -25,6 +25,7 @@ import { contactoutAdapter } from "../integrations/contactout";
 import { copperAdapter } from "../integrations/copper";
 import { coresignalAdapter } from "../integrations/coresignal";
 import { crelateAdapter } from "../integrations/crelate";
+import { discordAdapter } from "../integrations/discord";
 import { dropcontactAdapter } from "../integrations/dropcontact";
 import { emailableAdapter } from "../integrations/emailable";
 import { fathomAdapter } from "../integrations/fathom";
@@ -1608,6 +1609,31 @@ function buildAll(ctx: ToolContext): ToolSet {
       execute: async (args) => {
         if (!ctx.crelateToken) return { error: notConnected("Crelate") };
         return crelateAdapter.listContacts(ctx.crelateToken, args);
+      },
+    }),
+
+    discord_list_channels: tool({
+      description:
+        "List the channels of a Discord server (guild) as a Markdown table (channel, type, channel id). Get the channel id here to read its messages.",
+      inputSchema: z.object({
+        guildId: z.string().describe("The Discord server (guild) id."),
+      }),
+      execute: async (args) => {
+        if (!ctx.discordToken) return { error: notConnected("Discord") };
+        return discordAdapter.listChannels(ctx.discordToken, args);
+      },
+    }),
+
+    discord_list_messages: tool({
+      description:
+        "List recent messages in a Discord channel as a Markdown table (author, message, sent). Get the channelId from discord_list_channels.",
+      inputSchema: z.object({
+        channelId: z.string().describe("The Discord channel id."),
+        limit: z.number().int().positive().optional().describe("Max 50."),
+      }),
+      execute: async (args) => {
+        if (!ctx.discordToken) return { error: notConnected("Discord") };
+        return discordAdapter.listMessages(ctx.discordToken, args);
       },
     }),
 
@@ -3616,6 +3642,8 @@ export const ALL_TOOL_NAMES = [
   "crelate_list_jobs",
   "crelate_search_contacts",
   "crelate_list_contacts",
+  "discord_list_channels",
+  "discord_list_messages",
   "dropcontact_enrich",
   "dropcontact_get_result",
   "emailable_verify_email",

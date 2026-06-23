@@ -30,6 +30,7 @@ export interface ConnectorTokens {
   copperToken: string | null;
   coresignalToken: string | null;
   crelateToken: string | null;
+  discordToken: string | null;
   dropcontactToken: string | null;
   emailableToken: string | null;
   fathomToken: string | null;
@@ -131,6 +132,7 @@ const SPECS: TokenSpec[] = [
   { field: "copperToken", prefix: "copper_", provider: "copper" },
   { field: "coresignalToken", prefix: "coresignal_", provider: "coresignal" },
   { field: "crelateToken", prefix: "crelate_", provider: "crelate" },
+  { field: "discordToken", prefix: "discord_", provider: "discord" },
   { field: "dropcontactToken", prefix: "dropcontact_", provider: "dropcontact" },
   { field: "emailableToken", prefix: "emailable_", provider: "emailable" },
   { field: "fathomToken", prefix: "fathom_", provider: "fathom" },

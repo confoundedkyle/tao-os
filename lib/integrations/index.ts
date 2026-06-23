@@ -24,6 +24,7 @@ import { contactoutAdapter } from "./contactout";
 import { copperAdapter } from "./copper";
 import { coresignalAdapter } from "./coresignal";
 import { crelateAdapter } from "./crelate";
+import { discordAdapter } from "./discord";
 import { dropcontactAdapter } from "./dropcontact";
 import { emailableAdapter } from "./emailable";
 import { fathomAdapter } from "./fathom";
@@ -121,6 +122,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   copper: copperAdapter,
   coresignal: coresignalAdapter,
   crelate: crelateAdapter,
+  discord: discordAdapter,
   dropcontact: dropcontactAdapter,
   emailable: emailableAdapter,
   fathom: fathomAdapter,

@@ -97,6 +97,7 @@ export const CONNECTORS: Connector[] = [
 
   // --- Comms (team messaging — where recruiting agents reach hiring managers) ---
   { name: "Aircall", category: "comms", blurb: "Read the call log and contacts from your Aircall phone line.", provider: "aircall", live: true, auth: "apikey", apiKeyPlaceholder: "api-id:api-token", apiKeyHint: "Create an API key in Aircall under Settings → Integrations & API → API Keys; paste the API ID and token separated by a colon." },
+  { name: "Discord", category: "comms", blurb: "Read channels and message history from your Discord talent community.", provider: "discord", live: true, auth: "apikey", apiKeyHint: "Create a bot at discord.com/developers, copy its token, and invite it to your server with read access." },
   { name: "MessageBird", category: "comms", blurb: "Read the SMS history with candidates from your MessageBird (Bird) number.", provider: "messagebird", live: true, auth: "apikey", apiKeyHint: "Create a live access key in MessageBird/Bird under Developers → API access (Access Keys)." },
   { name: "Slack", category: "comms", blurb: "Run recruiting agents and receive project reports in your team's Slack — a channel per project.", provider: "slack", live: true, auth: "oauth", oauthAppHint: "Connect in one click with the Calyflow Slack app. Self-hosting? Create your own app at api.slack.com, add the redirect URI shown above, and set SLACK_CLIENT_ID / SLACK_CLIENT_SECRET." },
   { name: "Twilio", category: "comms", blurb: "Read the SMS and call history with candidates from your Twilio number.", provider: "twilio", live: true, auth: "apikey", apiKeyPlaceholder: "account-sid:auth-token", apiKeyHint: "Both are on your Twilio Console dashboard; the Account SID starts with AC. Paste them separated by a colon." },
@@ -230,6 +231,7 @@ export const CONNECTOR_DOMAINS: Record<string, string> = {
   capsule: "capsulecrm.com",
   cats: "catsone.com",
   crelate: "crelate.com",
+  discord: "discord.com",
   greenhouse: "greenhouse.io",
   jazzhr: "jazzhr.com",
   jobadder: "jobadder.com",

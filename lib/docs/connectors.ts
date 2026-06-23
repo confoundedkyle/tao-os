@@ -527,6 +527,28 @@ export const DOC_CONNECTORS: Record<string, ConnectorDocContent> = {
       { label: "Aircall API docs", url: "https://developer.aircall.io/api-references/" },
     ],
   },
+  discord: {
+    capabilities: [
+      "List the channels of a Discord server",
+      "Read recent messages in a channel (author, message, sent)",
+    ],
+    useCases: [
+      "Read activity in a talent-community server to spot engaged candidates",
+      "Catch up on a channel's recent discussion before reaching out",
+      "Pull message history for context when briefing an agent",
+    ],
+    whatYouNeed: ["A Discord bot token, with the bot invited to your server"],
+    steps: [
+      "At discord.com/developers, create an application, add a Bot, and copy its token.",
+      "Invite the bot to your server with read access, then paste the token in Calyflow under Settings → Connectors → Discord.",
+    ],
+    configuration: [
+      "Read-only: Calyflow reads channels and messages and never posts to Discord. The bot only sees servers and channels it has been given access to.",
+    ],
+    links: [
+      { label: "Discord API docs", url: "https://discord.com/developers/docs/reference" },
+    ],
+  },
   messagebird: {
     capabilities: [
       "List the SMS history (direction, from, to, body, sent)",
