@@ -75,6 +75,7 @@ export interface ConnectorTokens {
   salesflareToken: string | null;
   serpapiToken: string | null;
   signalhireToken: string | null;
+  skrappToken: string | null;
   slackToken: string | null;
   smartleadToken: string | null;
   smartrecruitersToken: string | null;
@@ -173,6 +174,7 @@ const SPECS: TokenSpec[] = [
   { field: "salesflareToken", prefix: "salesflare_", provider: "salesflare" },
   { field: "serpapiToken", prefix: "serpapi_", provider: "serpapi" },
   { field: "signalhireToken", prefix: "signalhire_", provider: "signalhire" },
+  { field: "skrappToken", prefix: "skrapp_", provider: "skrapp" },
   { field: "slackToken", prefix: "slack_", provider: "slack" },
   { field: "smartleadToken", prefix: "smartlead_", provider: "smartlead" },
   { field: "smartrecruitersToken", prefix: "smartrecruiters_", provider: "smartrecruiters" },

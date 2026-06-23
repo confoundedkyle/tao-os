@@ -1172,6 +1172,27 @@ export const DOC_CONNECTORS: Record<string, ConnectorDocContent> = {
       "The key field is `access-key:secret` — a Gong admin generates both under company settings → Ecosystem → API.",
     ],
   },
+  skrapp: {
+    capabilities: [
+      "Find a verified work email from a name and company domain",
+    ],
+    useCases: [
+      "Find the likely work email for a sourced candidate, with a quality signal",
+      "Turn a name + company into a reachable contact for outreach",
+      "Enrich a thin lead before adding it to a sequence",
+    ],
+    whatYouNeed: ["A Skrapp account on a premium plan (API access is premium-only)"],
+    steps: [
+      "In Skrapp, open Settings → API and copy your access key.",
+      "In Calyflow, go to Settings → Connectors → Skrapp and paste it.",
+    ],
+    configuration: [
+      "Lookups are synchronous and draw on your Skrapp email credits; results include a quality signal.",
+    ],
+    links: [
+      { label: "Skrapp API docs", url: "https://skrapp.io/api" },
+    ],
+  },
   snov: {
     useCases: [
       "Find verified work emails for a list of candidates",

@@ -71,6 +71,7 @@ import { rocketreachAdapter } from "../integrations/rocketreach";
 import { salesflareAdapter } from "../integrations/salesflare";
 import { serpapiAdapter } from "../integrations/serpapi";
 import { signalhireAdapter } from "../integrations/signalhire";
+import { skrappAdapter } from "../integrations/skrapp";
 import { slackAdapter } from "../integrations/slack";
 import { smartleadAdapter } from "../integrations/smartlead";
 import { smartrecruitersAdapter } from "../integrations/smartrecruiters";
@@ -3007,6 +3008,20 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    skrapp_find_email: tool({
+      description:
+        "Find a verified work email via Skrapp from a person's first name, last name, and company domain. Returns the email plus a quality signal and company.",
+      inputSchema: z.object({
+        firstName: z.string().describe("First name."),
+        lastName: z.string().describe("Last name."),
+        domain: z.string().describe("Company domain, e.g. acme.com."),
+      }),
+      execute: async (args) => {
+        if (!ctx.skrappToken) return { error: notConnected("Skrapp") };
+        return skrappAdapter.findEmail(ctx.skrappToken, args);
+      },
+    }),
+
     smartrecruiters_list_jobs: tool({
       description:
         "List jobs in the connected SmartRecruiters ATS (title, status, department, location, job id). Optionally filter by status (e.g. SOURCING, OFFER, FILLED). Use to find the role you are sourcing for — the job id scopes candidate lookups.",
@@ -3687,6 +3702,7 @@ export const ALL_TOOL_NAMES = [
   "serpapi_google_search",
   "signalhire_search_people",
   "signalhire_enrich_person",
+  "skrapp_find_email",
   "replyio_list_sequences",
   "replyio_list_contacts",
   "smartlead_list_campaigns",
