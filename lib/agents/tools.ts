@@ -66,6 +66,7 @@ import { peopledatalabsAdapter } from "../integrations/peopledatalabs";
 import { pinpointAdapter } from "../integrations/pinpoint";
 import { pipedriveAdapter } from "../integrations/pipedrive";
 import { prospeoAdapter } from "../integrations/prospeo";
+import { recruitcrmAdapter } from "../integrations/recruitcrm";
 import { recruiteeAdapter } from "../integrations/recruitee";
 import { recruiterflowAdapter } from "../integrations/recruiterflow";
 import { recruitisAdapter } from "../integrations/recruitis";
@@ -2630,6 +2631,31 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    recruitcrm_search_candidates: tool({
+      description:
+        "Search candidates in the connected Recruit CRM account as a Markdown table (name, email, phone, position, id). Filter with search; page with page.",
+      inputSchema: z.object({
+        search: z.string().optional().describe("Keyword to filter candidates by."),
+        page: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.recruitcrmToken) return { error: notConnected("Recruit CRM") };
+        return recruitcrmAdapter.searchCandidates(ctx.recruitcrmToken, args);
+      },
+    }),
+
+    recruitcrm_list_jobs: tool({
+      description:
+        "List jobs in the connected Recruit CRM account as a Markdown table (job, company, status, city, id). Page with page.",
+      inputSchema: z.object({
+        page: z.number().int().positive().optional(),
+      }),
+      execute: async (args) => {
+        if (!ctx.recruitcrmToken) return { error: notConnected("Recruit CRM") };
+        return recruitcrmAdapter.listJobs(ctx.recruitcrmToken, args);
+      },
+    }),
+
     recruitee_list_offers: tool({
       description:
         "List jobs (offers) in the connected Recruitee ATS (title, status, department, location, offer id). Use to find the role you are sourcing for.",
@@ -3756,6 +3782,8 @@ export const ALL_TOOL_NAMES = [
   "pipedrive_search_deals",
   "prospeo_enrich_person",
   "prospeo_find_mobile",
+  "recruitcrm_search_candidates",
+  "recruitcrm_list_jobs",
   "recruitee_list_offers",
   "recruitee_list_candidates",
   "recruiterflow_list_jobs",

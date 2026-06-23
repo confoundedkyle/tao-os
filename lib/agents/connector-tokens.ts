@@ -70,6 +70,7 @@ export interface ConnectorTokens {
   pinpointToken: string | null;
   pipedriveToken: string | null;
   prospeoToken: string | null;
+  recruitcrmToken: string | null;
   recruiteeToken: string | null;
   recruiterflowToken: string | null;
   recruitisToken: string | null;
@@ -173,6 +174,7 @@ const SPECS: TokenSpec[] = [
   { field: "pinpointToken", prefix: "pinpoint_", provider: "pinpoint" },
   { field: "pipedriveToken", prefix: "pipedrive_", provider: "pipedrive" },
   { field: "prospeoToken", prefix: "prospeo_", provider: "prospeo" },
+  { field: "recruitcrmToken", prefix: "recruitcrm_", provider: "recruitcrm" },
   { field: "recruiteeToken", prefix: "recruitee_", provider: "recruitee" },
   { field: "recruiterflowToken", prefix: "recruiterflow_", provider: "recruiterflow" },
   { field: "recruitisToken", prefix: "recruitis_", provider: "recruitis" },

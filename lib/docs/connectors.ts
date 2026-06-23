@@ -197,6 +197,28 @@ export const DOC_CONNECTORS: Record<string, ConnectorDocContent> = {
       "Self-hosters/testers can point VINCERE_ID_BASE at the Vincere test environment (id.vinceredev.com).",
     ],
   },
+  recruitcrm: {
+    capabilities: [
+      "Search candidates (name, email, phone, position)",
+      "List jobs with their company, status, and city",
+    ],
+    useCases: [
+      "Pull a candidate's contact details from your ATS into a task",
+      "Check which jobs are open before sourcing against them",
+      "Search your candidate database by keyword from an agent",
+    ],
+    whatYouNeed: ["A Recruit CRM account with API access"],
+    steps: [
+      "In Recruit CRM, go to Settings → API & Webhooks and generate an API key.",
+      "In Calyflow, go to Settings → Connectors → Recruit CRM and paste it.",
+    ],
+    configuration: [
+      "Read-only: Calyflow reads candidates and jobs and never edits records in Recruit CRM.",
+    ],
+    links: [
+      { label: "Recruit CRM API docs", url: "https://docs.recruitcrm.io/" },
+    ],
+  },
   recruitis: {
     capabilities: [
       "List your jobs and their candidate pipelines",
