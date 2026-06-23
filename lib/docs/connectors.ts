@@ -675,6 +675,27 @@ export const DOC_CONNECTORS: Record<string, ConnectorDocContent> = {
       "Paste it in Calyflow under Settings → Connectors → Coresignal.",
     ],
   },
+  emailable: {
+    capabilities: [
+      "Verify whether an email is deliverable, with a reason and a typo suggestion",
+    ],
+    useCases: [
+      "Verify a candidate's email before adding it to an outreach run",
+      "Catch a likely typo in a hand-entered address before sending",
+      "Clean a list of emails to protect sender deliverability",
+    ],
+    whatYouNeed: ["An Emailable account with API access"],
+    steps: [
+      "In Emailable, open the dashboard → API and copy your API key.",
+      "In Calyflow, go to Settings → Connectors → Emailable and paste it.",
+    ],
+    configuration: [
+      "Each verification draws on your Emailable credits; returns deliverable / undeliverable / risky / unknown plus a reason and any did-you-mean suggestion.",
+    ],
+    links: [
+      { label: "Emailable API docs", url: "https://emailable.com/docs/api/" },
+    ],
+  },
   dropcontact: {
     capabilities: [
       "Find and verify a professional email for a contact",

@@ -31,6 +31,7 @@ export interface ConnectorTokens {
   coresignalToken: string | null;
   crelateToken: string | null;
   dropcontactToken: string | null;
+  emailableToken: string | null;
   fathomToken: string | null;
   findymailToken: string | null;
   firefliesToken: string | null;
@@ -131,6 +132,7 @@ const SPECS: TokenSpec[] = [
   { field: "coresignalToken", prefix: "coresignal_", provider: "coresignal" },
   { field: "crelateToken", prefix: "crelate_", provider: "crelate" },
   { field: "dropcontactToken", prefix: "dropcontact_", provider: "dropcontact" },
+  { field: "emailableToken", prefix: "emailable_", provider: "emailable" },
   { field: "fathomToken", prefix: "fathom_", provider: "fathom" },
   { field: "findymailToken", prefix: "findymail_", provider: "findymail" },
   { field: "firefliesToken", prefix: "fireflies_", provider: "fireflies" },

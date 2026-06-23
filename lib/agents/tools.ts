@@ -26,6 +26,7 @@ import { copperAdapter } from "../integrations/copper";
 import { coresignalAdapter } from "../integrations/coresignal";
 import { crelateAdapter } from "../integrations/crelate";
 import { dropcontactAdapter } from "../integrations/dropcontact";
+import { emailableAdapter } from "../integrations/emailable";
 import { fathomAdapter } from "../integrations/fathom";
 import { findymailAdapter } from "../integrations/findymail";
 import { firefliesAdapter } from "../integrations/fireflies";
@@ -668,6 +669,18 @@ function buildAll(ctx: ToolContext): ToolSet {
       execute: async (args) => {
         if (!ctx.avomaToken) return { error: notConnected("Avoma") };
         return avomaAdapter.getTranscript(ctx.avomaToken, args);
+      },
+    }),
+
+    emailable_verify_email: tool({
+      description:
+        "Verify one email's deliverability via Emailable (deliverable / undeliverable / risky / unknown, plus a reason and a typo suggestion). Use before adding an address to an outreach run.",
+      inputSchema: z.object({
+        email: z.string().describe("The email address to verify."),
+      }),
+      execute: async (args) => {
+        if (!ctx.emailableToken) return { error: notConnected("Emailable") };
+        return emailableAdapter.verifyEmail(ctx.emailableToken, args);
       },
     }),
 
@@ -3605,6 +3618,7 @@ export const ALL_TOOL_NAMES = [
   "crelate_list_contacts",
   "dropcontact_enrich",
   "dropcontact_get_result",
+  "emailable_verify_email",
   "contactout_people_search",
   "contactout_linkedin_enrich",
   "contactout_person_enrich",
