@@ -16,6 +16,7 @@ const DOC_TYPE_LABELS: Record<string, string> = {
   cv: "CV",
   scorecard: "Scorecard",
   note: "Note",
+  sourcing_plan: "Sourcing plan",
   other: "Document",
 };
 

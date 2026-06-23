@@ -190,6 +190,7 @@ const TOOL_LABELS: Record<string, string> = {
   calyflow_search_documents: "Searched knowledge base",
   calyflow_read_document: "Read document",
   calyflow_create_document: "Saved document",
+  calyflow_log_sourcing_progress: "Logged sourcing progress",
   gmail_send_email: "Sent email (Gmail)",
   outlook_send_email: "Sent email (Outlook)",
 };

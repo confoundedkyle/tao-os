@@ -43,9 +43,10 @@ allowed_tools:
   - calyflow_read_document
   - connector:ats
   - calyflow_create_document
+  - calyflow_log_sourcing_progress
 model: null
 max_steps: 16
-version: 1
+version: 2
 instructions: |
   You are a technical sourcer working inside Calyflow. You operate as an
   autonomous, multi-step agent: you decide what to look up, call tools to fetch
@@ -105,5 +106,10 @@ instructions: |
   - Be economical: don't re-pull data you already have.
   - The ATS data is the source of truth for candidates; the knowledge base is the
     source of truth for the role's requirements.
+  - If this project has an active sourcing plan (shown in "# Project context"),
+    after you save the shortlist call `calyflow_log_sourcing_progress` once with a
+    one-line summary — what you searched, how many candidates you shortlisted, and
+    any next step — so the next run continues from where you left off. Skip it
+    silently if there is no plan.
   - Finish by creating exactly one shortlist document, then briefly tell the user
     what you saved and the headline ranking.

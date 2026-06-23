@@ -10,8 +10,9 @@ their **projects** (a role being filled for a client). Next.js app + Supabase.
 - `workspace_agents` / `workspace_workflows` — a workspace's **imported copies**
   (snapshot at import; `imported_version`, `archived_at`, `library_*_id` link).
 - `documents` — scoped to `workspace` | `client` | `project`, typed by
-  `doc_type` (`jd`, `intake_notes`, `scorecard`, `cv`, `other`, `output`).
-  `output` = agent-created. `is_active` gates whether the AI sees a doc.
+  `doc_type` (`jd`, `intake_notes`, `scorecard`, `cv`, `other`, `output`,
+  `sourcing_plan`). `output` = agent-created; `sourcing_plan` = the project's
+  Plan-mode draft. `is_active` gates whether the AI sees a doc.
 - `agent_runs` / `workflow_runs` — run history (status, steps, tokens, cost,
   `output_doc_id`).
 
@@ -62,6 +63,26 @@ library instructions into the copy. A library row retired from YAML orphans copi
   Combined run history below.
 - **Project → Documents tab**: "Your documents" (inputs via `ProjectFilesManager`)
   + "Agent-created documents" (`output` docs via `DocExplorer`).
+- **Project → Sourcing Plan tab** (`/clients/[c]/projects/[p]/sourcing-plan`):
+  "Plan mode" for the role. A streaming route (`/api/sourcing-plan/generate`,
+  modelled on the agent run route) researches the landscape and drafts a plan,
+  saved as the project's single active `doc_type='sourcing_plan'` document
+  (`saveSourcingPlan` archives the prior one — JD-style one-active idiom). The
+  driving prompt is **private IP**: it's pulled at runtime from the private
+  `system-config` Storage bucket (`lib/sourcing-plan/harness.ts`, server-only;
+  env fallback `SOURCING_PLAN_HARNESS`) and is **never committed** — provision it
+  out-of-band with `scripts/upload-harness.mjs`. The system prompt = harness +
+  active-connectors block + project/KB context + personal block. Generate/revise
+  history lives in `sourcing_plan_runs` (no `workspace_agent_id`, unlike
+  `agent_runs`). The panel (`SourcingPlanPanel`) edits the plan inline
+  (`updateDocumentTextAction`) **and** via chat revision (threaded by
+  `conversation_id`). **Progress loop:** execution sourcing agents
+  (`github-sourcer`, the `sourcing-*` shortlisters) carry the
+  `calyflow_log_sourcing_progress` tool — after they run they append an
+  append-only line under a `## Progress log` section on the active plan doc
+  (`lib/sourcing-plan/progress.ts`, `appendProgressEntry`). Since the plan is
+  auto-injected into every run, the next agent sees what's already done. The log
+  lives on the plan doc, so regenerating starts a fresh plan + log (old archived).
 - **Agents (top nav, `/workflows` route)**: workspace-level "My agents" manage list;
   each card → agent edit page (`/agents/[agentId]`: name + instructions, archive,
   upgrade, delete).
