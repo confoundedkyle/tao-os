@@ -14,7 +14,7 @@ on conflict (id) do nothing;
 --    from agent_runs because those rows require a workspace_agent_id (a seeded
 --    agent), whereas the plan is driven by the private harness, not a stored
 --    agent. Each row is one turn; turns of one chat share conversation_id.
-create table sourcing_plan_runs (
+create table if not exists sourcing_plan_runs (
   id                 uuid primary key default gen_random_uuid(),
   project_id         uuid references projects not null,
   -- Groups the turns of one chat; each turn (generate / revision) is its own row.
@@ -38,7 +38,7 @@ create table sourcing_plan_runs (
   created_by         text,
   created_at         timestamptz default now()
 );
-create index sourcing_plan_runs_project_idx
+create index if not exists sourcing_plan_runs_project_idx
   on sourcing_plan_runs (project_id, conversation_id, created_at);
 
 alter table sourcing_plan_runs enable row level security;
