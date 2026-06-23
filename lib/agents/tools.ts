@@ -52,6 +52,7 @@ import { loxoAdapter } from "../integrations/loxo";
 import { lushaAdapter } from "../integrations/lusha";
 import { mailshakeAdapter } from "../integrations/mailshake";
 import { manatalAdapter } from "../integrations/manatal";
+import { messagebirdAdapter } from "../integrations/messagebird";
 import { microsoftExcelAdapter } from "../integrations/microsoft-excel";
 import { microsoftOutlookAdapter } from "../integrations/microsoft-outlook";
 import { millionverifierAdapter } from "../integrations/millionverifier";
@@ -3172,6 +3173,19 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    messagebird_list_messages: tool({
+      description:
+        "List recent SMS messages in the connected MessageBird (Bird) account as a Markdown table (direction, from, to, body, sent). Page with offset.",
+      inputSchema: z.object({
+        offset: z.number().int().nonnegative().optional(),
+        limit: z.number().int().positive().optional().describe("Max 50."),
+      }),
+      execute: async (args) => {
+        if (!ctx.messagebirdToken) return { error: notConnected("MessageBird") };
+        return messagebirdAdapter.listMessages(ctx.messagebirdToken, args);
+      },
+    }),
+
     aircall_list_calls: tool({
       description:
         "List recent calls in the connected Aircall account as a Markdown table (direction, status, duration, number, started, call id). Page with page.",
@@ -3729,6 +3743,7 @@ export const ALL_TOOL_NAMES = [
   "trestle_validate_phone",
   "aircall_list_calls",
   "aircall_list_contacts",
+  "messagebird_list_messages",
   "twilio_list_messages",
   "twilio_list_calls",
   "wiza_reveal",

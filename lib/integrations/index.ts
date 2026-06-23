@@ -50,6 +50,7 @@ import { loxoAdapter } from "./loxo";
 import { lushaAdapter } from "./lusha";
 import { mailshakeAdapter } from "./mailshake";
 import { manatalAdapter } from "./manatal";
+import { messagebirdAdapter } from "./messagebird";
 import { microsoftExcelAdapter } from "./microsoft-excel";
 import { microsoftOutlookAdapter } from "./microsoft-outlook";
 import { millionverifierAdapter } from "./millionverifier";
@@ -145,6 +146,7 @@ const ADAPTERS: Record<string, ConnectorAdapter> = {
   lusha: lushaAdapter,
   mailshake: mailshakeAdapter,
   manatal: manatalAdapter,
+  messagebird: messagebirdAdapter,
   "microsoft-excel": microsoftExcelAdapter,
   "microsoft-outlook": microsoftOutlookAdapter,
   millionverifier: millionverifierAdapter,

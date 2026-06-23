@@ -56,6 +56,7 @@ export interface ConnectorTokens {
   lushaToken: string | null;
   mailshakeToken: string | null;
   manatalToken: string | null;
+  messagebirdToken: string | null;
   microsoftExcelToken: string | null;
   microsoftOutlookToken: string | null;
   millionverifierToken: string | null;
@@ -155,6 +156,7 @@ const SPECS: TokenSpec[] = [
   { field: "lushaToken", prefix: "lusha_", provider: "lusha" },
   { field: "mailshakeToken", prefix: "mailshake_", provider: "mailshake" },
   { field: "manatalToken", prefix: "manatal_", provider: "manatal" },
+  { field: "messagebirdToken", prefix: "messagebird_", provider: "messagebird" },
   { field: "microsoftExcelToken", prefix: "excel_", provider: "microsoft-excel" },
   { field: "microsoftOutlookToken", prefix: "outlook_", provider: "microsoft-outlook" },
   { field: "millionverifierToken", prefix: "millionverifier_", provider: "millionverifier" },

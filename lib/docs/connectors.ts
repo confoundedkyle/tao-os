@@ -527,6 +527,27 @@ export const DOC_CONNECTORS: Record<string, ConnectorDocContent> = {
       { label: "Aircall API docs", url: "https://developer.aircall.io/api-references/" },
     ],
   },
+  messagebird: {
+    capabilities: [
+      "List the SMS history (direction, from, to, body, sent)",
+    ],
+    useCases: [
+      "Review the text history with a candidate before following up",
+      "Check whether a candidate replied to an SMS",
+      "Pull recent messages for context when briefing an agent",
+    ],
+    whatYouNeed: ["A MessageBird (Bird) account with a live API access key"],
+    steps: [
+      "In MessageBird/Bird, go to Developers → API access and copy a live Access Key.",
+      "In Calyflow, go to Settings → Connectors → MessageBird and paste it.",
+    ],
+    configuration: [
+      "Read-only: Calyflow reads your message history and never sends SMS from MessageBird.",
+    ],
+    links: [
+      { label: "MessageBird API docs", url: "https://developers.messagebird.com/api/" },
+    ],
+  },
   twilio: {
     capabilities: [
       "List the SMS history with a candidate or number",
