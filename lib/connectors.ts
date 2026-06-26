@@ -18,6 +18,10 @@ export interface Connector {
   provider?: string;
   /** True when the connector can actually be activated (has an adapter). */
   live?: boolean;
+  /** Built-in, keyless capability (e.g. DuckDuckGo web search): always on, no
+   *  connection to make. Renders as "Built in" with no Connect affordance and is
+   *  exempt from the credential-adapter requirement. */
+  builtin?: boolean;
   /** How the connector authenticates — drives the Connect affordance. */
   auth?: "oauth" | "apikey";
   /** Additional categories this connector also belongs to, beyond its primary
@@ -57,6 +61,7 @@ export const CONNECTORS: Connector[] = [
   { name: "Greenhouse", category: "ats", blurb: "Sync jobs and candidates from the enterprise hiring standard.", provider: "greenhouse", live: true, auth: "apikey" },
   { name: "JazzHR", category: "ats", blurb: "Import candidates from the SMB-friendly recruiting software.", provider: "jazzhr", live: true, auth: "apikey" },
   { name: "JobAdder", category: "ats", blurb: "Sync candidates, jobs, and pipelines from the ANZ/UK agency favorite.", provider: "jobadder", live: true, auth: "oauth" },
+  { name: "Jobin Cloud", category: "ats", extraCategories: ["crm"], blurb: "Search your Jobin Cloud candidate database and read your outreach campaigns.", provider: "jobin-cloud", live: true, auth: "apikey", apiKeyHint: "Create a key in Jobin.cloud under Workgroups → Integrations → Custom integration, and paste it here." },
   { name: "Lever", category: "ats", blurb: "Sync pipelines from the CRM-style ATS teams love.", provider: "lever", live: true, auth: "apikey" },
   { name: "Loxo", category: "ats", blurb: "Pull candidates from the AI recruiting platform for agencies.", provider: "loxo", live: true, auth: "apikey", apiKeyPlaceholder: "agency-slug:api-key", apiKeyHint: "The slug is the subdomain in your Loxo URL ({slug}.app.loxo.co); keys live in Settings → API Keys (Open API access is a paid Loxo feature)." },
   { name: "Manatal", category: "ats", blurb: "Import candidates from the affordable AI-recommendation ATS.", provider: "manatal", live: true, auth: "apikey" },
@@ -115,6 +120,7 @@ export const CONNECTORS: Connector[] = [
   { name: "ContactOut", category: "tool", blurb: "Find personal emails and phones behind LinkedIn profiles.", provider: "contactout", live: true, auth: "apikey" },
   { name: "Coresignal", category: "tool", blurb: "Enrich candidates with fresh public employment data.", provider: "coresignal", live: true, auth: "apikey" },
   { name: "Dropcontact", category: "tool", blurb: "Find and verify GDPR-compliant emails for European candidates and clients.", provider: "dropcontact", live: true, auth: "apikey", apiKeyHint: "Copy your API key from Dropcontact under Settings → Your API key (API access requires a paid plan)." },
+  { name: "DuckDuckGo", category: "tool", blurb: "Free web search for the agents — no key needed. Used automatically when Firecrawl isn't connected.", provider: "duckduckgo", live: true, builtin: true },
   { name: "Emailable", category: "tool", blurb: "Verify email deliverability, with typo suggestions, before outreach.", provider: "emailable", live: true, auth: "apikey", apiKeyHint: "Copy your API key from the Emailable dashboard → API." },
   { name: "Fathom", category: "tool", blurb: "Read AI summaries and transcripts of your recorded calls.", provider: "fathom", live: true, auth: "apikey" },
   { name: "Findymail", category: "tool", blurb: "Find and verify B2B emails and mobile numbers for candidates and clients.", provider: "findymail", live: true, auth: "apikey", apiKeyHint: "Copy your API key from Findymail at app.findymail.com → API." },
@@ -238,6 +244,7 @@ export function connectorLabel(provider: string): string {
  *  Most providers use "<slug>_"; the exceptions drop dashes or abbreviate. */
 export function providerToolPrefix(provider: string): string {
   const exceptions: Record<string, string> = {
+    "jobin-cloud": "jobin_",
     "google-sheets": "googlesheets_",
     "microsoft-excel": "excel_",
     "microsoft-outlook": "outlook_",
@@ -276,6 +283,7 @@ export const CONNECTOR_DOMAINS: Record<string, string> = {
   greenhouse: "greenhouse.io",
   jazzhr: "jazzhr.com",
   jobadder: "jobadder.com",
+  "jobin-cloud": "jobin.cloud",
   lever: "lever.co",
   loxo: "loxo.co",
   manatal: "manatal.com",
@@ -318,6 +326,7 @@ export const CONNECTOR_DOMAINS: Record<string, string> = {
   copper: "copper.com",
   coresignal: "coresignal.com",
   dropcontact: "dropcontact.com",
+  duckduckgo: "duckduckgo.com",
   emailable: "emailable.com",
   fathom: "fathom.video",
   findymail: "findymail.com",

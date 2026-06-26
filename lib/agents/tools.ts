@@ -6,6 +6,7 @@ import { listDocuments, getDocument } from "../queries";
 import { appendProgressEntry } from "../sourcing-plan/progress";
 import { saveCandidate } from "../candidates/save";
 import { listCandidatesCompact } from "../candidates/queries";
+import { saveOutreachDraft } from "../outreach/drafts";
 import { adzunaAdapter } from "../integrations/adzuna";
 import { affinityAdapter } from "../integrations/affinity";
 import { aircallAdapter } from "../integrations/aircall";
@@ -38,6 +39,7 @@ import { folkAdapter } from "../integrations/folk";
 import { fullenrichAdapter } from "../integrations/fullenrich";
 import { githubAdapter } from "../integrations/github";
 import { firecrawlScrape, firecrawlSearch } from "../integrations/firecrawl";
+import { duckduckgoSearch } from "../integrations/duckduckgo";
 import { gmailAdapter } from "../integrations/gmail";
 import { gongAdapter } from "../integrations/gong";
 import { googleSheetsAdapter } from "../integrations/google-sheets";
@@ -49,6 +51,7 @@ import { insightlyAdapter } from "../integrations/insightly";
 import { instantlyAdapter } from "../integrations/instantly";
 import { jazzhrAdapter } from "../integrations/jazzhr";
 import { jobadderAdapter } from "../integrations/jobadder";
+import { jobinAdapter } from "../integrations/jobin";
 import { klentyAdapter } from "../integrations/klenty";
 import { leadmagicAdapter } from "../integrations/leadmagic";
 import { lemlistAdapter } from "../integrations/lemlist";
@@ -120,6 +123,9 @@ export interface ToolContext extends ConnectorTokens {
    *  Shortlist run loop track progress toward the goal. Optional: only the
    *  Sourcing Agent provides it. */
   savedCandidateIds?: string[];
+  /** Outreach drafts written this run (mutated by calyflow_save_outreach_draft).
+   *  Optional: only the Outreach agent provides it. */
+  savedDraftIds?: string[];
 }
 
 const READ_DOC_CHAR_CAP = 8_000;
@@ -538,9 +544,24 @@ function buildAll(ctx: ToolContext): ToolSet {
         limit: z.number().int().positive().optional().describe("Max results (default 10, max 30)."),
       }),
       execute: async (args) => {
-        if (!ctx.firecrawlKey)
-          return { error: "Web search is unavailable — connect Firecrawl in Settings → Connectors (or set FIRECRAWL_API_KEY)." };
-        const { results } = await firecrawlSearch(ctx.firecrawlKey, args);
+        // Prefer Firecrawl (richer); fall back to keyless DuckDuckGo so web
+        // search always works even without a Firecrawl connection. If Firecrawl
+        // errors or returns nothing, try DuckDuckGo before giving up.
+        let results: { url: string; title?: string; description?: string }[] = [];
+        if (ctx.firecrawlKey) {
+          try {
+            results = (await firecrawlSearch(ctx.firecrawlKey, args)).results;
+          } catch {
+            results = [];
+          }
+        }
+        if (results.length === 0) {
+          try {
+            results = (await duckduckgoSearch(args)).results;
+          } catch {
+            results = [];
+          }
+        }
         if (results.length === 0) return { text: "_No results._", count: 0 };
         return {
           text: results
@@ -1975,6 +1996,42 @@ function buildAll(ctx: ToolContext): ToolSet {
       execute: async (args) => {
         if (!ctx.jobadderToken) return { error: notConnected("JobAdder") };
         return jobadderAdapter.listJobApplications(ctx.jobadderToken, args);
+      },
+    }),
+
+    jobin_search_candidates: tool({
+      description:
+        "Search the connected Jobin Cloud candidate database. Filter by role title, " +
+        "name, email, or a profile URL (LinkedIn) — combine filters to narrow. With " +
+        "no filters it returns recent candidates. Returns a Markdown table (name, " +
+        "title, company, email, location, LinkedIn).",
+      inputSchema: z.object({
+        roleTitle: z
+          .string()
+          .optional()
+          .describe("Current or previous role title to match (2-256 chars)."),
+        firstName: z.string().optional().describe("Candidate first name."),
+        lastName: z.string().optional().describe("Candidate last name."),
+        email: z.string().optional().describe("Filter by email address."),
+        socialUrl: z
+          .string()
+          .optional()
+          .describe("Filter by a profile URL, e.g. a LinkedIn profile."),
+        limit: z.number().int().positive().optional().describe("Max 100 (default 25)."),
+      }),
+      execute: async (args) => {
+        if (!ctx.jobinToken) return { error: notConnected("Jobin Cloud") };
+        return jobinAdapter.searchCandidates(ctx.jobinToken, args);
+      },
+    }),
+    jobin_list_campaigns: tool({
+      description:
+        "List the outreach campaigns (sequences) in the connected Jobin Cloud " +
+        "workspace, with status and contact counts. Returns a Markdown table.",
+      inputSchema: z.object({}),
+      execute: async () => {
+        if (!ctx.jobinToken) return { error: notConnected("Jobin Cloud") };
+        return jobinAdapter.listCampaigns(ctx.jobinToken);
       },
     }),
 
@@ -3759,6 +3816,39 @@ function buildAll(ctx: ToolContext): ToolSet {
         };
       },
     }),
+    calyflow_save_outreach_draft: tool({
+      description:
+        "Save a personalized outreach EMAIL draft for one candidate (the recruiter " +
+        "reviews and sends it later — you never send). Pass the candidate's `id` " +
+        "(exactly as given in '# Candidates to draft for'), plus a plain-text " +
+        "`subject` and `body`. The recipient is taken from the candidate's stored " +
+        "email automatically — you never type an address. Call once per candidate; " +
+        "re-saving replaces that candidate's un-sent draft.",
+      inputSchema: z.object({
+        candidateId: z.string().describe("The candidate's id from the context."),
+        subject: z.string().min(1).max(200).describe("Email subject line."),
+        body: z.string().min(1).max(10_000).describe("Plain-text email body."),
+      }),
+      execute: async ({ candidateId, subject, body }) => {
+        try {
+          const result = await saveOutreachDraft({
+            workspaceId: ctx.workspaceId,
+            projectId: ctx.projectId,
+            userId: ctx.userId,
+            candidateId,
+            subject,
+            body,
+          });
+          ctx.savedDraftIds?.push(result.id);
+          return { draftId: result.id, to: result.to, replaced: result.replaced };
+        } catch (err) {
+          return {
+            skipped:
+              err instanceof Error ? err.message : "Could not save the draft.",
+          };
+        }
+      },
+    }),
   };
 }
 
@@ -3887,6 +3977,8 @@ export const ALL_TOOL_NAMES = [
   "jobadder_list_jobs",
   "jobadder_search_candidates",
   "jobadder_list_job_applications",
+  "jobin_search_candidates",
+  "jobin_list_campaigns",
   "lever_list_postings",
   "lever_list_opportunities",
   "klenty_list_cadences",
@@ -3997,6 +4089,7 @@ export const ALL_TOOL_NAMES = [
   "calyflow_log_sourcing_progress",
   "calyflow_save_candidate",
   "calyflow_list_candidates",
+  "calyflow_save_outreach_draft",
 ] as const;
 
 // Outreach / write tools the main Sourcing Agent must NOT use — it sources and
@@ -4011,6 +4104,8 @@ const SOURCING_AGENT_TOOL_DENYLIST = new Set<string>([
   // The Shortlist run loop appends the progress-log line itself on finish, so
   // the agent must not also log (would double-write).
   "calyflow_log_sourcing_progress",
+  // Outreach drafting is its own agent/page — not the sourcing agent's job.
+  "calyflow_save_outreach_draft",
 ]);
 
 /**

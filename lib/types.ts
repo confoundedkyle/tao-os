@@ -396,6 +396,10 @@ export interface AgentRun {
 
 export type CandidateStatus = "sourced" | "qualified" | "rejected";
 
+/** Recruiter's human verdict on a candidate's fit (separate from the agent's
+ *  score/status). Fed back into future sourcing runs. */
+export type CandidateFeedback = "accepted" | "rejected";
+
 /** A sourced candidate. Standardized columns power the list/goal/dedupe; `raw`
  *  holds whatever ad-hoc fields the data source returned (queryable JSONB). */
 export interface Candidate {
@@ -411,6 +415,12 @@ export interface Candidate {
   status: CandidateStatus;
   raw: Record<string, unknown>;
   storage_path: string | null;
+  /** Recruiter fit verdict — null until reviewed. */
+  feedback: CandidateFeedback | null;
+  /** Why the candidate isn't a fit (set with a 'rejected' verdict). */
+  feedback_reason: string | null;
+  feedback_at: string | null;
+  feedback_by: string | null;
   created_by: string | null;
   created_at: string;
 }
@@ -431,6 +441,52 @@ export interface ShortlistRun {
   cost_usd: number | null;
   candidates_added: number | null;
   qualified_after: number | null;
+  created_by: string | null;
+  created_at: string;
+}
+
+// --- Outreach (email drafts) ---
+
+export type OutreachDraftStatus = "draft" | "sent" | "rejected" | "failed";
+
+/** One reviewable outreach email draft for a candidate. The drafting agent
+ *  writes it; a human-triggered send action dispatches it. */
+export interface OutreachDraft {
+  id: string;
+  workspace_id: string;
+  project_id: string;
+  candidate_id: string;
+  to_email: string | null;
+  to_name: string | null;
+  subject: string | null;
+  body: string | null;
+  status: OutreachDraftStatus;
+  edited: boolean;
+  /** Mailbox used to send (gmail | microsoft-outlook), set on send. */
+  provider: string | null;
+  sent_message_id: string | null;
+  error: string | null;
+  sent_at: string | null;
+  reviewed_by: string | null;
+  created_by: string | null;
+  created_at: string;
+}
+
+/** One Outreach drafting run (a "Draft outreach" click). */
+export interface OutreachRun {
+  id: string;
+  project_id: string;
+  status: "running" | "succeeded" | "failed";
+  steps: AgentRunStep[] | null;
+  output_text: string | null;
+  error_message: string | null;
+  provider: string | null;
+  model: string | null;
+  input_tokens: number | null;
+  output_tokens: number | null;
+  cache_read_tokens: number | null;
+  cost_usd: number | null;
+  drafts_created: number | null;
   created_by: string | null;
   created_at: string;
 }
