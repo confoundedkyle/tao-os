@@ -29,6 +29,7 @@ import {
 } from "../agents/connector-tokens";
 import {
   countQualified,
+  listCandidates,
   listCandidatesCompact,
   listCandidateFeedback,
 } from "../candidates/queries";
@@ -38,11 +39,104 @@ import {
   recordConnectorCreditUsage,
 } from "./spend";
 import { appendProgressEntry } from "../sourcing-plan/progress";
-import type { AgentRunStep, Client, Project, Workspace } from "../types";
+import type {
+  AgentRunStep,
+  Candidate,
+  Client,
+  Project,
+  Workspace,
+} from "../types";
 
 // A single Continue/Start sourcing run can chase the goal across many tool
 // calls, so give it generous headroom; the goal and budget gates stop it sooner.
 const STEP_CAP = 80;
+// A run is two phases sharing one step/budget pool: FIND (breadth) sources
+// widely, then VERIFY (depth) enriches and re-scores the best finds. Reserve a
+// slice of the pool for FIND so VERIFY always has resources left.
+const FIND_STEP_FRACTION = 0.6;
+const FIND_BUDGET_FRACTION = 0.6;
+
+// The continuation nudge for the FIND phase: act, don't narrate; keep sourcing.
+const FIND_NUDGE =
+  "Keep going — you have NOT reached the qualified goal and still have budget " +
+  "and steps. Do NOT write a plan, a status update, or a summary now: your next " +
+  "output must be tool calls, not prose. Run the next wave immediately — " +
+  "title/stack/location variants and channels you haven't tried yet " +
+  "(GitHub-via-web, Stack Overflow, target-company team pages) — and save every " +
+  "scored candidate (partial snippet evidence is enough). Don't re-source anyone " +
+  "already saved. Only finish when the goal is met or you have truly exhausted " +
+  "distinct angles.";
+
+// The continuation nudge for the VERIFY phase: keep enriching, don't widen.
+const VERIFY_NUDGE =
+  "Keep verifying — do NOT add new names. Continue enriching and re-scoring the " +
+  "remaining candidates from the list with real evidence (web_scrape their " +
+  "GitHub/personal site, targeted searches per unverified criterion), then " +
+  "re-save each with calyflow_save_candidate. Your next output must be tool " +
+  "calls, not prose.";
+
+/** One compact line describing a saved candidate, for the verify/diagnosis
+ *  prompts: name · title · company · location — score — best profile URL. */
+function candidateLine(c: Candidate): string {
+  const raw = (c.raw ?? {}) as Record<string, unknown>;
+  const str = (k: string): string | undefined =>
+    typeof raw[k] === "string" ? (raw[k] as string) : undefined;
+  const url =
+    c.linkedin ||
+    str("github") ||
+    str("github_url") ||
+    str("portfolio") ||
+    str("url") ||
+    "";
+  const bits = [c.name ?? "Unnamed", str("title"), str("company"), str("location")]
+    .filter(Boolean)
+    .join(" · ");
+  return `- ${bits} — score ${c.score ?? "?"}${url ? ` — ${url}` : ""}`;
+}
+
+/** VERIFY-phase opening prompt: enrich + re-score the top saved finds, no new
+ *  names. */
+function verifyPromptFor(top: Candidate[], goal: number | null): string {
+  return (
+    "VERIFY MODE. Do NOT search for or add any NEW names. Your job now is to " +
+    "VERIFY and re-score the most promising candidates already saved, with real " +
+    "evidence, against the qualification criteria.\n\n" +
+    "For EACH candidate below: gather evidence on the criteria you couldn't see " +
+    "from the snippet — web_scrape their GitHub / personal site / Stack Overflow " +
+    'profile, and run targeted web_search queries pairing their name with each ' +
+    'UNVERIFIED criterion (e.g. "<name> Databricks", "<name> FastAPI Celery"). ' +
+    "Then re-save them with calyflow_save_candidate (same name/linkedin so it " +
+    "updates in place): an updated score, an evidence-cited rationale, and " +
+    "qualified set HONESTLY from what the evidence actually shows. Never invent " +
+    "experience the source doesn't show.\n\n" +
+    `Top saved candidates to verify (goal: ${goal ?? "?"} qualified):\n` +
+    top.map(candidateLine).join("\n")
+  );
+}
+
+/** DIAGNOSE-phase prompt (tool-free): the structured escalation when a run ends
+ *  short of the qualified goal. Diagnose & recommend only — never auto-qualify. */
+function diagnosisPromptFor(
+  top: Candidate[],
+  qualifiedNow: number,
+  goal: number | null,
+): string {
+  return (
+    "The run is ending below the qualified goal " +
+    `(${qualifiedNow} qualified of ${goal ?? "?"}). Do NOT call any tools now — ` +
+    "write your final STRUCTURED DIAGNOSIS as plain text, per your harness:\n" +
+    "1. Binding knock-out — the single criterion blocking the most otherwise-" +
+    "strong candidates.\n" +
+    "2. Near-miss count — how many candidates met everything EXCEPT that one.\n" +
+    "3. A specific recommended relaxation (e.g. move X from knock-out to a " +
+    "weighted criterion) and roughly how many would then qualify.\n" +
+    "4. The ranked best candidates for the recruiter to review — one line each " +
+    "with the evidence.\n" +
+    "Do NOT mark anyone qualified or relax the rubric yourself — only recommend.\n\n" +
+    "Top saved candidates (scored):\n" +
+    top.map(candidateLine).join("\n")
+  );
+}
 
 export interface ShortlistRunParams {
   workspace: Workspace;
@@ -99,6 +193,17 @@ function statusBlock(
   if (budgetUsd != null) {
     lines.push(
       `- Budget spent: $${spentUsd.toFixed(2)} of $${budgetUsd.toFixed(2)}`,
+    );
+  }
+  // When prior runs found plenty of people but none qualified, the gap is
+  // verification, not reach — steer this run toward depth from the start.
+  if (totalCandidates >= 5 && qualified === 0) {
+    lines.push(
+      "- NOTE: prior runs found people but NONE qualified. The gap is " +
+        "verification, not reach. Prioritise enriching and re-scoring the top " +
+        "saved prospects (web_scrape their GitHub/personal site, targeted " +
+        "searches per unverified criterion) over finding more new names — and if " +
+        "the rubric is genuinely unreachable, diagnose the binding knock-out.",
     );
   }
   return (
@@ -244,18 +349,17 @@ export async function runShortlistSourcing(
       const tools = buildTools(ctx, SOURCING_AGENT_TOOLS);
 
       // Stop when the project hits its qualified goal (total, so resumes count
-      // earlier runs). `isGoalMet` is the plain predicate the loop checks;
-      // `goalReached` wraps it as a per-step StopCondition for generateText.
+      // earlier runs). `isGoalMet` is the plain predicate; `goalReached` wraps it
+      // as a per-step StopCondition for generateText.
       const isGoalMet = async (): Promise<boolean> => {
         if (!goalQualified || goalQualified <= 0) return false;
         return (await countQualified(projectId)) >= goalQualified;
       };
       const goalReached: StopCondition<ToolSet> = () => isGoalMet();
 
-      // Fetch the model's pricing ONCE so the per-step budget guard below can
-      // estimate spend without a DB round-trip on every step. Falls back to "no
-      // estimate" (cost 0 → no in-step cap) if pricing is unknown; the between-
-      // round gate and step cap still bound the run.
+      // Fetch the model's pricing ONCE so the budget guards estimate spend without
+      // a DB round-trip on every step. Falls back to "no estimate" (cost 0 → no
+      // in-step cap) if pricing is unknown; the phase ceilings still bound the run.
       const catalogProvider =
         provider === "calyflow" ? env.platformProvider : provider;
       const { data: priceRow } = await db()
@@ -285,134 +389,209 @@ export async function runShortlistSourcing(
         );
       };
 
-      // The model tends to wrap up after a single "wave" even with budget and
-      // steps to spare — emitting a "next waves I will run…" plan instead of
-      // actually running them. So drive it in rounds: after each call returns
-      // short of the goal, carry the full conversation forward with a "keep going"
-      // nudge and run another wave. Two guards make this robust to a model that
-      // narrates instead of acting: `prepareStep` forces a tool call on the first
-      // step of every round (so a round always *attempts* sourcing, never just
-      // talks), and we only conclude "exhausted" after TWO consecutive rounds that
-      // add nobody new — one dry wave isn't proof the role is tapped out. Other
-      // hard stops: goal met, step cap, budget spent, deadline, round ceiling.
+      // Keep the whole run inside the 600s function budget, leaving headroom for
+      // the final status/cost/progress-log writes after it.
       const MAX_ROUNDS = 8;
-      // Keep the whole multi-round loop inside the 600s function budget, leaving
-      // headroom for the final status/cost/progress-log writes after it.
       const deadline = Date.now() + 555_000;
-      let messages: ModelMessage[] = [{ role: "user", content: userPrompt }];
       let stepsUsed = 0;
       let spentThisRun = 0;
-      let dryRounds = 0;
       const agg = { inputTokens: 0, outputTokens: 0, cachedInputTokens: 0 };
 
-      // Hard budget cap WITHIN a round: stop the agent the moment cumulative spend
-      // (prior runs + earlier rounds + this round so far) reaches the USD budget,
-      // so a single long round can't overshoot before the between-round check.
-      const budgetStop: StopCondition<ToolSet> = ({ steps: callSteps }) => {
-        if (params.budgetUsd == null || params.budgetUsd <= 0) return false;
-        let inputTokens = 0;
-        let outputTokens = 0;
-        let cachedInputTokens = 0;
-        for (const s of callSteps) {
-          inputTokens += s.usage?.inputTokens ?? 0;
-          outputTokens += s.usage?.outputTokens ?? 0;
-          cachedInputTokens +=
-            (s.usage as { cachedInputTokens?: number })?.cachedInputTokens ?? 0;
-        }
-        const callCost = estimateCost({
-          inputTokens,
-          outputTokens,
-          cachedInputTokens,
-        });
-        return spent + spentThisRun + callCost >= params.budgetUsd;
-      };
-
-      for (let round = 0; round < MAX_ROUNDS; round++) {
-        if (await isGoalMet()) break;
-        if (stepsUsed >= STEP_CAP) break;
-        if (params.budgetUsd != null && spent + spentThisRun >= params.budgetUsd)
-          break;
-        const remainingMs = deadline - Date.now();
-        if (remainingMs < 20_000) break; // not enough time for another wave
-
-        const savedBefore = ctx.savedCandidateIds?.length ?? 0;
-        const result = await generateText({
-          model: lm,
-          system: systemPrompt,
-          messages,
-          tools,
-          stopWhen: [stepCountIs(STEP_CAP - stepsUsed), goalReached, budgetStop],
-          // Force the round to ACT first — never let it open with a planning
-          // essay and stop. Step 0 must be a tool call; later steps are free.
-          prepareStep: ({ stepNumber }) =>
-            stepNumber === 0 ? { toolChoice: "required" } : undefined,
-          abortSignal: AbortSignal.timeout(Math.min(540_000, remainingMs)),
-          onStepFinish: async ({ toolCalls, toolResults }) => {
-            for (const call of toolCalls ?? []) {
-              steps.push({
-                type: "tool-call",
-                tool: call.toolName,
-                summary: summarize(call.input),
-              });
-            }
-            for (const res of toolResults ?? []) {
-              steps.push({
-                type: "tool-result",
-                tool: res.toolName,
-                summary: summarize(res.output),
-              });
-            }
-            // Persist the growing trace so the UI poll shows live progress.
-            await db()
-              .from("shortlist_runs")
-              .update({ steps })
-              .eq("id", runId)
-              .then(undefined, () => {});
-          },
-        });
-
-        outputText = result.text || outputText;
-        stepsUsed += result.steps.length;
-        const u = result.totalUsage;
+      const addUsage = (u: {
+        inputTokens?: number;
+        outputTokens?: number;
+        cachedInputTokens?: number;
+      }): void => {
         agg.inputTokens += u.inputTokens ?? 0;
         agg.outputTokens += u.outputTokens ?? 0;
-        agg.cachedInputTokens +=
-          (u as { cachedInputTokens?: number }).cachedInputTokens ?? 0;
-        spentThisRun += estimateCost({
-          inputTokens: u.inputTokens,
-          outputTokens: u.outputTokens,
-          cachedInputTokens: (u as { cachedInputTokens?: number })
-            .cachedInputTokens,
-        });
+        agg.cachedInputTokens += u.cachedInputTokens ?? 0;
+        spentThisRun += estimateCost(u);
+      };
 
-        if (await isGoalMet()) break;
-        const addedThisRound =
-          (ctx.savedCandidateIds?.length ?? 0) - savedBefore;
-        // One dry wave isn't proof the role is tapped out — only stop after two
-        // consecutive rounds that searched (a tool call is forced) yet added
-        // nobody new.
-        dryRounds = addedThisRound === 0 ? dryRounds + 1 : 0;
-        if (dryRounds >= 2) break;
+      // Hard budget cap WITHIN a round, against a phase ceiling: stop the agent
+      // the moment cumulative spend reaches the ceiling, so a long round can't
+      // overshoot before the between-round check.
+      const makeBudgetStop =
+        (ceiling: number | null): StopCondition<ToolSet> =>
+        ({ steps: callSteps }) => {
+          if (ceiling == null || ceiling <= 0) return false;
+          let inputTokens = 0;
+          let outputTokens = 0;
+          let cachedInputTokens = 0;
+          for (const s of callSteps) {
+            inputTokens += s.usage?.inputTokens ?? 0;
+            outputTokens += s.usage?.outputTokens ?? 0;
+            cachedInputTokens +=
+              (s.usage as { cachedInputTokens?: number })?.cachedInputTokens ??
+              0;
+          }
+          return (
+            spent +
+              spentThisRun +
+              estimateCost({ inputTokens, outputTokens, cachedInputTokens }) >=
+            ceiling
+          );
+        };
 
-        // Goal unmet — carry the full context (tool calls and all) forward and
-        // push another wave. Be blunt: act, don't narrate.
-        messages = [
-          ...messages,
-          ...result.response.messages,
-          {
-            role: "user",
-            content:
-              "Keep going — you have NOT reached the qualified goal and still " +
-              "have budget and steps. Do NOT write a plan, a status update, or a " +
-              "summary now: your next output must be tool calls, not prose. Run " +
-              "the next wave immediately — title/stack/location variants and " +
-              "channels you haven't tried yet (GitHub-via-web, Stack Overflow, " +
-              "target-company team pages) — and save every scored candidate " +
-              "(partial snippet evidence is enough). Don't re-source anyone " +
-              "already saved. Only finish when the goal is met or you have truly " +
-              "exhausted distinct angles.",
-          },
-        ];
+      const hasResources = (budgetCeiling: number | null): boolean =>
+        stepsUsed < STEP_CAP &&
+        deadline - Date.now() > 20_000 &&
+        (budgetCeiling == null || spent + spentThisRun < budgetCeiling);
+
+      // One phase = the multi-round continuation loop, bounded by a step + budget
+      // ceiling. `prepareStep` forces a tool call on step 0 so a round always acts
+      // (never opens with a planning essay); we only conclude "exhausted" after
+      // two consecutive rounds that add nobody new — one dry wave isn't proof the
+      // angle is tapped out.
+      const runPhase = async (opts: {
+        initialMessages: ModelMessage[];
+        continuationNudge: string;
+        stepCeiling: number;
+        budgetCeiling: number | null;
+      }): Promise<void> => {
+        const budgetStop = makeBudgetStop(opts.budgetCeiling);
+        let messages = opts.initialMessages;
+        let dryRounds = 0;
+        for (let round = 0; round < MAX_ROUNDS; round++) {
+          if (await isGoalMet()) break;
+          if (stepsUsed >= opts.stepCeiling) break;
+          if (
+            opts.budgetCeiling != null &&
+            spent + spentThisRun >= opts.budgetCeiling
+          )
+            break;
+          const remainingMs = deadline - Date.now();
+          if (remainingMs < 20_000) break; // not enough time for another wave
+
+          const savedBefore = ctx.savedCandidateIds?.length ?? 0;
+          const result = await generateText({
+            model: lm,
+            system: systemPrompt,
+            messages,
+            tools,
+            stopWhen: [
+              stepCountIs(opts.stepCeiling - stepsUsed),
+              goalReached,
+              budgetStop,
+            ],
+            // Force the round to ACT first — never let it open with a planning
+            // essay and stop. Step 0 must be a tool call; later steps are free.
+            prepareStep: ({ stepNumber }) =>
+              stepNumber === 0 ? { toolChoice: "required" } : undefined,
+            abortSignal: AbortSignal.timeout(Math.min(540_000, remainingMs)),
+            onStepFinish: async ({ toolCalls, toolResults }) => {
+              for (const call of toolCalls ?? []) {
+                steps.push({
+                  type: "tool-call",
+                  tool: call.toolName,
+                  summary: summarize(call.input),
+                });
+              }
+              for (const res of toolResults ?? []) {
+                steps.push({
+                  type: "tool-result",
+                  tool: res.toolName,
+                  summary: summarize(res.output),
+                });
+              }
+              // Persist the growing trace so the UI poll shows live progress.
+              await db()
+                .from("shortlist_runs")
+                .update({ steps })
+                .eq("id", runId)
+                .then(undefined, () => {});
+            },
+          });
+
+          outputText = result.text || outputText;
+          stepsUsed += result.steps.length;
+          addUsage({
+            inputTokens: result.totalUsage.inputTokens,
+            outputTokens: result.totalUsage.outputTokens,
+            cachedInputTokens: (
+              result.totalUsage as { cachedInputTokens?: number }
+            ).cachedInputTokens,
+          });
+
+          if (await isGoalMet()) break;
+          const addedThisRound =
+            (ctx.savedCandidateIds?.length ?? 0) - savedBefore;
+          dryRounds = addedThisRound === 0 ? dryRounds + 1 : 0;
+          if (dryRounds >= 2) break;
+
+          // Goal unmet — carry the full context (tool calls and all) forward and
+          // push another wave. Be blunt: act, don't narrate.
+          messages = [
+            ...messages,
+            ...result.response.messages,
+            { role: "user", content: opts.continuationNudge },
+          ];
+        }
+      };
+
+      // ---- Phase 1: FIND (breadth) — reserve part of the pool for VERIFY ----
+      const findBudgetCeiling =
+        params.budgetUsd != null
+          ? params.budgetUsd * FIND_BUDGET_FRACTION
+          : null;
+      await runPhase({
+        initialMessages: [{ role: "user", content: userPrompt }],
+        continuationNudge: FIND_NUDGE,
+        stepCeiling: Math.round(STEP_CAP * FIND_STEP_FRACTION),
+        budgetCeiling: findBudgetCeiling,
+      });
+
+      // ---- Phase 2: VERIFY (depth) — enrich + re-score the top saved finds ----
+      const verifyK = Math.min(Math.max((goalQualified ?? 5) * 3, 5), 15);
+      if (!(await isGoalMet()) && hasResources(params.budgetUsd)) {
+        const top = (await listCandidates(projectId).catch(() => [])).slice(
+          0,
+          verifyK,
+        );
+        if (top.length > 0) {
+          await runPhase({
+            initialMessages: [
+              { role: "user", content: verifyPromptFor(top, goalQualified) },
+            ],
+            continuationNudge: VERIFY_NUDGE,
+            stepCeiling: STEP_CAP,
+            budgetCeiling: params.budgetUsd,
+          });
+        }
+      }
+
+      // ---- Phase 3: DIAGNOSE — structured escalation when short of goal ----
+      if (!(await isGoalMet()) && hasResources(params.budgetUsd)) {
+        try {
+          const [top, qualifiedNow] = await Promise.all([
+            listCandidates(projectId)
+              .then((c) => c.slice(0, verifyK))
+              .catch(() => [] as Candidate[]),
+            countQualified(projectId).catch(() => 0),
+          ]);
+          const diag = await generateText({
+            model: lm,
+            system: systemPrompt,
+            messages: [
+              {
+                role: "user",
+                content: diagnosisPromptFor(top, qualifiedNow, goalQualified),
+              },
+            ],
+            abortSignal: AbortSignal.timeout(
+              Math.min(120_000, Math.max(15_000, deadline - Date.now())),
+            ),
+          });
+          if (diag.text) outputText = diag.text;
+          addUsage({
+            inputTokens: diag.totalUsage.inputTokens,
+            outputTokens: diag.totalUsage.outputTokens,
+            cachedInputTokens: (diag.totalUsage as { cachedInputTokens?: number })
+              .cachedInputTokens,
+          });
+        } catch (err) {
+          console.warn("Shortlist: diagnosis step failed:", err);
+        }
       }
 
       usage = {
