@@ -252,6 +252,39 @@ export async function runShortlistSourcing(
       };
       const goalReached: StopCondition<ToolSet> = () => isGoalMet();
 
+      // Fetch the model's pricing ONCE so the per-step budget guard below can
+      // estimate spend without a DB round-trip on every step. Falls back to "no
+      // estimate" (cost 0 → no in-step cap) if pricing is unknown; the between-
+      // round gate and step cap still bound the run.
+      const catalogProvider =
+        provider === "calyflow" ? env.platformProvider : provider;
+      const { data: priceRow } = await db()
+        .from("model_catalog")
+        .select("pricing")
+        .eq("provider", catalogProvider)
+        .eq("model_id", model)
+        .maybeSingle();
+      const pricing = (priceRow?.pricing ?? null) as {
+        input?: number;
+        output?: number;
+        cache_read?: number;
+      } | null;
+      const estimateCost = (u: {
+        inputTokens?: number;
+        outputTokens?: number;
+        cachedInputTokens?: number;
+      }): number => {
+        if (!pricing?.input || !pricing?.output) return 0;
+        const cached = u.cachedInputTokens ?? 0;
+        const uncached = Math.max((u.inputTokens ?? 0) - cached, 0);
+        return (
+          (uncached * pricing.input +
+            (u.outputTokens ?? 0) * pricing.output +
+            cached * (pricing.cache_read ?? pricing.input)) /
+          1_000_000
+        );
+      };
+
       // The model tends to wrap up after a single "wave" even with budget and
       // steps to spare — emitting a "next waves I will run…" plan instead of
       // actually running them. So drive it in rounds: after each call returns
@@ -272,6 +305,28 @@ export async function runShortlistSourcing(
       let dryRounds = 0;
       const agg = { inputTokens: 0, outputTokens: 0, cachedInputTokens: 0 };
 
+      // Hard budget cap WITHIN a round: stop the agent the moment cumulative spend
+      // (prior runs + earlier rounds + this round so far) reaches the USD budget,
+      // so a single long round can't overshoot before the between-round check.
+      const budgetStop: StopCondition<ToolSet> = ({ steps: callSteps }) => {
+        if (params.budgetUsd == null || params.budgetUsd <= 0) return false;
+        let inputTokens = 0;
+        let outputTokens = 0;
+        let cachedInputTokens = 0;
+        for (const s of callSteps) {
+          inputTokens += s.usage?.inputTokens ?? 0;
+          outputTokens += s.usage?.outputTokens ?? 0;
+          cachedInputTokens +=
+            (s.usage as { cachedInputTokens?: number })?.cachedInputTokens ?? 0;
+        }
+        const callCost = estimateCost({
+          inputTokens,
+          outputTokens,
+          cachedInputTokens,
+        });
+        return spent + spentThisRun + callCost >= params.budgetUsd;
+      };
+
       for (let round = 0; round < MAX_ROUNDS; round++) {
         if (await isGoalMet()) break;
         if (stepsUsed >= STEP_CAP) break;
@@ -286,7 +341,7 @@ export async function runShortlistSourcing(
           system: systemPrompt,
           messages,
           tools,
-          stopWhen: [stepCountIs(STEP_CAP - stepsUsed), goalReached],
+          stopWhen: [stepCountIs(STEP_CAP - stepsUsed), goalReached, budgetStop],
           // Force the round to ACT first — never let it open with a planning
           // essay and stop. Step 0 must be a tool call; later steps are free.
           prepareStep: ({ stepNumber }) =>
@@ -323,8 +378,12 @@ export async function runShortlistSourcing(
         agg.outputTokens += u.outputTokens ?? 0;
         agg.cachedInputTokens +=
           (u as { cachedInputTokens?: number }).cachedInputTokens ?? 0;
-        spentThisRun +=
-          (await computeCostUsd(provider, model, u).catch(() => 0)) ?? 0;
+        spentThisRun += estimateCost({
+          inputTokens: u.inputTokens,
+          outputTokens: u.outputTokens,
+          cachedInputTokens: (u as { cachedInputTokens?: number })
+            .cachedInputTokens,
+        });
 
         if (await isGoalMet()) break;
         const addedThisRound =
