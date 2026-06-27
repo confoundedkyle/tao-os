@@ -9,11 +9,19 @@ import {
   getLanguageModel,
   resolveRunProviders,
 } from "@/lib/providers";
-import { connectorLabel } from "@/lib/connectors";
+import {
+  CONNECTORS,
+  CONNECTOR_CATEGORY_LABELS,
+  connectorInCategory,
+  connectorLabel,
+  type ConnectorCategory,
+} from "@/lib/connectors";
+import { MODULES, type ModuleKey } from "@/lib/types";
 import {
   getActiveSourcingPlan,
   getProject,
   getUserPreferences,
+  listActiveModuleKeys,
   listConnections,
 } from "@/lib/queries";
 import { connectedProvidersFrom } from "@/lib/run-items";
@@ -80,8 +88,68 @@ function connectorsBlock(providers: string[]): string {
   const lines = providers.map((p) => `- ${connectorLabel(p)}`).join("\n");
   return (
     "# Active connectors\nThe workspace can action these connected data sources " +
-    "— prioritise channels and steps the recruiter can execute with them, and " +
-    "flag valuable options that need a connector they don't have:\n" +
+    "— these are the ones the Sourcing Agent can RUN right now, so write the " +
+    "concrete executable steps (§2) against them:\n" +
+    lines
+  );
+}
+
+// Sourcing-relevant connector categories — agents source/enrich through these.
+// Email senders (a separate Outreach step) and team-comms (human community work,
+// §3) are deliberately excluded: §2 proposes how the AGENTS source.
+const SOURCING_CONNECTOR_CATEGORIES: ConnectorCategory[] = [
+  "ats",
+  "crm",
+  "data",
+  "tool",
+];
+
+/** Reasonable-to-activate connectors the workspace hasn't connected yet, grouped
+ *  by category — so the plan can propose what to switch on for THIS role (the
+ *  model decides fit; clear non-fits it notes briefly). */
+function availableConnectorsBlock(connected: Set<string>): string {
+  const lines: string[] = [];
+  for (const category of SOURCING_CONNECTOR_CATEGORIES) {
+    const names = CONNECTORS.filter(
+      (c) =>
+        c.live &&
+        !c.builtin &&
+        c.provider != null &&
+        !connected.has(c.provider) &&
+        connectorInCategory(c, category),
+    ).map((c) => c.name);
+    if (names.length) {
+      lines.push(
+        `- **${CONNECTOR_CATEGORY_LABELS[category]}:** ${names.join(", ")}`,
+      );
+    }
+  }
+  if (lines.length === 0) return "";
+  return (
+    "# Connectors available to activate (not connected yet)\nCalyflow also " +
+    "offers these connectors the workspace has NOT connected. For any that fit " +
+    "THIS role, propose activating it in §2 (Settings → Connectors) with a " +
+    "concrete use; note clear non-fits briefly. The agent can't run them until " +
+    "connected, so don't write runnable tool blocks for these. Email senders " +
+    "are excluded — outreach is a separate step:\n" +
+    lines.join("\n")
+  );
+}
+
+/** The workspace's Calyflow modules (ATS / CRM / Talent Pool) and their state,
+ *  so the plan searches internal candidate data first when one is on. */
+function modulesBlock(active: ModuleKey[]): string {
+  const set = new Set(active);
+  const lines = MODULES.map(
+    (m) =>
+      `- **${m.label}** — ${set.has(m.key) ? "✅ active" : "⚪ not active"}: ${m.description}`,
+  ).join("\n");
+  return (
+    "# Calyflow modules (internal candidate data)\nCalyflow's own candidate " +
+    "areas for this workspace. When the ATS or Target Talent Pool module is " +
+    "active, the agent searches it FIRST — re-engaging people you already have " +
+    "is the cheapest source. When not active, note in §2 that activating it " +
+    "would unlock that internal pool:\n" +
     lines
   );
 }
@@ -182,7 +250,14 @@ export async function POST(request: NextRequest) {
   try {
     const connections = await listConnections(session.workspaceId);
     const providers = [...connectedProvidersFrom(connections)];
-    systemPrompt = `${systemPrompt}\n\n${connectorsBlock(providers)}`;
+    const connected = new Set(providers);
+    const activeModules = await listActiveModuleKeys(session.workspaceId);
+    const parts = [
+      connectorsBlock(providers),
+      modulesBlock(activeModules),
+      availableConnectorsBlock(connected),
+    ].filter(Boolean);
+    systemPrompt = `${systemPrompt}\n\n${parts.join("\n\n")}`;
   } catch (err) {
     console.warn("Sourcing plan: connectors block failed:", err);
   }
@@ -276,7 +351,7 @@ export async function POST(request: NextRequest) {
           outputText =
             `# Sourcing Plan: ${project.name} (mock)\n\n` +
             "**Mock run** (MOCK_AI=true): no provider or tools were called.\n\n" +
-            "## 7. What we DON'T do\n- Mock entry.";
+            "## 3. What Calyflow agents CAN'T do\n- Mock entry.";
           controller.enqueue(ndjson({ type: "text", value: outputText }));
           usage = { inputTokens: 500, outputTokens: 80, cachedInputTokens: 0 };
         } else {
