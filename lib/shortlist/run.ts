@@ -1,5 +1,11 @@
 import "server-only";
-import { generateText, stepCountIs, type StopCondition, type ToolSet } from "ai";
+import {
+  generateText,
+  stepCountIs,
+  type ModelMessage,
+  type StopCondition,
+  type ToolSet,
+} from "ai";
 import { db } from "../db";
 import { env } from "../env";
 import { computeCostUsd, getLanguageModel } from "../providers";
@@ -224,8 +230,11 @@ export async function runShortlistSourcing(
     const userPrompt =
       "Source candidates for this project following your harness. Save each one " +
       "with calyflow_save_candidate (scored 0-100 against the qualification " +
-      "criteria). Stop when the qualified goal is reached, then give a one-line " +
-      "summary of what you did.";
+      "criteria; partial evidence from a search snippet is enough to save). Keep " +
+      "running fresh waves — new title/stack/location variants and new channels — " +
+      "until the qualified goal is reached or you have genuinely exhausted the " +
+      "distinct angles. Do NOT stop after one wave to say 'more waves are needed' " +
+      "— run those waves now.";
 
     if (env.mockAi) {
       outputText = "**Mock shortlist run** (MOCK_AI=true): no tools were called.";
@@ -235,49 +244,107 @@ export async function runShortlistSourcing(
       const tools = buildTools(ctx, SOURCING_AGENT_TOOLS);
 
       // Stop when the project hits its qualified goal (total, so resumes count
-      // earlier runs), or the step cap, whichever comes first.
-      const goalReached: StopCondition<ToolSet> = async () => {
+      // earlier runs). `isGoalMet` is the plain predicate the loop checks;
+      // `goalReached` wraps it as a per-step StopCondition for generateText.
+      const isGoalMet = async (): Promise<boolean> => {
         if (!goalQualified || goalQualified <= 0) return false;
         return (await countQualified(projectId)) >= goalQualified;
       };
+      const goalReached: StopCondition<ToolSet> = () => isGoalMet();
 
-      const result = await generateText({
-        model: lm,
-        system: systemPrompt,
-        messages: [{ role: "user", content: userPrompt }],
-        tools,
-        stopWhen: [stepCountIs(STEP_CAP), goalReached],
-        abortSignal: AbortSignal.timeout(540_000),
-        onStepFinish: async ({ toolCalls, toolResults }) => {
-          for (const call of toolCalls ?? []) {
-            steps.push({
-              type: "tool-call",
-              tool: call.toolName,
-              summary: summarize(call.input),
-            });
-          }
-          for (const res of toolResults ?? []) {
-            steps.push({
-              type: "tool-result",
-              tool: res.toolName,
-              summary: summarize(res.output),
-            });
-          }
-          // Persist the growing trace so the UI poll shows live progress.
-          await db()
-            .from("shortlist_runs")
-            .update({ steps })
-            .eq("id", runId)
-            .then(undefined, () => {});
-        },
-      });
-      outputText = result.text;
-      const total = result.totalUsage;
+      // The model tends to wrap up after a single "wave" even with budget and
+      // steps to spare — emitting a "more waves needed" summary instead of doing
+      // them. So drive it in rounds: after each call returns short of the goal,
+      // carry the full conversation forward with a "keep going" nudge and run
+      // another wave. Hard stops: goal met, step cap, budget spent, a round that
+      // adds nobody new (genuine exhaustion), or the round ceiling.
+      const MAX_ROUNDS = 6;
+      // Keep the whole multi-round loop inside the 600s function budget, leaving
+      // headroom for the final status/cost/progress-log writes after it.
+      const deadline = Date.now() + 555_000;
+      let messages: ModelMessage[] = [{ role: "user", content: userPrompt }];
+      let stepsUsed = 0;
+      let spentThisRun = 0;
+      const agg = { inputTokens: 0, outputTokens: 0, cachedInputTokens: 0 };
+
+      for (let round = 0; round < MAX_ROUNDS; round++) {
+        if (await isGoalMet()) break;
+        if (stepsUsed >= STEP_CAP) break;
+        if (params.budgetUsd != null && spent + spentThisRun >= params.budgetUsd)
+          break;
+        const remainingMs = deadline - Date.now();
+        if (remainingMs < 20_000) break; // not enough time for another wave
+
+        const savedBefore = ctx.savedCandidateIds?.length ?? 0;
+        const result = await generateText({
+          model: lm,
+          system: systemPrompt,
+          messages,
+          tools,
+          stopWhen: [stepCountIs(STEP_CAP - stepsUsed), goalReached],
+          abortSignal: AbortSignal.timeout(Math.min(540_000, remainingMs)),
+          onStepFinish: async ({ toolCalls, toolResults }) => {
+            for (const call of toolCalls ?? []) {
+              steps.push({
+                type: "tool-call",
+                tool: call.toolName,
+                summary: summarize(call.input),
+              });
+            }
+            for (const res of toolResults ?? []) {
+              steps.push({
+                type: "tool-result",
+                tool: res.toolName,
+                summary: summarize(res.output),
+              });
+            }
+            // Persist the growing trace so the UI poll shows live progress.
+            await db()
+              .from("shortlist_runs")
+              .update({ steps })
+              .eq("id", runId)
+              .then(undefined, () => {});
+          },
+        });
+
+        outputText = result.text || outputText;
+        stepsUsed += result.steps.length;
+        const u = result.totalUsage;
+        agg.inputTokens += u.inputTokens ?? 0;
+        agg.outputTokens += u.outputTokens ?? 0;
+        agg.cachedInputTokens +=
+          (u as { cachedInputTokens?: number }).cachedInputTokens ?? 0;
+        spentThisRun +=
+          (await computeCostUsd(provider, model, u).catch(() => 0)) ?? 0;
+
+        if (await isGoalMet()) break;
+        const addedThisRound =
+          (ctx.savedCandidateIds?.length ?? 0) - savedBefore;
+        if (addedThisRound === 0) break; // re-prompting won't conjure new people
+
+        // Progress made but goal unmet — carry the full context (tool calls and
+        // all) forward and push another wave.
+        messages = [
+          ...messages,
+          ...result.response.messages,
+          {
+            role: "user",
+            content:
+              "You have NOT reached the qualified goal yet, and you still have " +
+              "budget and steps left. Do not stop. Run more waves NOW: pick " +
+              "title/stack/location variants and channels you haven't tried yet " +
+              "(GitHub-via-web, Stack Overflow, target-company team pages), and " +
+              "keep saving every scored candidate. Don't re-source anyone already " +
+              "saved. Only finish when the goal is met or the distinct angles are " +
+              "genuinely exhausted.",
+          },
+        ];
+      }
+
       usage = {
-        inputTokens: total.inputTokens,
-        outputTokens: total.outputTokens,
-        cachedInputTokens: (total as { cachedInputTokens?: number })
-          .cachedInputTokens,
+        inputTokens: agg.inputTokens,
+        outputTokens: agg.outputTokens,
+        cachedInputTokens: agg.cachedInputTokens,
       };
     }
   } catch (error) {
