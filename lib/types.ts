@@ -428,6 +428,48 @@ export interface Candidate {
   created_at: string;
 }
 
+/** One Sourcing Plan generation/revision turn. */
+export interface SourcingPlanRun {
+  id: string;
+  project_id: string;
+  conversation_id: string | null;
+  status: "running" | "succeeded" | "failed";
+  task: string | null;
+  steps: AgentRunStep[] | null;
+  output_text: string | null;
+  output_doc_id: string | null;
+  error_message: string | null;
+  provider: string | null;
+  model: string | null;
+  input_tokens: number | null;
+  output_tokens: number | null;
+  cache_read_tokens: number | null;
+  cost_usd: number | null;
+  created_by: string | null;
+  created_at: string;
+}
+
+/** One Qualification generation/revision turn. */
+export interface QualificationRun {
+  id: string;
+  project_id: string;
+  conversation_id: string | null;
+  status: "running" | "succeeded" | "failed";
+  task: string | null;
+  steps: AgentRunStep[] | null;
+  output_text: string | null;
+  output_doc_id: string | null;
+  error_message: string | null;
+  provider: string | null;
+  model: string | null;
+  input_tokens: number | null;
+  output_tokens: number | null;
+  cache_read_tokens: number | null;
+  cost_usd: number | null;
+  created_by: string | null;
+  created_at: string;
+}
+
 /** One Shortlist sourcing run (Start/Continue click). */
 export interface ShortlistRun {
   id: string;

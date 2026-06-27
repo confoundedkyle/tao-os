@@ -1,14 +1,21 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { checkBudgets } from "@/lib/budgets";
-import { listRecentAgentRuns, listRecentRuns } from "@/lib/queries";
+import {
+  listRecentAgentRuns,
+  listRecentPipelineRuns,
+  listRecentRuns,
+  type PipelineStepKind,
+} from "@/lib/queries";
 import { env } from "@/lib/env";
 import Link from "next/link";
 import { ButtonLink, Card, Chip, Mono } from "@/components/ui";
 
+type RowKind = "workflow" | "agent" | PipelineStepKind;
+
 interface RecentRow {
   id: string;
-  kind: "workflow" | "agent";
+  kind: RowKind;
   name: string;
   model: string | null;
   tokens: number;
@@ -20,6 +27,17 @@ interface RecentRow {
   /** Link to the document the run produced, if any. */
   docHref: string | null;
 }
+
+/** Chip label + tone + project subpage for each pipeline step kind. */
+const PIPELINE_STEP_META: Record<
+  PipelineStepKind,
+  { label: string; tone: "mint" | "lavender" | "amber" | "sky"; subpage: string }
+> = {
+  "sourcing-plan": { label: "Sourcing Plan", tone: "lavender", subpage: "sourcing-plan" },
+  qualification: { label: "Qualification", tone: "amber", subpage: "qualification" },
+  shortlist: { label: "Shortlist", tone: "mint", subpage: "shortlist" },
+  outreach: { label: "Outreach", tone: "sky", subpage: "outreach" },
+};
 
 function Meter({ fraction }: { fraction: number }) {
   const pct = Math.min(Math.round(fraction * 100), 100);
@@ -35,13 +53,14 @@ function Meter({ fraction }: { fraction: number }) {
 export default async function UsagePage() {
   const session = await getSession();
   if (!session) redirect("/sign-in");
-  const [budget, workflowRuns, agentRuns] = await Promise.all([
+  const [budget, workflowRuns, agentRuns, pipelineRuns] = await Promise.all([
     checkBudgets(session.workspace, "calyflow"),
     listRecentRuns(session.workspaceId, 20),
     listRecentAgentRuns(session.workspaceId, 20),
+    listRecentPipelineRuns(session.workspaceId, 20),
   ]);
 
-  // Merge workflow + agent runs into one recency-sorted feed.
+  // Merge workflow + agent + sourcing-pipeline runs into one recency-sorted feed.
   const runs: RecentRow[] = [
     ...workflowRuns.map((r) => ({
       id: r.id,
@@ -67,6 +86,26 @@ export default async function UsagePage() {
       href: `/agent-runs/${r.id}`,
       docHref: r.output_doc_id ? `/document/${r.output_doc_id}` : null,
     })),
+    ...pipelineRuns.map((r) => {
+      const meta = PIPELINE_STEP_META[r.kind];
+      const name = r.project ? `${meta.label} · ${r.project.name}` : meta.label;
+      const href =
+        r.project?.clientId && r.project
+          ? `/clients/${r.project.clientId}/projects/${r.project.id}/${meta.subpage}`
+          : null;
+      return {
+        id: r.id,
+        kind: r.kind,
+        name,
+        model: r.model,
+        tokens: (r.input_tokens ?? 0) + (r.output_tokens ?? 0),
+        cost: r.cost_usd != null ? Number(r.cost_usd) : null,
+        status: r.status ?? "—",
+        createdAt: r.created_at,
+        href,
+        docHref: r.output_doc_id ? `/document/${r.output_doc_id}` : null,
+      };
+    }),
   ]
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
     .slice(0, 20);
@@ -158,8 +197,20 @@ export default async function UsagePage() {
                 >
                   <td className="py-2">
                     <span className="flex items-center gap-2">
-                      <Chip tone={run.kind === "agent" ? "sky" : "navy"}>
-                        {run.kind === "agent" ? "Agent" : "Workflow"}
+                      <Chip
+                        tone={
+                          run.kind === "workflow"
+                            ? "navy"
+                            : run.kind === "agent"
+                              ? "sky"
+                              : PIPELINE_STEP_META[run.kind].tone
+                        }
+                      >
+                        {run.kind === "workflow"
+                          ? "Workflow"
+                          : run.kind === "agent"
+                            ? "Agent"
+                            : PIPELINE_STEP_META[run.kind].label}
                       </Chip>
                       {run.href ? (
                         <Link

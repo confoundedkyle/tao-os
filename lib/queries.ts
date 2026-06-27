@@ -926,6 +926,82 @@ export async function listRecentAgentRuns(
   })[];
 }
 
+/** The four sourcing-pipeline steps each record their own AI spend in a
+ *  dedicated `*_runs` table (not `workflow_runs`/`agent_runs`), so the Usage
+ *  page has to read them too — otherwise their spend shows in the credit total
+ *  but never in the per-run breakdown. */
+export type PipelineStepKind =
+  | "sourcing-plan"
+  | "qualification"
+  | "shortlist"
+  | "outreach";
+
+export interface RecentPipelineRun {
+  id: string;
+  kind: PipelineStepKind;
+  status: string | null;
+  model: string | null;
+  input_tokens: number | null;
+  output_tokens: number | null;
+  cost_usd: number | null;
+  output_doc_id: string | null;
+  created_at: string;
+  project: { id: string; name: string; clientId: string | null } | null;
+}
+
+const PIPELINE_STEP_TABLES: { kind: PipelineStepKind; table: string }[] = [
+  { kind: "sourcing-plan", table: "sourcing_plan_runs" },
+  { kind: "qualification", table: "qualification_runs" },
+  { kind: "shortlist", table: "shortlist_runs" },
+  { kind: "outreach", table: "outreach_runs" },
+];
+
+/** Recent runs across all four sourcing-pipeline steps, workspace-scoped via
+ *  the project's client. Each step table is queried for its own newest rows;
+ *  the caller merges and re-sorts the combined feed. */
+export async function listRecentPipelineRuns(
+  workspaceId: string,
+  limitPerKind = 20,
+): Promise<RecentPipelineRun[]> {
+  const perTable = await Promise.all(
+    PIPELINE_STEP_TABLES.map(async ({ kind, table }) => {
+      const { data, error } = await db()
+        .from(table)
+        .select(
+          "*, project:projects!inner(id, name, client:clients!inner(id, workspace_id))",
+        )
+        .eq("project.client.workspace_id", workspaceId)
+        .order("created_at", { ascending: false })
+        .limit(limitPerKind);
+      if (error) throw error;
+      return (data ?? []).map((r: Record<string, unknown>) => {
+        const project = r.project as
+          | { id: string; name: string; client: { id: string } | null }
+          | null;
+        return {
+          id: r.id as string,
+          kind,
+          status: (r.status as string | null) ?? null,
+          model: (r.model as string | null) ?? null,
+          input_tokens: (r.input_tokens as number | null) ?? null,
+          output_tokens: (r.output_tokens as number | null) ?? null,
+          cost_usd: (r.cost_usd as number | null) ?? null,
+          output_doc_id: (r.output_doc_id as string | null) ?? null,
+          created_at: r.created_at as string,
+          project: project
+            ? {
+                id: project.id,
+                name: project.name,
+                clientId: project.client?.id ?? null,
+              }
+            : null,
+        } satisfies RecentPipelineRun;
+      });
+    }),
+  );
+  return perTable.flat();
+}
+
 // --- Activatable workspace modules ---
 
 export async function listModules(
