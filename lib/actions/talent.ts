@@ -17,6 +17,7 @@ export async function createProspectAction(formData: FormData): Promise<string> 
     .insert({
       workspace_id: session.workspaceId,
       name,
+      job_title: optional(formData.get("job_title")),
       email: optional(formData.get("email")),
       phone: optional(formData.get("phone")),
       country: optional(formData.get("country")),
@@ -44,6 +45,7 @@ export async function updateProspectAction(formData: FormData) {
     .from("talent_prospects")
     .update({
       name,
+      job_title: optional(formData.get("job_title")),
       email: optional(formData.get("email")),
       phone: optional(formData.get("phone")),
       country: optional(formData.get("country")),

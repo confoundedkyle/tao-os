@@ -38,6 +38,7 @@ export default async function ProspectPage({
 
       <Card className="mb-6">
         <dl className="grid gap-3 sm:grid-cols-2">
+          <Detail label="Job title" value={prospect.job_title} />
           <Detail label="Email" value={prospect.email} />
           <Detail label="Phone" value={prospect.phone} />
           <Detail label="Location" value={location || null} />

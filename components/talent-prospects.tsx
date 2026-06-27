@@ -90,6 +90,13 @@ export function TalentProspects({
             <Field label="Name">
               <input name="name" required className={inputClass} />
             </Field>
+            <Field label="Job title">
+              <input
+                name="job_title"
+                className={inputClass}
+                placeholder="e.g. Senior Python Engineer"
+              />
+            </Field>
             <Field label="LinkedIn URL">
               <input
                 name="linkedin_url"
@@ -247,6 +254,14 @@ function ProspectRow({
               className={inputClass}
             />
           </Field>
+          <Field label="Job title">
+            <input
+              name="job_title"
+              defaultValue={prospect.job_title ?? ""}
+              className={inputClass}
+              placeholder="e.g. Senior Python Engineer"
+            />
+          </Field>
           <Field label="LinkedIn URL">
             <input
               name="linkedin_url"
@@ -314,6 +329,11 @@ function ProspectRow({
         >
           {prospect.name}
         </Link>
+        {prospect.job_title && (
+          <p className="mt-0.5 text-sm font-medium text-navy-800/70">
+            {prospect.job_title}
+          </p>
+        )}
         <p className="mt-0.5 text-sm text-navy-800/55">
           {[location, prospect.email, prospect.phone]
             .filter(Boolean)

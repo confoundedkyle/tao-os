@@ -280,6 +280,7 @@ export interface TalentProspect {
   id: string;
   workspace_id: string;
   name: string;
+  job_title: string | null;
   email: string | null;
   phone: string | null;
   country: string | null;
