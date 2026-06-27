@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireSession } from "../auth";
 import { db } from "../db";
+import { meteredConnectors } from "../connectors";
 import { getProject } from "../queries";
 import type { CandidateFeedback } from "../types";
 
@@ -32,6 +33,39 @@ export async function setSourcingTargetsAction(
       sourcing_goal_qualified: goal,
       sourcing_budget_usd: budget,
     })
+    .eq("id", projectId);
+  if (error) throw error;
+
+  revalidatePath(
+    `/clients/${project.client_id}/projects/${projectId}/shortlist`,
+  );
+}
+
+/** Set (or clear, with null) the project's per-project spend cap for ONE metered
+ *  connector, in that connector's native unit. Merges into the
+ *  sourcing_connector_budgets jsonb without disturbing the other providers. */
+export async function setConnectorBudgetAction(
+  projectId: string,
+  provider: string,
+  cap: number | null,
+): Promise<void> {
+  const session = await requireSession();
+  const project = await getProject(session.workspaceId, projectId);
+  if (!project) throw new Error("Project not found");
+  // Only accept providers that are actually metered, so the jsonb stays clean.
+  if (!meteredConnectors([provider]).length) {
+    throw new Error(`${provider} is not a metered connector`);
+  }
+
+  const budgets = { ...(project.sourcing_connector_budgets ?? {}) };
+  const clean =
+    cap != null && Number.isFinite(cap) && cap > 0 ? Math.floor(cap) : null;
+  if (clean == null) delete budgets[provider];
+  else budgets[provider] = clean;
+
+  const { error } = await db()
+    .from("projects")
+    .update({ sourcing_connector_budgets: budgets })
     .eq("id", projectId);
   if (error) throw error;
 

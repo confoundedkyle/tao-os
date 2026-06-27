@@ -9,10 +9,17 @@ import {
   getLanguageModel,
   resolveRunProviders,
 } from "../providers";
-import { CONNECTOR_REQUIREMENT_PREFIX } from "../connectors";
+import {
+  CONNECTOR_REQUIREMENT_PREFIX,
+  effectiveConnectorCaps,
+} from "../connectors";
 import type { Client, Project, WorkspaceAgent } from "../types";
 import { buildTools, type ToolContext } from "./tools";
 import { resolveConnectorTokens, resolveFirecrawlKey } from "./connector-tokens";
+import {
+  connectorSpendByProvider,
+  recordConnectorCreditUsage,
+} from "../shortlist/spend";
 import { contextBlock, personalBlock } from "./prompt";
 
 export interface HeadlessRunResult {
@@ -104,6 +111,28 @@ export async function runAgentHeadless(params: {
     .single();
   const runId = (run?.id as string | undefined) ?? null;
 
+  // Per-connector spend caps + a usage recorder, but only for project-scoped
+  // runs (workspace-level automations have no project to bill against).
+  let creditCaps: Record<string, { cap: number; remaining: number }> | undefined;
+  let recordCreditUsage: ToolContext["recordCreditUsage"];
+  if (project) {
+    const projectId = project.id;
+    const prior = await connectorSpendByProvider(projectId);
+    creditCaps = effectiveConnectorCaps(
+      project.sourcing_connector_budgets ?? {},
+      prior,
+    );
+    recordCreditUsage = (prov, credits, detail) =>
+      recordConnectorCreditUsage({
+        workspaceId,
+        projectId,
+        shortlistRunId: null,
+        provider: prov,
+        credits,
+        detail,
+      });
+  }
+
   const ctx: ToolContext = {
     workspaceId,
     projectId: project?.id ?? "",
@@ -112,6 +141,8 @@ export async function runAgentHeadless(params: {
     ...connectorTokens,
     firecrawlKey: await resolveFirecrawlKey(workspaceId),
     createdDocIds: [],
+    creditCaps,
+    recordCreditUsage,
   };
 
   // Assemble the same project/KB + personal context the interactive route uses.

@@ -3,7 +3,7 @@ import { generateText, stepCountIs, type StopCondition, type ToolSet } from "ai"
 import { db } from "../db";
 import { env } from "../env";
 import { computeCostUsd, getLanguageModel } from "../providers";
-import { connectorLabel } from "../connectors";
+import { connectorLabel, effectiveConnectorCaps } from "../connectors";
 import {
   getActiveSourcingPlan,
   getUserPreferences,
@@ -27,6 +27,10 @@ import {
   listCandidateFeedback,
 } from "../candidates/queries";
 import { formatFeedbackBlock } from "../candidates/feedback";
+import {
+  connectorSpendByProvider,
+  recordConnectorCreditUsage,
+} from "./spend";
 import { appendProgressEntry } from "../sourcing-plan/progress";
 import type { AgentRunStep, Client, Project, Workspace } from "../types";
 
@@ -135,6 +139,14 @@ export async function runShortlistSourcing(
     cachedInputTokens: undefined as number | undefined,
   };
 
+  // Per-connector spend caps: the effective cap (project budget or sensible
+  // default) minus what's already been spent. A metered tool clamps to `remaining`.
+  const priorConnectorSpend = await connectorSpendByProvider(projectId);
+  const creditCaps = effectiveConnectorCaps(
+    project.sourcing_connector_budgets ?? {},
+    priorConnectorSpend,
+  );
+
   const ctx: ToolContext = {
     workspaceId,
     projectId,
@@ -144,6 +156,16 @@ export async function runShortlistSourcing(
     firecrawlKey: await resolveFirecrawlKey(workspaceId),
     createdDocIds: [],
     savedCandidateIds: [],
+    creditCaps,
+    recordCreditUsage: (prov, credits, detail) =>
+      recordConnectorCreditUsage({
+        workspaceId,
+        projectId,
+        shortlistRunId: runId,
+        provider: prov,
+        credits,
+        detail,
+      }),
   };
 
   try {

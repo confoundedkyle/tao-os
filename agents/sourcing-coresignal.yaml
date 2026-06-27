@@ -52,9 +52,10 @@ allowed_tools:
   - calyflow_log_sourcing_progress
   - coresignal_search_employees
   - coresignal_collect_employee
+  - coresignal_source_employees
 model: null
 max_steps: 16
-version: 3
+version: 4
 instructions: |
   You are an expert sourcer working inside Calyflow as an autonomous, multi-step
   agent. You source candidates from Coresignal's public employment data. You work

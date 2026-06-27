@@ -8,9 +8,19 @@ import remarkGfm from "remark-gfm";
 import {
   setSourcingTargetsAction,
   setCandidateFeedbackAction,
+  setConnectorBudgetAction,
 } from "@/lib/actions/shortlist";
 import type { Candidate, CandidateFeedback, ShortlistRun } from "@/lib/types";
 import { Button, inputClass } from "./ui";
+
+/** One metered connector's spend row: cap (stored or default) + spend so far. */
+export interface ConnectorBudgetRowData {
+  provider: string;
+  name: string;
+  unit: string;
+  cap: number | null;
+  spent: number;
+}
 
 interface RunState {
   id: string;
@@ -53,6 +63,7 @@ export function ShortlistPanel({
   goalQualified,
   budgetUsd,
   spentUsd,
+  connectorBudgets,
   hasPlan,
   hasCriteria,
   sourcingPlanHref,
@@ -66,6 +77,7 @@ export function ShortlistPanel({
   goalQualified: number | null;
   budgetUsd: number | null;
   spentUsd: number;
+  connectorBudgets: ConnectorBudgetRowData[];
   hasPlan: boolean;
   hasCriteria: boolean;
   sourcingPlanHref: string;
@@ -73,6 +85,7 @@ export function ShortlistPanel({
   initialRun: ShortlistRun | null;
 }) {
   const router = useRouter();
+  const [budgetsOpen, setBudgetsOpen] = useState(false);
   const [goal, setGoal] = useState(goalQualified != null ? String(goalQualified) : "");
   const [budget, setBudget] = useState(budgetUsd != null ? String(budgetUsd) : "");
   const [savePending, startSave] = useTransition();
@@ -291,7 +304,10 @@ export function ShortlistPanel({
               </div>
               <p className="mt-1 text-xs text-navy-800/50">
                 ${spentUsd.toFixed(2)} spent
-                {budgetNum ? ` of $${budgetNum.toFixed(2)}` : ""}
+                {budgetNum ? ` of $${budgetNum.toFixed(2)}` : ""} · AI model usage
+                {connectorBudgets.length > 0
+                  ? " (data-source credits below)"
+                  : ""}
               </p>
             </div>
           </div>
@@ -324,6 +340,58 @@ export function ShortlistPanel({
           </div>
         </div>
       </div>
+
+      {/* Data-source spend limits — only for connected, metered connectors.
+          Collapsed by default so simple setups keep the clean two-field view. */}
+      {connectorBudgets.length > 0 && (
+        <div className="mt-4 rounded-panel border border-navy-800/12 bg-white">
+          <button
+            type="button"
+            onClick={() => setBudgetsOpen((o) => !o)}
+            className="flex w-full items-center justify-between gap-3 px-5 py-3.5 text-left"
+            aria-expanded={budgetsOpen}
+          >
+            <span className="flex min-w-0 items-center gap-2">
+              <span aria-hidden className="text-xs text-navy-800/35">
+                {budgetsOpen ? "▾" : "▸"}
+              </span>
+              <span className="text-sm font-medium text-navy-800/70">
+                Data-source spend limits
+              </span>
+            </span>
+            {!budgetsOpen && (
+              <span className="truncate text-xs text-navy-800/45">
+                {connectorBudgets
+                  .slice(0, 3)
+                  .map((c) => `${c.name} ${c.cap ?? "—"} ${c.unit}`)
+                  .join(" · ")}
+                {connectorBudgets.length > 3
+                  ? ` · +${connectorBudgets.length - 3} more`
+                  : ""}
+              </span>
+            )}
+          </button>
+          {budgetsOpen && (
+            <div className="border-t border-navy-800/8 px-5 py-4">
+              <p className="mb-4 text-xs text-navy-800/50">
+                Cap how much each paid connector may spend on this project, in its
+                own units. Spend is tracked per run; the agent skips a connector
+                once its cap is reached.
+              </p>
+              <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2">
+                {connectorBudgets.map((row) => (
+                  <ConnectorBudgetRow
+                    key={row.provider}
+                    projectId={projectId}
+                    archived={archived}
+                    row={row}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Live trace while a run is in progress */}
       {running && (
@@ -413,6 +481,83 @@ export function ShortlistPanel({
             </table>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function ConnectorBudgetRow({
+  projectId,
+  archived,
+  row,
+}: {
+  projectId: string;
+  archived: boolean;
+  row: ConnectorBudgetRowData;
+}) {
+  const router = useRouter();
+  const [value, setValue] = useState(row.cap != null ? String(row.cap) : "");
+  const [pending, start] = useTransition();
+  const [tick, setTick] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  // Reflect what's typed (falls back to the loaded cap) so the bar moves live.
+  const capNum = value.trim() ? Number(value) : row.cap;
+  const pct = capNum && capNum > 0 ? Math.min(100, (row.spent / capNum) * 100) : 0;
+
+  function save() {
+    start(async () => {
+      try {
+        setErr(null);
+        const v = value.trim() ? Number(value) : null;
+        await setConnectorBudgetAction(projectId, row.provider, v);
+        setTick(true);
+        router.refresh();
+      } catch (e) {
+        setErr(e instanceof Error ? e.message : "Could not save");
+      }
+    });
+  }
+
+  return (
+    <div>
+      <label className="mb-1 block text-sm font-medium text-navy-800/70">
+        {row.name}{" "}
+        <span className="font-normal text-navy-800/40">— {row.unit}</span>
+      </label>
+      <input
+        type="number"
+        min={0}
+        value={value}
+        onChange={(e) => {
+          setValue(e.target.value);
+          setTick(false);
+        }}
+        onBlur={save}
+        disabled={archived}
+        placeholder={`e.g. ${row.cap ?? 50}`}
+        className={inputClass}
+      />
+      <div className="mt-2">
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-navy-800/8">
+          <div
+            className={`h-full rounded-full transition-all ${
+              pct >= 100 ? "bg-coral-400" : "bg-sky-400"
+            }`}
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+        <p className="mt-1 text-xs text-navy-800/50" aria-live="polite">
+          {err ? (
+            <span className="text-coral-400">{err}</span>
+          ) : (
+            <>
+              {row.spent} spent
+              {capNum ? ` of ${capNum}` : ""} {row.unit}
+              {pending ? " · saving…" : tick ? " · ✓ saved" : ""}
+            </>
+          )}
+        </p>
       </div>
     </div>
   );

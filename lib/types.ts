@@ -63,6 +63,9 @@ export interface Project {
   sourcing_goal_qualified: number | null;
   /** Shortlist budget in USD (same unit as AI run costs). */
   sourcing_budget_usd: number | null;
+  /** Per-connector spend caps in each connector's native unit, e.g.
+   *  { coresignal: 40, firecrawl: 100 }. Missing key = no cap. */
+  sourcing_connector_budgets: Record<string, number>;
   created_at: string;
 }
 

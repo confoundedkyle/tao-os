@@ -28,6 +28,7 @@ import { closeAdapter } from "../integrations/close";
 import { contactoutAdapter } from "../integrations/contactout";
 import { copperAdapter } from "../integrations/copper";
 import { coresignalAdapter } from "../integrations/coresignal";
+import { loadCoresignalLadder } from "../sourcing/coresignal-ladder";
 import { crelateAdapter } from "../integrations/crelate";
 import { discordAdapter } from "../integrations/discord";
 import { dropcontactAdapter } from "../integrations/dropcontact";
@@ -126,6 +127,17 @@ export interface ToolContext extends ConnectorTokens {
   /** Outreach drafts written this run (mutated by calyflow_save_outreach_draft).
    *  Optional: only the Outreach agent provides it. */
   savedDraftIds?: string[];
+  /** Per-provider spend caps for this run, in each connector's native unit:
+   *  `cap` is the project budget, `remaining` is cap minus prior spend. A metered
+   *  tool clamps its spend to `remaining`. Absent provider = no cap. */
+  creditCaps?: Record<string, { cap: number; remaining: number }>;
+  /** Record a metered tool call's spend against the run. Bound by the runner so
+   *  the tool needs no DB/run knowledge. Optional: present on sourcing runs. */
+  recordCreditUsage?: (
+    provider: string,
+    credits: number,
+    detail?: unknown,
+  ) => Promise<void>;
 }
 
 const READ_DOC_CHAR_CAP = 8_000;
@@ -468,6 +480,69 @@ function buildAll(ctx: ToolContext): ToolSet {
       execute: async ({ idOrShorthand }) => {
         if (!ctx.coresignalToken) return { error: notConnected("Coresignal") };
         return coresignalAdapter.collectEmployee(ctx.coresignalToken, idOrShorthand);
+      },
+    }),
+
+    coresignal_source_employees: tool({
+      description:
+        "Run a deterministic multi-tier Coresignal search ladder for ONE search intent and return a deduped, ranked shortlist of employee profiles. Call this ONCE per intent — it widens automatically from exact current title to adjacent titles to skills/keywords in code until it has enough unique candidates or hits the credit budget, dedupes across tiers, and hydrates only the top matches. Pass the title tiers and skills from your Sourcing Plan. Each search tier and each hydrated profile costs ~2 Coresignal credits; the tool caps spend at the project's Coresignal budget. Prefer this over looping coresignal_search_employees by hand.",
+      inputSchema: z.object({
+        currentTitles: z
+          .array(z.string())
+          .min(1)
+          .describe("Exact current job titles people hold for this role (tiers 1-2)."),
+        adjacentTitles: z
+          .array(z.string())
+          .optional()
+          .describe("Adjacent / synonymous titles, incl. recent past roles (tier 3)."),
+        skills: z
+          .array(z.string())
+          .optional()
+          .describe("Must-have skills / tools, e.g. ['ffmpeg','libvpx'] (tiers 4-5)."),
+        keywords: z
+          .string()
+          .optional()
+          .describe("Free-text keywords for description/headline/skills."),
+        companies: z
+          .array(z.string())
+          .optional()
+          .describe("Target current/past employers to boost (not a hard filter)."),
+        location: z.string().optional().describe("Target location (country and/or city)."),
+        seniority: z
+          .string()
+          .optional()
+          .describe("Optional seniority hint folded into title matching, e.g. 'Senior'."),
+        targetCount: z
+          .number()
+          .int()
+          .positive()
+          .optional()
+          .describe("Unique candidates to gather before stopping the ladder (default 25)."),
+        maxCollects: z
+          .number()
+          .int()
+          .positive()
+          .optional()
+          .describe("Top profiles to fully hydrate (default 8, max 15; each ~2 credits)."),
+        creditBudget: z
+          .number()
+          .int()
+          .positive()
+          .optional()
+          .describe("Hard credit ceiling for this call (default 40, max 80)."),
+      }),
+      execute: async (args) => {
+        if (!ctx.coresignalToken) return { error: notConnected("Coresignal") };
+        const spec = await loadCoresignalLadder();
+        return coresignalAdapter.sourceEmployees(
+          ctx.coresignalToken,
+          args,
+          spec,
+          ctx.creditCaps?.coresignal?.remaining ?? null,
+          (credits, detail) =>
+            ctx.recordCreditUsage?.("coresignal", credits, detail) ??
+            Promise.resolve(),
+        );
       },
     }),
 
@@ -3927,6 +4002,7 @@ export const ALL_TOOL_NAMES = [
   "contactout_email_verify",
   "coresignal_search_employees",
   "coresignal_collect_employee",
+  "coresignal_source_employees",
   "github_search_repos",
   "github_contributors",
   "github_forks",

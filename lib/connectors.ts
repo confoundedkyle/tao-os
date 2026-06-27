@@ -39,6 +39,16 @@ export interface Connector {
   apiKeyPlaceholder?: string;
   /** One-line help shown under the open API-key input: format + where to find it. */
   apiKeyHint?: string;
+  /** Priced per search/credit, so the recruiter can cap project spend on it
+   *  (separate from the AI-cost budget). Drives the Shortlist "Data-source spend
+   *  limits" rows. */
+  metered?: boolean;
+  /** Native spend unit for a metered connector, e.g. "credits" | "searches" |
+   *  "records". Cosmetic label on the budget row. */
+  unit?: string;
+  /** Sensible default per-project cap (in `unit`) pre-filled for a metered
+   *  connector before the recruiter overrides it. */
+  defaultBudget?: number;
 }
 
 export const CONNECTOR_CATEGORY_LABELS: Record<ConnectorCategory, string> = {
@@ -111,26 +121,26 @@ export const CONNECTORS: Connector[] = [
 
   // Tools (sourcing & outreach)
   { name: "Adzuna", category: "tool", blurb: "Search the job market and salary data for benchmarking and demand signals.", provider: "adzuna", live: true, auth: "apikey", apiKeyPlaceholder: "app-id:app-key", apiKeyHint: "Register for an app_id and app_key at developer.adzuna.com and paste them separated by a colon." },
-  { name: "Apollo", category: "tool", blurb: "Source contact data from the 270M-profile B2B database.", provider: "apollo", live: true, auth: "apikey" },
+  { name: "Apollo", category: "tool", blurb: "Source contact data from the 270M-profile B2B database.", provider: "apollo", live: true, auth: "apikey", metered: true, unit: "credits", defaultBudget: 50 },
   { name: "Avoma", category: "tool", blurb: "Read transcripts and AI notes from your recorded intake and screening calls.", provider: "avoma", live: true, auth: "apikey", apiKeyHint: "Create a scoped API key in Avoma under Settings → API." },
   { name: "Bouncer", category: "tool", blurb: "Verify email deliverability before reaching out.", provider: "bouncer", live: true, auth: "apikey", apiKeyHint: "Copy your API key from Bouncer under your account → API." },
-  { name: "Bright Data", category: "tool", blurb: "Enrich profiles with large-scale public web data.", provider: "brightdata", live: true, auth: "apikey" },
+  { name: "Bright Data", category: "tool", blurb: "Enrich profiles with large-scale public web data.", provider: "brightdata", live: true, auth: "apikey", metered: true, unit: "records", defaultBudget: 50 },
   { name: "Cal.com", category: "tool", blurb: "Read booked meetings and their attendees from the open-source scheduler.", provider: "calcom", live: true, auth: "apikey", apiKeyHint: "Create an API key in Cal.com under Settings → Developer → API keys (it starts with cal_)." },
   { name: "Calendly", category: "tool", blurb: "Read booked interview events and who scheduled them.", provider: "calendly", live: true, auth: "apikey", apiKeyHint: "Create a personal access token in Calendly under Integrations → API & Webhooks → Personal access tokens." },
-  { name: "ContactOut", category: "tool", blurb: "Find personal emails and phones behind LinkedIn profiles.", provider: "contactout", live: true, auth: "apikey" },
-  { name: "Coresignal", category: "tool", blurb: "Enrich candidates with fresh public employment data.", provider: "coresignal", live: true, auth: "apikey" },
-  { name: "Dropcontact", category: "tool", blurb: "Find and verify GDPR-compliant emails for European candidates and clients.", provider: "dropcontact", live: true, auth: "apikey", apiKeyHint: "Copy your API key from Dropcontact under Settings → Your API key (API access requires a paid plan)." },
+  { name: "ContactOut", category: "tool", blurb: "Find personal emails and phones behind LinkedIn profiles.", provider: "contactout", live: true, auth: "apikey", metered: true, unit: "credits", defaultBudget: 50 },
+  { name: "Coresignal", category: "tool", blurb: "Enrich candidates with fresh public employment data.", provider: "coresignal", live: true, auth: "apikey", metered: true, unit: "credits", defaultBudget: 40 },
+  { name: "Dropcontact", category: "tool", blurb: "Find and verify GDPR-compliant emails for European candidates and clients.", provider: "dropcontact", live: true, auth: "apikey", apiKeyHint: "Copy your API key from Dropcontact under Settings → Your API key (API access requires a paid plan).", metered: true, unit: "credits", defaultBudget: 50 },
   { name: "DuckDuckGo", category: "tool", blurb: "Free web search for the agents — no key needed. Used automatically when Firecrawl isn't connected.", provider: "duckduckgo", live: true, builtin: true },
   { name: "Emailable", category: "tool", blurb: "Verify email deliverability, with typo suggestions, before outreach.", provider: "emailable", live: true, auth: "apikey", apiKeyHint: "Copy your API key from the Emailable dashboard → API." },
   { name: "Fathom", category: "tool", blurb: "Read AI summaries and transcripts of your recorded calls.", provider: "fathom", live: true, auth: "apikey" },
-  { name: "Findymail", category: "tool", blurb: "Find and verify B2B emails and mobile numbers for candidates and clients.", provider: "findymail", live: true, auth: "apikey", apiKeyHint: "Copy your API key from Findymail at app.findymail.com → API." },
-  { name: "Firecrawl", category: "tool", blurb: "Power the agents' web search and clean-markdown page scraping with your own key.", provider: "firecrawl", live: true, auth: "apikey", apiKeyHint: "Copy your API key from firecrawl.dev under Settings → API Keys (it starts with fc-)." },
+  { name: "Findymail", category: "tool", blurb: "Find and verify B2B emails and mobile numbers for candidates and clients.", provider: "findymail", live: true, auth: "apikey", apiKeyHint: "Copy your API key from Findymail at app.findymail.com → API.", metered: true, unit: "credits", defaultBudget: 50 },
+  { name: "Firecrawl", category: "tool", blurb: "Power the agents' web search and clean-markdown page scraping with your own key.", provider: "firecrawl", live: true, auth: "apikey", apiKeyHint: "Copy your API key from firecrawl.dev under Settings → API Keys (it starts with fc-).", metered: true, unit: "searches", defaultBudget: 100 },
   { name: "Fireflies.ai", category: "tool", blurb: "Search interview and client-call transcripts and summaries.", provider: "fireflies", live: true, auth: "apikey" },
-  { name: "FullEnrich", category: "tool", blurb: "Find verified emails and mobile numbers through a 15+ vendor waterfall.", provider: "fullenrich", live: true, auth: "apikey", apiKeyHint: "Copy your API key from FullEnrich at app.fullenrich.com → API." },
+  { name: "FullEnrich", category: "tool", blurb: "Find verified emails and mobile numbers through a 15+ vendor waterfall.", provider: "fullenrich", live: true, auth: "apikey", apiKeyHint: "Copy your API key from FullEnrich at app.fullenrich.com → API.", metered: true, unit: "credits", defaultBudget: 50 },
   { name: "GitHub", category: "tool", blurb: "Source engineers from open-source repos — contributors, forkers, and commit-email contacts.", provider: "github", live: true, auth: "apikey", apiKeyHint: "Create a Personal Access Token at github.com → Settings → Developer settings → Personal access tokens (a classic token with the public_repo scope, or a fine-grained read-only token, is enough)." },
   { name: "Gong", category: "tool", blurb: "Read briefs and transcripts from your recorded sales and intake calls.", provider: "gong", live: true, auth: "apikey", apiKeyPlaceholder: "access-key:secret", apiKeyHint: "A Gong admin creates the access-key pair under company settings → Ecosystem → API; paste both parts separated by a colon." },
   { name: "Grain", category: "tool", blurb: "Read transcripts of your recorded interviews and intake calls.", provider: "grain", live: true, auth: "apikey", apiKeyHint: "Create a Personal Access Token in Grain under Settings → Integrations → Grain API." },
-  { name: "Hunter.io", category: "tool", blurb: "Find and verify work email addresses instantly.", provider: "hunter", live: true, auth: "apikey" },
+  { name: "Hunter.io", category: "tool", blurb: "Find and verify work email addresses instantly.", provider: "hunter", live: true, auth: "apikey", metered: true, unit: "credits", defaultBudget: 50 },
   { name: "Instantly.ai", category: "tool", blurb: "Scale cold email outreach with automated warm-up.", provider: "instantly", live: true, auth: "apikey" },
   { name: "Klenty", category: "tool", blurb: "Read sales cadences and prospect status from the outreach platform.", provider: "klenty", live: true, auth: "apikey", apiKeyPlaceholder: "your-login-email:api-key", apiKeyHint: "The key is in Klenty under Settings → API; pair it with the email of the Klenty user it belongs to." },
   { name: "LeadMagic", category: "tool", blurb: "Find and verify B2B emails, paying only for valid results.", provider: "leadmagic", live: true, auth: "apikey", apiKeyHint: "Copy your API key from LeadMagic under Settings → API." },
@@ -139,11 +149,11 @@ export const CONNECTORS: Connector[] = [
   { name: "Mailshake", category: "tool", blurb: "Read cold-email campaigns and their recipients for outreach context.", provider: "mailshake", live: true, auth: "apikey", apiKeyHint: "Copy your API key from Mailshake under Extensions → API." },
   { name: "MillionVerifier", category: "tool", blurb: "Verify email deliverability in bulk, cheaply, before outreach.", provider: "millionverifier", live: true, auth: "apikey", apiKeyHint: "Copy your API key from MillionVerifier under your account → API." },
   { name: "NeverBounce", category: "tool", blurb: "Verify email deliverability at scale before outreach.", provider: "neverbounce", live: true, auth: "apikey", apiKeyHint: "Copy your API key from NeverBounce under your account → Apps → Custom Integration (it starts with secret_)." },
-  { name: "Nymeria", category: "tool", blurb: "Enrich a person's emails and phone from a LinkedIn profile or email.", provider: "nymeria", live: true, auth: "apikey", apiKeyHint: "Copy your API key from Nymeria under Settings → API keys." },
-  { name: "People Data Labs", category: "tool", blurb: "Enrich and search billions of person profiles at scale.", provider: "peopledatalabs", live: true, auth: "apikey" },
-  { name: "Prospeo", category: "tool", blurb: "Find verified emails and mobile numbers for candidates and clients.", provider: "prospeo", live: true, auth: "apikey", apiKeyHint: "Copy your API key from Prospeo under Settings → API." },
+  { name: "Nymeria", category: "tool", blurb: "Enrich a person's emails and phone from a LinkedIn profile or email.", provider: "nymeria", live: true, auth: "apikey", apiKeyHint: "Copy your API key from Nymeria under Settings → API keys.", metered: true, unit: "credits", defaultBudget: 50 },
+  { name: "People Data Labs", category: "tool", blurb: "Enrich and search billions of person profiles at scale.", provider: "peopledatalabs", live: true, auth: "apikey", metered: true, unit: "credits", defaultBudget: 50 },
+  { name: "Prospeo", category: "tool", blurb: "Find verified emails and mobile numbers for candidates and clients.", provider: "prospeo", live: true, auth: "apikey", apiKeyHint: "Copy your API key from Prospeo under Settings → API.", metered: true, unit: "credits", defaultBudget: 50 },
   { name: "Reply.io", category: "tool", blurb: "Read multichannel outreach sequences and contacts to coordinate candidate and client follow-up.", provider: "replyio", live: true, auth: "apikey", apiKeyHint: "Copy your API key from Reply.io under Settings → API key." },
-  { name: "RocketReach", category: "tool", blurb: "Find emails and phones across 700M+ professional profiles.", provider: "rocketreach", live: true, auth: "apikey" },
+  { name: "RocketReach", category: "tool", blurb: "Find emails and phones across 700M+ professional profiles.", provider: "rocketreach", live: true, auth: "apikey", metered: true, unit: "credits", defaultBudget: 50 },
   { name: "SerpApi", category: "tool", blurb: "Run Google searches for candidate X-ray sourcing.", provider: "serpapi", live: true, auth: "apikey", apiKeyHint: "Copy your private API key from SerpApi under Your Account → API Key." },
   { name: "SignalHire", category: "tool", blurb: "Reveal candidate emails and phones with the recruiter-built contact finder.", provider: "signalhire", live: true, auth: "apikey", apiKeyHint: "Create the key in SignalHire under Integrations & API; the same credit pool is shared with the web app and extension." },
   { name: "Skrapp", category: "tool", blurb: "Find a verified work email from a name and company domain.", provider: "skrapp", live: true, auth: "apikey", apiKeyHint: "Copy your access key from Skrapp under Settings → API (requires a premium plan)." },
@@ -238,6 +248,51 @@ export function connectorsForCategory(
 /** Display name for a provider slug, from the catalog. */
 export function connectorLabel(provider: string): string {
   return CONNECTORS.find((c) => c.provider === provider)?.name ?? provider;
+}
+
+/** The metered (priced-per-search) connectors among a set of connected provider
+ *  slugs, in catalog order — drives the Shortlist "Data-source spend limits"
+ *  rows. Pass the workspace's active provider slugs (e.g. from
+ *  connectedProvidersFrom). */
+export function meteredConnectors(
+  connectedProviders: Iterable<string>,
+): Connector[] {
+  const set = new Set(connectedProviders);
+  return CONNECTORS.filter(
+    (c) => c.metered && c.provider != null && set.has(c.provider),
+  );
+}
+
+/** The effective per-provider cap for a metered connector: the project's stored
+ *  budget if set, else the connector's sensible default. So a metered connector
+ *  is always bounded — the recruiter raises/lowers it, never "unlimited". */
+export function effectiveConnectorCap(
+  provider: string,
+  storedBudgets: Record<string, number>,
+): number | null {
+  const c = CONNECTORS.find((x) => x.provider === provider && x.metered);
+  if (!c) return null;
+  return storedBudgets[provider] ?? c.defaultBudget ?? null;
+}
+
+/** Build the per-provider spend caps (cap + remaining) the sourcing run passes
+ *  to its tool context, across every metered connector. Pure + shared by both
+ *  runners so UI display and run-time enforcement agree. */
+export function effectiveConnectorCaps(
+  storedBudgets: Record<string, number>,
+  priorSpend: Record<string, number>,
+): Record<string, { cap: number; remaining: number }> {
+  const out: Record<string, { cap: number; remaining: number }> = {};
+  for (const c of CONNECTORS) {
+    if (!c.metered || !c.provider) continue;
+    const cap = storedBudgets[c.provider] ?? c.defaultBudget;
+    if (cap == null || cap <= 0) continue;
+    out[c.provider] = {
+      cap,
+      remaining: Math.max(0, cap - (priorSpend[c.provider] ?? 0)),
+    };
+  }
+  return out;
 }
 
 /** Provider slug → the prefix its agent tools use (lib/agents/tools.ts).

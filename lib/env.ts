@@ -214,6 +214,12 @@ export const env = {
   get outreachHarness() {
     return process.env.OUTREACH_HARNESS ?? "";
   },
+  /** Optional self-host fallback for the Coresignal search-ladder spec (the IP
+   *  tier strategy, JSON). Normally pulled from the private `system-config`
+   *  bucket. See lib/sourcing/coresignal-ladder.ts. */
+  get coresignalLadder() {
+    return process.env.CORESIGNAL_LADDER ?? "";
+  },
 };
 
 function required(name: string): string {
