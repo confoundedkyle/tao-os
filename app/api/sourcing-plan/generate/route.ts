@@ -13,18 +13,14 @@ import {
   CONNECTORS,
   CONNECTOR_CATEGORY_LABELS,
   connectorInCategory,
-  connectorLabel,
   type ConnectorCategory,
 } from "@/lib/connectors";
-import { MODULES, type ModuleKey } from "@/lib/types";
+import { MODULES } from "@/lib/types";
 import {
   getActiveSourcingPlan,
   getProject,
   getUserPreferences,
-  listActiveModuleKeys,
-  listConnections,
 } from "@/lib/queries";
-import { connectedProvidersFrom } from "@/lib/run-items";
 import { assembleContext } from "@/lib/context";
 import {
   parseEffort,
@@ -75,25 +71,6 @@ function summarize(value: unknown): string {
   return s.length > 300 ? `${s.slice(0, 300)}…` : s;
 }
 
-/** A block naming the workspace's active connectors, so the plan recommends
- *  channels the recruiter can actually action. */
-function connectorsBlock(providers: string[]): string {
-  if (providers.length === 0) {
-    return (
-      "# Active connectors\nThis workspace has no data-source connectors " +
-      "connected yet. Recommend channels that need no connector, and call out " +
-      "where connecting a tool (ATS, sourcing, email) would unlock more."
-    );
-  }
-  const lines = providers.map((p) => `- ${connectorLabel(p)}`).join("\n");
-  return (
-    "# Active connectors\nThe workspace can action these connected data sources " +
-    "— these are the ones the Sourcing Agent can RUN right now, so write the " +
-    "concrete executable steps (§2) against them:\n" +
-    lines
-  );
-}
-
 // Sourcing-relevant connector categories — agents source/enrich through these.
 // Email senders (a separate Outreach step) and team-comms (human community work,
 // §3) are deliberately excluded: §2 proposes how the AGENTS source.
@@ -104,19 +81,17 @@ const SOURCING_CONNECTOR_CATEGORIES: ConnectorCategory[] = [
   "tool",
 ];
 
-/** Reasonable-to-activate connectors the workspace hasn't connected yet, grouped
- *  by category — so the plan can propose what to switch on for THIS role (the
- *  model decides fit; clear non-fits it notes briefly). */
-function availableConnectorsBlock(connected: Set<string>): string {
+/** A status-FREE catalog of the connectors and modules Calyflow offers, grouped
+ *  by category. The Sourcing Plan is the strategy — a high-quality plan that may
+ *  or may not be executed — so it must NOT be tailored to which connectors happen
+ *  to be toggled on right now (they get enabled/disabled ad-hoc). This block is
+ *  just the menu the plan recommends from; the Sourcing Agent maps the plan onto
+ *  whatever is actually connected at run time. */
+function connectorCatalogBlock(): string {
   const lines: string[] = [];
   for (const category of SOURCING_CONNECTOR_CATEGORIES) {
     const names = CONNECTORS.filter(
-      (c) =>
-        c.live &&
-        !c.builtin &&
-        c.provider != null &&
-        !connected.has(c.provider) &&
-        connectorInCategory(c, category),
+      (c) => c.live && !c.builtin && connectorInCategory(c, category),
     ).map((c) => c.name);
     if (names.length) {
       lines.push(
@@ -124,33 +99,21 @@ function availableConnectorsBlock(connected: Set<string>): string {
       );
     }
   }
-  if (lines.length === 0) return "";
-  return (
-    "# Connectors available to activate (not connected yet)\nCalyflow also " +
-    "offers these connectors the workspace has NOT connected. For any that fit " +
-    "THIS role, propose activating it in §2 (Settings → Connectors) with a " +
-    "concrete use; note clear non-fits briefly. The agent can't run them until " +
-    "connected, so don't write runnable tool blocks for these. Email senders " +
-    "are excluded — outreach is a separate step:\n" +
-    lines.join("\n")
+  const modules = MODULES.map((m) => `- **${m.label}** — ${m.description}`).join(
+    "\n",
   );
-}
-
-/** The workspace's Calyflow modules (ATS / CRM / Talent Pool) and their state,
- *  so the plan searches internal candidate data first when one is on. */
-function modulesBlock(active: ModuleKey[]): string {
-  const set = new Set(active);
-  const lines = MODULES.map(
-    (m) =>
-      `- **${m.label}** — ${set.has(m.key) ? "✅ active" : "⚪ not active"}: ${m.description}`,
-  ).join("\n");
   return (
-    "# Calyflow modules (internal candidate data)\nCalyflow's own candidate " +
-    "areas for this workspace. When the ATS or Target Talent Pool module is " +
-    "active, the agent searches it FIRST — re-engaging people you already have " +
-    "is the cheapest source. When not active, note in §2 that activating it " +
-    "would unlock that internal pool:\n" +
-    lines
+    "# Connectors & modules Calyflow offers (your toolbox to recommend from)\n" +
+    "Do NOT tailor the plan to which of these are currently connected — connectors " +
+    "get enabled/disabled ad-hoc, and this plan is the STRATEGY, executed later by " +
+    "the Sourcing Agent against whatever is connected then. Recommend the tools " +
+    "that genuinely fit THIS role and say how you'd use each; skip the ones that " +
+    "don't fit. Do not add live on/off status labels. Email senders are excluded " +
+    "(outreach is a separate step).\n\n" +
+    "Connectors (by category):\n" +
+    lines.join("\n") +
+    "\n\nInternal candidate modules:\n" +
+    modules
   );
 }
 
@@ -243,24 +206,10 @@ export async function POST(request: NextRequest) {
   }
   const runId = run.id as string;
 
-  // Assemble the system prompt: harness (IP) + active connectors + project
-  // context (JD, KB, files) + recruiter details + effort guidance.
-  let systemPrompt = harness;
-
-  try {
-    const connections = await listConnections(session.workspaceId);
-    const providers = [...connectedProvidersFrom(connections)];
-    const connected = new Set(providers);
-    const activeModules = await listActiveModuleKeys(session.workspaceId);
-    const parts = [
-      connectorsBlock(providers),
-      modulesBlock(activeModules),
-      availableConnectorsBlock(connected),
-    ].filter(Boolean);
-    systemPrompt = `${systemPrompt}\n\n${parts.join("\n\n")}`;
-  } catch (err) {
-    console.warn("Sourcing plan: connectors block failed:", err);
-  }
+  // Assemble the system prompt: harness (IP) + the connector/module catalog
+  // (status-FREE — the plan is connector-agnostic strategy) + project context
+  // (JD, KB, files) + recruiter details + effort guidance.
+  let systemPrompt = `${harness}\n\n${connectorCatalogBlock()}`;
 
   try {
     const assembled = await assembleContext(session.workspaceId, project, [], "");
