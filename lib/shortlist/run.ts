@@ -253,18 +253,23 @@ export async function runShortlistSourcing(
       const goalReached: StopCondition<ToolSet> = () => isGoalMet();
 
       // The model tends to wrap up after a single "wave" even with budget and
-      // steps to spare — emitting a "more waves needed" summary instead of doing
-      // them. So drive it in rounds: after each call returns short of the goal,
-      // carry the full conversation forward with a "keep going" nudge and run
-      // another wave. Hard stops: goal met, step cap, budget spent, a round that
-      // adds nobody new (genuine exhaustion), or the round ceiling.
-      const MAX_ROUNDS = 6;
+      // steps to spare — emitting a "next waves I will run…" plan instead of
+      // actually running them. So drive it in rounds: after each call returns
+      // short of the goal, carry the full conversation forward with a "keep going"
+      // nudge and run another wave. Two guards make this robust to a model that
+      // narrates instead of acting: `prepareStep` forces a tool call on the first
+      // step of every round (so a round always *attempts* sourcing, never just
+      // talks), and we only conclude "exhausted" after TWO consecutive rounds that
+      // add nobody new — one dry wave isn't proof the role is tapped out. Other
+      // hard stops: goal met, step cap, budget spent, deadline, round ceiling.
+      const MAX_ROUNDS = 8;
       // Keep the whole multi-round loop inside the 600s function budget, leaving
       // headroom for the final status/cost/progress-log writes after it.
       const deadline = Date.now() + 555_000;
       let messages: ModelMessage[] = [{ role: "user", content: userPrompt }];
       let stepsUsed = 0;
       let spentThisRun = 0;
+      let dryRounds = 0;
       const agg = { inputTokens: 0, outputTokens: 0, cachedInputTokens: 0 };
 
       for (let round = 0; round < MAX_ROUNDS; round++) {
@@ -282,6 +287,10 @@ export async function runShortlistSourcing(
           messages,
           tools,
           stopWhen: [stepCountIs(STEP_CAP - stepsUsed), goalReached],
+          // Force the round to ACT first — never let it open with a planning
+          // essay and stop. Step 0 must be a tool call; later steps are free.
+          prepareStep: ({ stepNumber }) =>
+            stepNumber === 0 ? { toolChoice: "required" } : undefined,
           abortSignal: AbortSignal.timeout(Math.min(540_000, remainingMs)),
           onStepFinish: async ({ toolCalls, toolResults }) => {
             for (const call of toolCalls ?? []) {
@@ -320,23 +329,29 @@ export async function runShortlistSourcing(
         if (await isGoalMet()) break;
         const addedThisRound =
           (ctx.savedCandidateIds?.length ?? 0) - savedBefore;
-        if (addedThisRound === 0) break; // re-prompting won't conjure new people
+        // One dry wave isn't proof the role is tapped out — only stop after two
+        // consecutive rounds that searched (a tool call is forced) yet added
+        // nobody new.
+        dryRounds = addedThisRound === 0 ? dryRounds + 1 : 0;
+        if (dryRounds >= 2) break;
 
-        // Progress made but goal unmet — carry the full context (tool calls and
-        // all) forward and push another wave.
+        // Goal unmet — carry the full context (tool calls and all) forward and
+        // push another wave. Be blunt: act, don't narrate.
         messages = [
           ...messages,
           ...result.response.messages,
           {
             role: "user",
             content:
-              "You have NOT reached the qualified goal yet, and you still have " +
-              "budget and steps left. Do not stop. Run more waves NOW: pick " +
-              "title/stack/location variants and channels you haven't tried yet " +
-              "(GitHub-via-web, Stack Overflow, target-company team pages), and " +
-              "keep saving every scored candidate. Don't re-source anyone already " +
-              "saved. Only finish when the goal is met or the distinct angles are " +
-              "genuinely exhausted.",
+              "Keep going — you have NOT reached the qualified goal and still " +
+              "have budget and steps. Do NOT write a plan, a status update, or a " +
+              "summary now: your next output must be tool calls, not prose. Run " +
+              "the next wave immediately — title/stack/location variants and " +
+              "channels you haven't tried yet (GitHub-via-web, Stack Overflow, " +
+              "target-company team pages) — and save every scored candidate " +
+              "(partial snippet evidence is enough). Don't re-source anyone " +
+              "already saved. Only finish when the goal is met or you have truly " +
+              "exhausted distinct angles.",
           },
         ];
       }
