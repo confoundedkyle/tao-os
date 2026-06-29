@@ -22,3 +22,15 @@ If the session is in a worktree (cwd contains `/.claude/worktrees/<name>/`), the
 `Explore`/`Plan` subagents, `Grep`, and `Glob` report paths rooted at the **original repo** (e.g. `/Users/you/Projects/repo/lib/foo.ts`). Don't edit those verbatim — translate to the worktree (`…/repo/.claude/worktrees/<name>/lib/foo.ts`) or use worktree-relative paths. After your first edit, confirm `git status` shows it in the worktree and the repo root stays clean. Misplaced edits land on `main` and the worktree branch stays empty.
 <!-- END:worktree-path-discipline -->
 
+<!-- BEGIN:pr-closes-issues -->
+# Close issues from PRs with a keyword
+
+When a PR resolves a GitHub issue, put a **closing keyword** in the PR body (or a commit message): `Closes #123`, `Fixes #123`, or `Resolves #123`. GitHub then auto-closes the issue when the PR merges to `main`. Plain references like "Implements #123" or "Addresses #123" only *link* the issue — they do **not** close it. Use one keyword per issue the PR resolves.
+<!-- END:pr-closes-issues -->
+
+<!-- BEGIN:pr-automerge -->
+# PRs should auto-merge
+
+Once a PR is open, enable auto-merge so it lands as soon as checks pass — don't wait around to merge it by hand. Default to squash + delete the branch: `gh pr merge --squash --auto --delete-branch`. (Merging to `main` triggers the prod deploy pipeline, so make sure checks are expected to pass before enabling it.)
+<!-- END:pr-automerge -->
+
