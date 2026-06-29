@@ -20,6 +20,7 @@ import {
 } from "@/components/ui";
 import { CountrySelect, PhoneInput } from "@/components/pickers";
 import { FileDrop } from "@/components/file-drop";
+import { LinkedInImportCard } from "@/components/linkedin-import";
 import { useToast } from "@/components/use-toast";
 
 export function TalentProspects({
@@ -28,6 +29,7 @@ export function TalentProspects({
   prospects: TalentProspect[];
 }) {
   const [adding, setAdding] = useState(false);
+  const [importingCsv, setImportingCsv] = useState(false);
   const [query, setQuery] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [cv, setCv] = useState<File | null>(null);
@@ -37,7 +39,7 @@ export function TalentProspects({
   const q = query.trim().toLowerCase();
   const visible = q
     ? prospects.filter((p) =>
-        [p.name, p.email, p.city, p.country, p.notes]
+        [p.name, p.email, p.city, p.country, p.notes, p.company, p.job_title]
           .filter(Boolean)
           .some((v) => v!.toLowerCase().includes(q)),
       )
@@ -78,11 +80,37 @@ export function TalentProspects({
         title="Target Talent Pool"
         description="Build a niche pipeline of prospects — open one to attach a CV."
         action={
-          <Button variant="small" onClick={() => setAdding((v) => !v)}>
-            {adding ? "Close" : "Add prospect"}
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="smallSecondary"
+              onClick={() => {
+                setImportingCsv((v) => !v);
+                setAdding(false);
+              }}
+            >
+              {importingCsv ? "Close" : "Import from LinkedIn"}
+            </Button>
+            <Button
+              variant="small"
+              onClick={() => {
+                setAdding((v) => !v);
+                setImportingCsv(false);
+              }}
+            >
+              {adding ? "Close" : "Add prospect"}
+            </Button>
+          </div>
         }
       />
+
+      {importingCsv && (
+        <LinkedInImportCard
+          onDone={(message) => {
+            setImportingCsv(false);
+            showToast(message);
+          }}
+        />
+      )}
 
       {adding && (
         <Card className="mb-5">
@@ -95,6 +123,13 @@ export function TalentProspects({
                 name="job_title"
                 className={inputClass}
                 placeholder="e.g. Senior Python Engineer"
+              />
+            </Field>
+            <Field label="Company">
+              <input
+                name="company"
+                className={inputClass}
+                placeholder="Current employer"
               />
             </Field>
             <Field label="LinkedIn URL">
@@ -193,6 +228,18 @@ export function TalentProspects({
   );
 }
 
+const MONTH_ABBR = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
+
+/** "2023-07-18" → "18 Jul 2023" (no timezone math, just the stored date). */
+function formatConnectedOn(iso: string): string {
+  const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return iso;
+  return `${Number(m[3])} ${MONTH_ABBR[Number(m[2]) - 1] ?? m[2]} ${m[1]}`;
+}
+
 function ProspectRow({
   prospect,
   showToast,
@@ -262,6 +309,14 @@ function ProspectRow({
               placeholder="e.g. Senior Python Engineer"
             />
           </Field>
+          <Field label="Company">
+            <input
+              name="company"
+              defaultValue={prospect.company ?? ""}
+              className={inputClass}
+              placeholder="Current employer"
+            />
+          </Field>
           <Field label="LinkedIn URL">
             <input
               name="linkedin_url"
@@ -329,9 +384,9 @@ function ProspectRow({
         >
           {prospect.name}
         </Link>
-        {prospect.job_title && (
+        {(prospect.job_title || prospect.company) && (
           <p className="mt-0.5 text-sm font-medium text-navy-800/70">
-            {prospect.job_title}
+            {[prospect.job_title, prospect.company].filter(Boolean).join(" · ")}
           </p>
         )}
         <p className="mt-0.5 text-sm text-navy-800/55">
@@ -339,6 +394,11 @@ function ProspectRow({
             .filter(Boolean)
             .join(" · ") || "—"}
         </p>
+        {prospect.connected_on && (
+          <p className="mt-0.5 text-xs text-navy-800/40">
+            Connected {formatConnectedOn(prospect.connected_on)}
+          </p>
+        )}
         {prospect.notes && (
           <p className="mt-1 line-clamp-2 text-sm text-navy-800/45">
             {prospect.notes}

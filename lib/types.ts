@@ -286,6 +286,10 @@ export interface TalentProspect {
   country: string | null;
   city: string | null;
   linkedin_url: string | null;
+  /** Current employer — populated by the LinkedIn Connections.csv import. */
+  company: string | null;
+  /** Date the LinkedIn connection was made (ISO yyyy-mm-dd), from the import. */
+  connected_on: string | null;
   notes: string | null;
   profile: Record<string, unknown>;
   created_at: string;
