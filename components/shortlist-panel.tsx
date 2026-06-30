@@ -10,8 +10,14 @@ import {
   setCandidateFeedbackAction,
   setConnectorBudgetAction,
 } from "@/lib/actions/shortlist";
+import { findCandidateEmailAction } from "@/lib/actions/enrichment";
 import type { Candidate, CandidateFeedback, ShortlistRun } from "@/lib/types";
 import { Button, inputClass } from "./ui";
+import {
+  ShortlistEnrichDialog,
+  type ConnectedEnrichment,
+} from "./shortlist-enrich-dialog";
+import { useToast } from "./use-toast";
 
 /** One metered connector's spend row: cap (stored or default) + spend so far. */
 export interface ConnectorBudgetRowData {
@@ -64,6 +70,8 @@ export function ShortlistPanel({
   budgetUsd,
   spentUsd,
   connectorBudgets,
+  connectedEnrichment,
+  connectorsHref,
   hasPlan,
   hasCriteria,
   sourcingPlanHref,
@@ -78,6 +86,8 @@ export function ShortlistPanel({
   budgetUsd: number | null;
   spentUsd: number;
   connectorBudgets: ConnectorBudgetRowData[];
+  connectedEnrichment: ConnectedEnrichment[];
+  connectorsHref: string;
   hasPlan: boolean;
   hasCriteria: boolean;
   sourcingPlanHref: string;
@@ -85,6 +95,9 @@ export function ShortlistPanel({
   initialRun: ShortlistRun | null;
 }) {
   const router = useRouter();
+  const [enrichOpen, setEnrichOpen] = useState(false);
+  const hasLiveEnrichment = connectedEnrichment.some((c) => c.live);
+  const { toast, showToast } = useToast();
   const [budgetsOpen, setBudgetsOpen] = useState(false);
   const [goal, setGoal] = useState(goalQualified != null ? String(goalQualified) : "");
   const [budget, setBudget] = useState(budgetUsd != null ? String(budgetUsd) : "");
@@ -458,13 +471,23 @@ export function ShortlistPanel({
 
       {/* Candidate list */}
       <div className="mt-6">
-        <div className="flex items-center justify-between border-b border-navy-800/10 pb-2">
+        <div className="flex items-center justify-between gap-3 border-b border-navy-800/10 pb-2">
           <h3 className="text-sm font-bold uppercase tracking-wider text-navy-800/45">
             Candidates
           </h3>
-          <span className="text-xs text-navy-800/45">
-            {candidates.length} total · {qualifiedCount} qualified
-          </span>
+          <div className="flex items-center gap-3">
+            {hasCandidates && (
+              <Button
+                variant="smallSecondary"
+                onClick={() => setEnrichOpen(true)}
+              >
+                ✉ Find emails
+              </Button>
+            )}
+            <span className="text-xs text-navy-800/45">
+              {candidates.length} total · {qualifiedCount} qualified
+            </span>
+          </div>
         </div>
 
         {!hasCandidates ? (
@@ -481,19 +504,36 @@ export function ShortlistPanel({
                 <tr className="border-b border-navy-800/10 bg-cream-100/60 text-left text-xs uppercase tracking-wider text-navy-800/45">
                   <th className="px-4 py-2.5 font-semibold">Candidate</th>
                   <th className="px-3 py-2.5 font-semibold">Source</th>
+                  <th className="px-3 py-2.5 font-semibold">Email</th>
                   <th className="px-3 py-2.5 font-semibold">Score</th>
                   <th className="px-3 py-2.5 text-center font-semibold">Fit</th>
                 </tr>
               </thead>
               <tbody>
                 {candidates.map((c) => (
-                  <CandidateRow key={c.id} candidate={c} />
+                  <CandidateRow
+                    key={c.id}
+                    candidate={c}
+                    hasLiveEnrichment={hasLiveEnrichment}
+                    onNeedEnrichment={() => setEnrichOpen(true)}
+                    onToast={showToast}
+                  />
                 ))}
               </tbody>
             </table>
           </div>
         )}
       </div>
+
+      <ShortlistEnrichDialog
+        open={enrichOpen}
+        onClose={() => setEnrichOpen(false)}
+        projectId={projectId}
+        candidates={candidates}
+        connectedEnrichment={connectedEnrichment}
+        connectorsHref={connectorsHref}
+      />
+      {toast}
     </div>
   );
 }
@@ -575,13 +615,57 @@ function ConnectorBudgetRow({
   );
 }
 
-function CandidateRow({ candidate: c }: { candidate: Candidate }) {
+function CandidateRow({
+  candidate: c,
+  hasLiveEnrichment,
+  onNeedEnrichment,
+  onToast,
+}: {
+  candidate: Candidate;
+  hasLiveEnrichment: boolean;
+  onNeedEnrichment: () => void;
+  onToast: (message: string) => void;
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [feedback, setFeedback] = useState<CandidateFeedback | null>(c.feedback);
   const [reason, setReason] = useState(c.feedback_reason ?? "");
   const [, startFeedback] = useTransition();
+  const [email, setEmail] = useState(c.email);
+  const [finding, setFinding] = useState(false);
+  const [findMsg, setFindMsg] = useState<string | null>(null);
   const rawEntries = Object.entries(c.raw ?? {});
+
+  // "Find email" for one candidate: use a connected one-click tool if there is
+  // one, else open the enrichment dialog (the CSV round-trip / connect prompt).
+  async function findEmail() {
+    if (finding) return;
+    if (!hasLiveEnrichment) {
+      onNeedEnrichment();
+      return;
+    }
+    setFinding(true);
+    setFindMsg(null);
+    try {
+      const res = await findCandidateEmailAction(c.id);
+      if (res.email) {
+        setEmail(res.email);
+        onToast(`Found email for ${c.name ?? "candidate"}`);
+        router.refresh();
+      } else {
+        setFindMsg("Not found");
+      }
+    } catch (err) {
+      const code = err instanceof Error ? err.message : "";
+      if (code === "NO_ENRICHMENT_TOOL") {
+        onNeedEnrichment();
+      } else {
+        setFindMsg(code || "Lookup failed");
+      }
+    } finally {
+      setFinding(false);
+    }
+  }
 
   // Set / toggle the recruiter verdict. Clicking the active one clears it.
   // Rejecting opens the row so the recruiter can add a reason.
@@ -645,12 +729,50 @@ function CandidateRow({ candidate: c }: { candidate: Candidate }) {
                 )}
               </div>
               <div className="truncate text-xs text-navy-800/45">
-                {c.email ?? c.linkedin ?? "—"}
+                {email ?? c.linkedin ?? "—"}
               </div>
             </div>
           </div>
         </td>
         <td className="px-3 py-2.5 text-navy-800/60">{c.source ?? "—"}</td>
+        <td className="px-3 py-2.5" onClick={(e) => e.stopPropagation()}>
+          {email ? (
+            <a
+              href={`mailto:${email}`}
+              className="block max-w-[16rem] truncate font-medium text-mint-700 hover:underline"
+              title={email}
+            >
+              {email}
+            </a>
+          ) : finding ? (
+            <span className="flex items-center gap-2 text-xs text-navy-800/50">
+              <span
+                role="status"
+                aria-live="polite"
+                className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-mint-400/30 border-t-mint-400"
+              />
+              Looking…
+            </span>
+          ) : (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={findEmail}
+                title={
+                  c.linkedin
+                    ? "Find this candidate's email"
+                    : "Find this candidate's email (set up enrichment)"
+                }
+                className="inline-flex items-center gap-1.5 rounded-chip border-[1.5px] border-navy-800/20 px-2.5 py-1 text-xs font-semibold text-navy-800/70 transition hover:border-navy-800/50 hover:text-navy-800"
+              >
+                ✉ Find email
+              </button>
+              {findMsg && (
+                <span className="text-xs text-navy-800/40">{findMsg}</span>
+              )}
+            </div>
+          )}
+        </td>
         <td className="px-3 py-2.5">
           <span
             className={`inline-block rounded-chip px-2 py-0.5 text-xs font-semibold ${scoreClass(
@@ -687,7 +809,7 @@ function CandidateRow({ candidate: c }: { candidate: Candidate }) {
       </tr>
       {open && (
         <tr className="border-b border-navy-800/8 bg-cream-100/30">
-          <td colSpan={4} className="px-4 py-3">
+          <td colSpan={5} className="px-4 py-3">
             {feedback === "rejected" && (
               <div className="mb-3" onClick={(e) => e.stopPropagation()}>
                 <label className="mb-1 block text-xs font-medium text-navy-800/55">

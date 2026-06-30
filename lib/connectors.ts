@@ -250,6 +250,67 @@ export function connectorLabel(provider: string): string {
   return CONNECTORS.find((c) => c.provider === provider)?.name ?? provider;
 }
 
+/** Connectors that resolve a candidate's email from their LinkedIn URL with a
+ *  single synchronous lookup — these power the Shortlist "Find email" button for
+ *  one-click enrichment (dispatched in lib/enrichment/find-email.ts). Ordered by
+ *  preference: the first connected one wins. */
+export const LIVE_EMAIL_ENRICHMENT_PROVIDERS = [
+  "contactout",
+  "prospeo",
+  "nymeria",
+] as const;
+
+/** The broader set of connectors marketed as email / contact finders. Used to
+ *  tell the recruiter which of their connected tools can enrich candidates — the
+ *  CSV round-trip (export LinkedIn URLs → enrich elsewhere → import emails) works
+ *  with any of them, even the ones without a wired one-click path. Catalog order. */
+export const EMAIL_ENRICHMENT_PROVIDERS = [
+  "contactout",
+  "prospeo",
+  "nymeria",
+  "findymail",
+  "fullenrich",
+  "hunter",
+  "apollo",
+  "rocketreach",
+  "dropcontact",
+  "wiza",
+  "surfe",
+  "signalhire",
+  "peopledatalabs",
+  "leadmagic",
+  "snov",
+  "tomba",
+  "skrapp",
+  "lusha",
+] as const;
+
+/** Whether a provider has a wired one-click LinkedIn → email path. */
+export function isLiveEmailEnrichmentProvider(provider: string): boolean {
+  return (LIVE_EMAIL_ENRICHMENT_PROVIDERS as readonly string[]).includes(
+    provider,
+  );
+}
+
+/** The connected email-enrichment connectors, in preference order (live ones
+ *  first, then the rest of the catalog set). Each carries its display name and
+ *  whether it supports the one-click "Find email" button. Drives the Shortlist
+ *  enrichment dialog + per-row action. */
+export function emailEnrichmentConnectors(
+  connectedProviders: Iterable<string>,
+): { provider: string; name: string; live: boolean }[] {
+  const set = new Set(connectedProviders);
+  const live = LIVE_EMAIL_ENRICHMENT_PROVIDERS.filter((p) => set.has(p));
+  const rest = EMAIL_ENRICHMENT_PROVIDERS.filter(
+    (p) => set.has(p) && !isLiveEmailEnrichmentProvider(p),
+  );
+  return [...live, ...rest].map((provider) => ({
+    provider,
+    name: connectorLabel(provider),
+    live: isLiveEmailEnrichmentProvider(provider),
+  }));
+}
+
 /** The metered (priced-per-search) connectors among a set of connected provider
  *  slugs, in catalog order — drives the Shortlist "Data-source spend limits"
  *  rows. Pass the workspace's active provider slugs (e.g. from

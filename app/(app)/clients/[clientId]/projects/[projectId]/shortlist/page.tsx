@@ -13,7 +13,7 @@ import {
   connectorSpendByProvider,
 } from "@/lib/shortlist/spend";
 import { connectedProvidersFrom } from "@/lib/run-items";
-import { meteredConnectors } from "@/lib/connectors";
+import { meteredConnectors, emailEnrichmentConnectors } from "@/lib/connectors";
 import { ShortlistPanel } from "@/components/shortlist-panel";
 import type { ShortlistRun } from "@/lib/types";
 
@@ -55,13 +55,16 @@ export default async function ShortlistPage({
   ]);
 
   const basePath = `/clients/${clientId}/projects/${projectId}`;
+  const connectedProviders = connectedProvidersFrom(connections);
+
+  // The connected email-enrichment tools — drives the "Find email" button and
+  // the enrichment dialog (one-click for the ⚡ ones, CSV round-trip for all).
+  const connectedEnrichment = emailEnrichmentConnectors(connectedProviders);
 
   // One budget row per connected, metered connector. The cap shown is the
   // project's stored budget if set, else the connector's sensible default.
   const storedBudgets = project.sourcing_connector_budgets ?? {};
-  const connectorBudgets = meteredConnectors(
-    connectedProvidersFrom(connections),
-  ).map((c) => ({
+  const connectorBudgets = meteredConnectors(connectedProviders).map((c) => ({
     provider: c.provider as string,
     name: c.name,
     unit: c.unit ?? "credits",
@@ -79,6 +82,8 @@ export default async function ShortlistPage({
       budgetUsd={project.sourcing_budget_usd}
       spentUsd={spentUsd}
       connectorBudgets={connectorBudgets}
+      connectedEnrichment={connectedEnrichment}
+      connectorsHref="/settings/connectors"
       hasPlan={!!plan}
       hasCriteria={!!criteria}
       sourcingPlanHref={`${basePath}/sourcing-plan`}
