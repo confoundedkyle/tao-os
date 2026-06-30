@@ -902,6 +902,55 @@ export async function getActiveQualificationConversation(
   return { conversationId: convId, turns };
 }
 
+/**
+ * Loads the workspace's knowledge-base onboarding chat (the "Start creating"
+ * assistant). Workspace-scoped twin of getActiveQualificationConversation: with
+ * no id it returns the most recent conversation's turns so the chat resumes
+ * across sessions; with an id it returns that exact thread. Null when the user
+ * has never started onboarding.
+ */
+export async function getKbOnboardingConversation(
+  workspaceId: string,
+  conversationId?: string | null,
+): Promise<{ conversationId: string; turns: AgentChatTurn[] } | null> {
+  let convId =
+    conversationId && UUID_RE.test(conversationId) ? conversationId : null;
+  if (!convId) {
+    const { data: latest } = await db()
+      .from("kb_onboarding_runs")
+      .select("conversation_id")
+      .eq("workspace_id", workspaceId)
+      .not("conversation_id", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    convId = (latest?.conversation_id as string | null) ?? null;
+  }
+  if (!convId) return null;
+
+  const { data, error } = await db()
+    .from("kb_onboarding_runs")
+    .select("id, task, output_text, steps, status, error_message, created_at")
+    .eq("workspace_id", workspaceId)
+    .eq("conversation_id", convId)
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  // onboarding writes many KB docs across a turn, so there's no single
+  // output_doc_id — fill the AgentChatTurn shape with null.
+  const turns: AgentChatTurn[] = (data ?? []).map((r) => ({
+    id: r.id as string,
+    task: r.task as string | null,
+    output_text: r.output_text as string | null,
+    steps: r.steps as AgentChatTurn["steps"],
+    output_doc_id: null,
+    status: r.status as AgentChatTurn["status"],
+    error_message: r.error_message as string | null,
+    created_at: r.created_at as string,
+  }));
+  if (turns.length === 0 && !conversationId) return null;
+  return { conversationId: convId, turns };
+}
+
 export async function listRecentAgentRuns(
   workspaceId: string,
   limit = 8,

@@ -16,7 +16,6 @@
     "db:reset": "supabase db reset && npm run seed",
     "seed": "tsx scripts/seed.ts",
     "sync-models": "tsx scripts/sync-models.ts",
-    "seed-default-kb": "tsx scripts/seed-default-kb.ts",
     "drive": "node scripts/drive.mjs"
   },
   "engines": {

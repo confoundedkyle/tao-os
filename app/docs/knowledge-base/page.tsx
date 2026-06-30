@@ -56,13 +56,16 @@ Personal) sit on top and take priority if anything conflicts. The upshot: agents
 read your knowledge directly and only go looking elsewhere for what isn't already
 there.
 
-## What you start with, and how to add more
+## Getting started, and how to add more
 
-Every new workspace is **seeded with starter knowledge** — company, tone of voice,
-recruiting best practices, sourcing notes, and message templates — so agents are
-useful on day one. Edit those to match your agency.
+A new workspace starts empty. Open the **Knowledge base** tab and hit **Start
+creating**: a guided assistant asks you a few quick questions — about your company,
+how you recruit, your tone of voice, sourcing, and outreach — and turns your answers
+into knowledge documents as you go. You don't have to finish in one sitting; it
+saves after each area and picks up where you left off next time, deepening the
+documents as you add more.
 
-You can add knowledge three ways:
+You can also add knowledge directly, any time:
 
 - **Write a note** directly in the editor.
 - **Upload a file** — PDF, Word (.docx), text, or Markdown (up to 20 MB).

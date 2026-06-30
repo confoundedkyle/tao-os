@@ -1,7 +1,6 @@
 import "server-only";
 import { db } from "./db";
 import { env } from "./env";
-import { seedDefaultWorkspaceKb } from "./default-kb";
 import type { Workspace } from "./types";
 
 /**
@@ -59,8 +58,9 @@ export async function ensureWorkspace(
     });
   }
 
-  // Starter knowledge-base templates so new users see what the KB is for.
-  await seedDefaultWorkspaceKb(created.id);
+  // No starter templates: a brand-new KB is empty, and the guided onboarding
+  // assistant (Knowledge base tab → "Start creating") builds the documents with
+  // the user instead of leaving them a wall of fill-in-the-blank placeholders.
 
   return created as Workspace;
 }

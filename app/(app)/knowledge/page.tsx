@@ -1,17 +1,27 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
-import { listDocuments } from "@/lib/queries";
+import {
+  getKbOnboardingConversation,
+  getPrimaryRunModel,
+  listDocuments,
+} from "@/lib/queries";
 import { DocExplorer } from "@/components/doc-explorer";
+import { KbOnboardingPanel } from "@/components/kb-onboarding-panel";
 
-export default async function KnowledgeBasePage() {
+export default async function KnowledgeBasePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ c?: string }>;
+}) {
   const session = await getSession();
   if (!session) redirect("/sign-in");
-  const docs = await listDocuments(
-    session.workspaceId,
-    "workspace",
-    session.workspaceId,
-    "kb",
-  );
+  const { c: conversationParam } = await searchParams;
+
+  const [docs, conversation, model] = await Promise.all([
+    listDocuments(session.workspaceId, "workspace", session.workspaceId, "kb"),
+    getKbOnboardingConversation(session.workspaceId, conversationParam),
+    getPrimaryRunModel(session.workspaceId),
+  ]);
 
   return (
     <>
@@ -22,12 +32,26 @@ export default async function KnowledgeBasePage() {
           Auto-injected into every run
         </span>
       </p>
-      <DocExplorer
-        scopeType="workspace"
-        scopeId={session.workspaceId}
-        docs={docs}
-        mode="kb"
+
+      <KbOnboardingPanel
+        model={model}
+        capturedFilenames={docs.map((d) => d.filename ?? "")}
+        initialConversation={conversation}
       />
+
+      {docs.length > 0 && (
+        <section className="mt-8">
+          <h2 className="mb-3 text-sm font-bold uppercase tracking-wider text-navy-800/45">
+            Your documents
+          </h2>
+          <DocExplorer
+            scopeType="workspace"
+            scopeId={session.workspaceId}
+            docs={docs}
+            mode="kb"
+          />
+        </section>
+      )}
     </>
   );
 }

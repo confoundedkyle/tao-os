@@ -156,6 +156,18 @@ library instructions into the copy. A library row retired from YAML orphans copi
 - **Agents (top nav, `/workflows` route)**: workspace-level "My agents" manage list;
   each card → agent edit page (`/agents/[agentId]`: name + instructions, archive,
   upgrade, delete).
+- **Knowledge base tab** (`/knowledge`): the workspace KB (auto-injected into every
+  run). New workspaces start **empty** — no fill-in-the-blank starter templates
+  (the old `data/default-knowledge-base` seeding was removed). Instead a guided
+  **"Start creating"** assistant (`KbOnboardingPanel`) opens a chat that asks a few
+  questions per area and writes the answers into KB documents via the
+  `onboarding_save_kb_doc` tool. The areas to capture + conversational playbook
+  are authored once in `lib/kb-onboarding/{areas,guidelines}.ts` (the assistant's
+  system prompt). Streaming route `/api/knowledge/onboarding` (workspace-scoped,
+  modelled on the qualification route); turns persist in `kb_onboarding_runs`
+  (migration 0034) and reload by `conversation_id`, so onboarding is **resumable**
+  across sessions and documents are **enriched** on return (upsert by filename).
+  Created docs render below in the usual `DocExplorer`.
 - **Settings > Personal** (`/settings/personal`): per-user prefs in
   `user_preferences` (keyed by workspace_id + user_id). First/last name **sync to
   Clerk** (source of truth; mirrored to the table for run-time reads). Email
