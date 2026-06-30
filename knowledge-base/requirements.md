@@ -150,6 +150,11 @@ library instructions into the copy. A library row retired from YAML orphans copi
   emails back onto candidates (matched by id then normalized LinkedIn URL, only
   filling empty addresses). "Good fit" = accepted (✓) or qualified, never rejected.
   When no enrichment tool is connected, the button/dialog explains the options.
+  LinkedIn URLs are stored in LinkedIn's canonical, **slash-terminated** form
+  (`canonicalLinkedinUrl` in `lib/enrichment/csv.ts`, applied on save in
+  `saveCandidate`, at live lookup, and in the CSV export) — ContactOut/similar pair
+  the slash-terminated URL but often miss it without the slash, and LinkedIn
+  redirects to that form anyway.
 - **Project → Outreach tab** (`/clients/[c]/projects/[p]/outreach`): drafts
   personalized outreach **emails** to the candidates accepted in the Shortlist
   (Fit ✓ with an email; falls back to qualified-with-email —

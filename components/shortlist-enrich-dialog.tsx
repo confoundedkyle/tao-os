@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import type { Candidate } from "@/lib/types";
 import {
   buildEnrichmentCsv,
+  canonicalLinkedinUrl,
   parseEnrichmentCsv,
   type EnrichmentExportRow,
 } from "@/lib/enrichment/csv";
@@ -75,7 +76,9 @@ export function ShortlistEnrichDialog({
     const rows: EnrichmentExportRow[] = exportable.map((c) => ({
       id: c.id,
       name: c.name,
-      linkedin: c.linkedin,
+      // Export the canonical, slash-terminated URL so the enrichment tool pairs
+      // it (LinkedIn redirects to this form anyway).
+      linkedin: canonicalLinkedinUrl(c.linkedin) ?? c.linkedin,
     }));
     const csv = buildEnrichmentCsv(rows);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });

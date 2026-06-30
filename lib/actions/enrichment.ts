@@ -11,7 +11,11 @@ import {
 } from "../connectors";
 import { connectedProvidersFrom } from "../run-items";
 import { findEmailViaProvider } from "../enrichment/find-email";
-import { normalizeLinkedinUrl, type EnrichmentImportRow } from "../enrichment/csv";
+import {
+  canonicalLinkedinUrl,
+  normalizeLinkedinUrl,
+  type EnrichmentImportRow,
+} from "../enrichment/csv";
 import type { Candidate } from "../types";
 
 /** A candidate row scoped + verified to the caller's workspace. */
@@ -79,10 +83,14 @@ export async function findCandidateEmailAction(
   if (!connection) throw new Error("NO_ENRICHMENT_TOOL");
   const token = await getValidAccessToken(connection);
 
+  // Use the canonical, slash-terminated URL so the provider pairs the profile
+  // even for candidates stored before we started canonicalizing on save.
+  const lookupUrl =
+    canonicalLinkedinUrl(candidate.linkedin) ?? candidate.linkedin.trim();
   const { email, detail } = await findEmailViaProvider(
     provider,
     token,
-    candidate.linkedin.trim(),
+    lookupUrl,
   );
 
   if (email) {

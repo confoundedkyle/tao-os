@@ -2,6 +2,7 @@ import "server-only";
 import { db } from "../db";
 import type { Candidate, CandidateStatus } from "../types";
 import { deriveQualified, deriveStatus } from "./qualified";
+import { canonicalLinkedinUrl } from "../enrichment/csv";
 
 export interface SaveCandidateInput {
   workspaceId: string;
@@ -94,12 +95,11 @@ export async function saveCandidate(
   const fields = input.fields ?? {};
   const qualified = deriveQualified(input.score, input.qualified);
   const status = deriveStatus(input.status, qualified);
+  // Store LinkedIn URLs in LinkedIn's canonical, slash-terminated form so
+  // enrichment tools pair them reliably (and dedupe matches consistently).
+  const linkedin = canonicalLinkedinUrl(input.linkedin) ?? input.linkedin;
 
-  const existing = await findExisting(
-    input.projectId,
-    input.email,
-    input.linkedin,
-  );
+  const existing = await findExisting(input.projectId, input.email, linkedin);
 
   if (existing) {
     const mergedRaw = { ...(existing.raw ?? {}), ...fields };
@@ -108,7 +108,7 @@ export async function saveCandidate(
       .update({
         name: input.name ?? existing.name,
         email: input.email ?? existing.email,
-        linkedin: input.linkedin ?? existing.linkedin,
+        linkedin: linkedin ?? existing.linkedin,
         source: input.source ?? existing.source,
         score: input.score ?? existing.score,
         qualified,
@@ -132,7 +132,7 @@ export async function saveCandidate(
       source: input.source ?? null,
       name: input.name ?? null,
       email: input.email ?? null,
-      linkedin: input.linkedin ?? null,
+      linkedin: linkedin ?? null,
       score: input.score ?? null,
       qualified,
       status,

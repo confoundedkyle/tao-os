@@ -4,6 +4,7 @@ import {
   parseCsv,
   parseEnrichmentCsv,
   normalizeLinkedinUrl,
+  canonicalLinkedinUrl,
   detectEmailColumn,
 } from "@/lib/enrichment/csv";
 
@@ -54,6 +55,44 @@ describe("normalizeLinkedinUrl", () => {
   it("returns empty for nullish input", () => {
     expect(normalizeLinkedinUrl(null)).toBe("");
     expect(normalizeLinkedinUrl(undefined)).toBe("");
+  });
+});
+
+describe("canonicalLinkedinUrl", () => {
+  it("adds a trailing slash when missing", () => {
+    expect(canonicalLinkedinUrl("https://rs.linkedin.com/in/vl-jednak")).toBe(
+      "https://rs.linkedin.com/in/vl-jednak/",
+    );
+  });
+  it("leaves an already-canonical URL unchanged", () => {
+    expect(
+      canonicalLinkedinUrl("https://www.linkedin.com/in/nemanja-perunicic/"),
+    ).toBe("https://www.linkedin.com/in/nemanja-perunicic/");
+  });
+  it("collapses duplicate trailing slashes to one", () => {
+    expect(canonicalLinkedinUrl("https://linkedin.com/in/ada///")).toBe(
+      "https://linkedin.com/in/ada/",
+    );
+  });
+  it("keeps the query/fragment after the slash", () => {
+    expect(
+      canonicalLinkedinUrl("https://linkedin.com/in/ada?utm=x"),
+    ).toBe("https://linkedin.com/in/ada/?utm=x");
+  });
+  it("preserves the scheme and country subdomain, trims whitespace", () => {
+    expect(canonicalLinkedinUrl("  http://mk.linkedin.com/in/toshe-nastev  ")).toBe(
+      "http://mk.linkedin.com/in/toshe-nastev/",
+    );
+  });
+  it("passes non-LinkedIn URLs through untouched", () => {
+    expect(canonicalLinkedinUrl("https://github.com/ada")).toBe(
+      "https://github.com/ada",
+    );
+  });
+  it("returns null for empty / nullish input", () => {
+    expect(canonicalLinkedinUrl(null)).toBeNull();
+    expect(canonicalLinkedinUrl("")).toBeNull();
+    expect(canonicalLinkedinUrl("   ")).toBeNull();
   });
 });
 

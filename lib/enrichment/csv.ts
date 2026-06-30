@@ -138,6 +138,23 @@ export function normalizeLinkedinUrl(url: string | null | undefined): string {
   return s;
 }
 
+/** Canonicalize a LinkedIn URL to the form LinkedIn itself redirects to: a
+ *  single trailing slash on the path. Enrichment tools (ContactOut and similar)
+ *  match the canonical, slash-terminated URL — a profile saved without the slash
+ *  often fails to pair — so we store URLs in this form. Preserves scheme, host
+ *  (incl. country subdomains like `rs.linkedin.com`), and any query/fragment;
+ *  only touches LinkedIn URLs so non-LinkedIn values pass through untouched. */
+export function canonicalLinkedinUrl(
+  url: string | null | undefined,
+): string | null {
+  if (!url) return null;
+  const s = url.trim();
+  if (!s || !/linkedin\.com/i.test(s)) return s || null;
+  // Split path from the query/fragment, ensure exactly one trailing slash, rejoin.
+  const [, path = s, suffix = ""] = s.match(/^([^?#]*)([?#].*)?$/) ?? [];
+  return `${path.replace(/\/+$/, "")}/${suffix}`;
+}
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export interface ParseEnrichmentResult {
