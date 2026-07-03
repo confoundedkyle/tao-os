@@ -42,11 +42,46 @@ export interface ImportProspect {
 }
 
 /**
- * Parse CSV text into rows of string cells (RFC-4180-ish: quoted fields,
- * doubled "" escapes, commas/newlines inside quotes, CRLF or LF, BOM stripped).
+ * Sniff the delimiter from the first non-empty line — comma, semicolon, or tab.
+ * Mac Numbers and Excel in many European locales export semicolon-separated CSV
+ * (comma is the decimal separator there), which would otherwise collapse every
+ * row into a single cell. Counts separators OUTSIDE quotes and picks the most
+ * frequent; defaults to comma on a tie or when none is found.
  */
-export function parseCsv(text: string): string[][] {
+export function detectDelimiter(text: string): "," | ";" | "\t" {
   const s = text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
+  let line = "";
+  for (const l of s.split(/\r?\n/)) {
+    if (l.trim() !== "") {
+      line = l;
+      break;
+    }
+  }
+  const counts: Record<string, number> = { ",": 0, ";": 0, "\t": 0 };
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') {
+      inQuotes = !inQuotes;
+      continue;
+    }
+    if (!inQuotes && (c === "," || c === ";" || c === "\t")) counts[c]++;
+  }
+  // Comma wins ties (only a strictly higher count overrides it).
+  let best: "," | ";" | "\t" = ",";
+  for (const d of [";", "\t"] as const) if (counts[d] > counts[best]) best = d;
+  return best;
+}
+
+/**
+ * Parse CSV text into rows of string cells (RFC-4180-ish: quoted fields,
+ * doubled "" escapes, delimiters/newlines inside quotes, CRLF or LF, BOM
+ * stripped). The delimiter is auto-detected (comma / semicolon / tab) unless one
+ * is passed explicitly.
+ */
+export function parseCsv(text: string, delimiter?: string): string[][] {
+  const s = text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
+  const delim = delimiter ?? detectDelimiter(s);
   const rows: string[][] = [];
   let row: string[] = [];
   let field = "";
@@ -74,7 +109,7 @@ export function parseCsv(text: string): string[][] {
       i++;
       continue;
     }
-    if (c === ",") {
+    if (c === delim) {
       row.push(field);
       field = "";
       i++;

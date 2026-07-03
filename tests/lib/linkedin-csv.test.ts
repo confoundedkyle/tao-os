@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   coerceAiMapping,
+  detectDelimiter,
   detectHeader,
   isLinkedInConnectionsHeader,
   mapKnownColumns,
@@ -8,6 +9,41 @@ import {
   parseCsv,
   rowsToProspects,
 } from "@/lib/linkedin-csv";
+
+describe("detectDelimiter (semicolon / tab support)", () => {
+  it("detects comma, semicolon, and tab from the first non-empty line", () => {
+    expect(detectDelimiter("a,b,c\n1,2,3")).toBe(",");
+    expect(detectDelimiter("a;b;c\n1;2;3")).toBe(";");
+    expect(detectDelimiter("a\tb\tc\n1\t2\t3")).toBe("\t");
+  });
+  it("ignores delimiters inside quotes and defaults to comma on a tie", () => {
+    expect(detectDelimiter('"a;b",c\n1,2')).toBe(",");
+    expect(detectDelimiter("only-one-column")).toBe(",");
+  });
+  it("parses a semicolon-separated LinkedIn export end-to-end", () => {
+    // Mac Numbers / European Excel export semicolons — this used to collapse
+    // every row into a single cell and only map first_name.
+    const csv =
+      "First Name;Last Name;URL;Email Address;Company;Position;Connected On\n" +
+      "Tatsiana;Marozka;https://www.linkedin.com/in/tatiana-morozko;;TM Recruiting;Professional Recruiter;19 Oct 2019";
+    const rows = parseCsv(csv);
+    expect(rows[0]).toHaveLength(7);
+    const header = detectHeader(rows)!;
+    expect(isLinkedInConnectionsHeader(header.cells)).toBe(true);
+    const prospects = rowsToProspects(
+      rows.slice(header.index + 1),
+      header.cells,
+      mapKnownColumns(header.cells),
+    );
+    expect(prospects[0]).toMatchObject({
+      name: "Tatsiana Marozka",
+      company: "TM Recruiting",
+      job_title: "Professional Recruiter",
+      linkedin_url: "https://www.linkedin.com/in/tatiana-morozko",
+      connected_on: "2019-10-19",
+    });
+  });
+});
 
 describe("parseCsv", () => {
   it("parses simple rows", () => {

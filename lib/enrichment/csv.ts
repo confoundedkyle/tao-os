@@ -7,6 +7,8 @@
 // the heuristic mapping here. Pure + dependency-free so it runs in the browser
 // (download) and on the server (import), and is fully unit-tested.
 
+import { detectDelimiter } from "../linkedin-csv";
+
 /** One row of the exported "needs email" CSV. */
 export interface EnrichmentExportRow {
   id: string;
@@ -36,8 +38,9 @@ export function buildEnrichmentCsv(rows: EnrichmentExportRow[]): string {
 
 /** Minimal RFC-4180-ish CSV parser: handles quoted fields, escaped quotes
  *  (`""`), both `\n` and `\r\n` line endings, and a leading BOM. */
-export function parseCsv(text: string): string[][] {
+export function parseCsv(text: string, delimiter?: string): string[][] {
   const s = text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
+  const delim = delimiter ?? detectDelimiter(s);
   const rows: string[][] = [];
   let row: string[] = [];
   let field = "";
@@ -62,7 +65,7 @@ export function parseCsv(text: string): string[][] {
     if (c === '"') {
       inQuotes = true;
       sawAny = true;
-    } else if (c === ",") {
+    } else if (c === delim) {
       row.push(field);
       field = "";
       sawAny = true;
