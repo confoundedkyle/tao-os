@@ -46,6 +46,11 @@ const CATEGORY_USE_CASES: Record<ConnectorCategory, string[]> = {
     "Find the right decision-maker at a target company for outreach",
     "Prioritise which roles to work first based on open deals and contacts",
   ],
+  contacts: [
+    "Find verified emails and phone numbers for a shortlist",
+    "Reveal contact details behind a LinkedIn profile or a name + company",
+    "Verify that an address is deliverable before an outreach run",
+  ],
   data: [
     "Turn a spreadsheet of candidates into a personalised outreach run",
     "Read a shared client or candidate tracker without copy-pasting it in",
@@ -60,9 +65,9 @@ const CATEGORY_USE_CASES: Record<ConnectorCategory, string[]> = {
     "Get an automatic daily or weekly project status posted to the channel",
   ],
   tool: [
-    "Find verified emails and phone numbers for a shortlist",
+    "Source candidates from the open web, GitHub, and Stack Overflow",
     "Enrich sourced candidates with their current role and company",
-    "Build a contactable list from a targeted search",
+    "Read call transcripts and run cold-outreach sequences",
   ],
 };
 
@@ -72,6 +77,9 @@ const CATEGORY_CONFIG: Record<ConnectorCategory, string[]> = {
   ],
   crm: [
     "Read-only: agents query your {name} for the accounts and contacts a task needs; Calyflow doesn't change your CRM data.",
+  ],
+  contacts: [
+    "Agents call {name} only when a task needs a contact detail. Lookups draw on your account's credits/quota with {name}, so usage counts against your plan there.",
   ],
   data: [
     "Read-only access to the spreadsheets and files you share — Calyflow reads them for a run and never edits your originals.",

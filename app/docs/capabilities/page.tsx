@@ -17,6 +17,7 @@ export const metadata: Metadata = {
 const GROUP_ORDER: { category: ConnectorCategory; label: string }[] = [
   { category: "ats", label: "ATS" },
   { category: "crm", label: "CRM" },
+  { category: "contacts", label: "Contacts" },
   { category: "data", label: "Data & spreadsheets" },
   { category: "email", label: "Email" },
   { category: "comms", label: "Slack" },

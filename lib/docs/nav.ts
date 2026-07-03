@@ -13,6 +13,7 @@ export interface DocNavNode {
 const CONNECTOR_GROUPS: { category: ConnectorCategory; label: string }[] = [
   { category: "ats", label: "ATS" },
   { category: "crm", label: "CRM" },
+  { category: "contacts", label: "Contacts" },
   { category: "data", label: "Data & spreadsheets" },
   { category: "email", label: "Email" },
   { category: "comms", label: "Slack" },

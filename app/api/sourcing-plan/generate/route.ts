@@ -77,6 +77,7 @@ function summarize(value: unknown): string {
 const SOURCING_CONNECTOR_CATEGORIES: ConnectorCategory[] = [
   "ats",
   "crm",
+  "contacts",
   "data",
   "tool",
 ];

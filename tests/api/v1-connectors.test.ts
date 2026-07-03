@@ -25,9 +25,16 @@ describe("GET /api/v1/connectors", () => {
       for (const key of Object.keys(item)) {
         expect(allowed).toContain(key);
       }
-      expect(["ai", "ats", "crm", "data", "email", "comms", "tool"]).toContain(
-        item.category,
-      );
+      expect([
+        "ai",
+        "ats",
+        "crm",
+        "contacts",
+        "data",
+        "email",
+        "comms",
+        "tool",
+      ]).toContain(item.category);
       expect(["available", "coming_soon"]).toContain(item.status);
     }
   });

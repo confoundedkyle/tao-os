@@ -17,6 +17,7 @@ export const metadata: Metadata = {
 const GROUPS: { category: ConnectorCategory; label: string; blurb: string }[] = [
   { category: "ats", label: "ATS", blurb: "Sync jobs and candidates from your applicant tracking system." },
   { category: "crm", label: "CRM", blurb: "Pull accounts, contacts, and deals from your CRM." },
+  { category: "contacts", label: "Contacts", blurb: "Find and verify emails and phone numbers for candidates and clients." },
   { category: "data", label: "Data & spreadsheets", blurb: "Read candidate and client trackers from your spreadsheets." },
   { category: "email", label: "Email", blurb: "Send outreach from your own mailbox." },
   { category: "comms", label: "Slack", blurb: "Run agents and get reports in your team's Slack." },

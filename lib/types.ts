@@ -571,6 +571,7 @@ export type ConnectorBindings = Record<string, string>;
 export type ConnectorCategoryName =
   | "ats"
   | "crm"
+  | "contacts"
   | "data"
   | "email"
   | "comms"

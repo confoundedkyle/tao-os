@@ -28,6 +28,7 @@ const FILTERS: { value: Filter; label: string }[] = [
   { value: "all", label: "All" },
   { value: "ats", label: "ATS" },
   { value: "crm", label: "CRM" },
+  { value: "contacts", label: "Contacts" },
   { value: "data", label: "Data" },
   { value: "email", label: "Email" },
   { value: "comms", label: "Comms" },
@@ -37,6 +38,7 @@ const FILTERS: { value: Filter; label: string }[] = [
 const BADGE_STYLES: Record<ConnectorCategory, string> = {
   ats: "bg-mint-400/20 text-mint-700",
   crm: "bg-sky-300/25 text-navy-800/75",
+  contacts: "bg-lavender-300/25 text-lavender-700",
   data: "bg-lavender-300/25 text-navy-800/75",
   email: "bg-coral-400/15 text-coral-400",
   comms: "bg-lavender-300/35 text-navy-800/75",
