@@ -138,6 +138,11 @@ export interface ToolContext extends ConnectorTokens {
     credits: number,
     detail?: unknown,
   ) => Promise<void>;
+  /** Sourcing runs are search-only: finding prospects is fine, but revealing
+   *  their emails/phones burns contact credits and is a separate, deliberate
+   *  step. When set, people-search tools force any contact-reveal option off.
+   *  (The dedicated enrich tools are also withheld via SOURCING_AGENT_TOOLS.) */
+  searchOnly?: boolean;
 }
 
 const READ_DOC_CHAR_CAP = 8_000;
@@ -1820,7 +1825,10 @@ function buildAll(ctx: ToolContext): ToolSet {
       }),
       execute: async (args) => {
         if (!ctx.contactoutToken) return { error: notConnected("ContactOut") };
-        return contactoutAdapter.peopleSearch(ctx.contactoutToken, args);
+        // Search-only mode (sourcing): never reveal contacts — it spends email
+        // and phone credits per profile.
+        const safe = ctx.searchOnly ? { ...args, revealInfo: false } : args;
+        return contactoutAdapter.peopleSearch(ctx.contactoutToken, safe);
       },
     }),
 
@@ -4182,6 +4190,25 @@ const SOURCING_AGENT_TOOL_DENYLIST = new Set<string>([
   "calyflow_log_sourcing_progress",
   // Outreach drafting is its own agent/page — not the sourcing agent's job.
   "calyflow_save_outreach_draft",
+  // Contact-reveal / enrichment tools: withheld from sourcing. Finding prospects
+  // is the job; revealing emails/phones spends contact credits per profile and is
+  // a separate, deliberate step after the recruiter picks who to contact. Only the
+  // providers' SEARCH tools stay available (apollo/contactout/rocketreach/
+  // signalhire _search, coresignal). Hunter and Findymail have no people-search
+  // API — they're enrichment-only, so all their tools are withheld here.
+  "apollo_enrich_person",
+  "contactout_linkedin_enrich",
+  "contactout_person_enrich",
+  "contactout_email_verify",
+  "findymail_find_email",
+  "findymail_find_phone",
+  "findymail_verify_email",
+  "hunter_domain_search",
+  "hunter_email_finder",
+  "hunter_email_verifier",
+  "rocketreach_lookup_person",
+  "rocketreach_check_lookup",
+  "signalhire_enrich_person",
 ]);
 
 /**

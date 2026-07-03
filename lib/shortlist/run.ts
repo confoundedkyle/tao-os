@@ -164,6 +164,22 @@ function summarize(value: unknown): string {
   return s.length > 300 ? `${s.slice(0, 300)}…` : s;
 }
 
+// Connected people-search databases whose SEARCH APIs find prospects by
+// title/skills/company/location. Their emails/phones stay hidden during sourcing
+// (search-only) — enrichment is a separate step, so only the *_search tools here
+// are available to the Sourcing Agent.
+const PEOPLE_SEARCH_HINTS: Record<string, string> = {
+  coresignal:
+    "coresignal_source_employees — deterministic search ladder; your primary people database",
+  apollo: "apollo_search_people — filter by title, seniority, company, location",
+  contactout:
+    "contactout_people_search — filter by title, company, location, skills",
+  rocketreach:
+    "rocketreach_search_people — filter by title, employer, location",
+  signalhire:
+    "signalhire_search_people — filter by title, company, location, keywords",
+};
+
 function connectorsBlock(providers: string[]): string {
   if (providers.length === 0) {
     return (
@@ -174,11 +190,25 @@ function connectorsBlock(providers: string[]): string {
     );
   }
   const lines = providers.map((p) => `- ${connectorLabel(p)}`).join("\n");
-  return (
+  let block =
     "# Active connectors\nPrioritise these connected data sources you can " +
     "actually query:\n" +
-    lines
-  );
+    lines;
+
+  const searchable = providers.filter((p) => PEOPLE_SEARCH_HINTS[p]);
+  if (searchable.length > 0) {
+    block +=
+      "\n\n## People-search databases (search only)\n" +
+      "Use these connected databases as first-class sourcing channels alongside " +
+      "web and GitHub — search them to FIND prospects that match the role, and " +
+      "save the matches (name, title, company, LinkedIn URL, evidence):\n" +
+      searchable.map((p) => `- ${PEOPLE_SEARCH_HINTS[p]}`).join("\n") +
+      "\n\nHARD RULE: search only. Do NOT reveal, enrich, or look up emails or " +
+      "phone numbers during sourcing — that spends contact credits per profile. " +
+      "Revealing contacts is a separate, deliberate step once the recruiter picks " +
+      "who to reach.";
+  }
+  return block;
 }
 
 /** A status block so a resumed run continues toward the goal instead of starting
@@ -271,6 +301,8 @@ export async function runShortlistSourcing(
     firecrawlKey: await resolveFirecrawlKey(workspaceId),
     createdDocIds: [],
     savedCandidateIds: [],
+    // Sourcing finds prospects; it never reveals emails/phones (credit spend).
+    searchOnly: true,
     creditCaps,
     recordCreditUsage: (prov, credits, detail) =>
       recordConnectorCreditUsage({

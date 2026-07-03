@@ -50,6 +50,11 @@ export interface Connector {
   /** Sensible default per-project cap (in `unit`) pre-filled for a metered
    *  connector before the recruiter overrides it. */
   defaultBudget?: number;
+  /** Offers a people-SEARCH API (find prospects by title/company/location), not
+   *  just contact enrichment. The Sourcing Plan recommends these as search
+   *  channels and the Sourcing Agent uses them search-only; enrich-only contacts
+   *  connectors are a separate, post-selection step (never sourcing discovery). */
+  peopleSearch?: boolean;
 }
 
 export const CONNECTOR_CATEGORY_LABELS: Record<ConnectorCategory, string> = {
@@ -124,14 +129,14 @@ export const CONNECTORS: Connector[] = [
   // Tools (sourcing & outreach) + Contacts (email/phone finders & verifiers).
   // `category` drives grouping — the two are interleaved here alphabetically.
   { name: "Adzuna", category: "tool", blurb: "Search the job market and salary data for benchmarking and demand signals.", provider: "adzuna", live: true, auth: "apikey", apiKeyPlaceholder: "app-id:app-key", apiKeyHint: "Register for an app_id and app_key at developer.adzuna.com and paste them separated by a colon." },
-  { name: "Apollo", category: "contacts", blurb: "Source contact data from the 270M-profile B2B database.", provider: "apollo", live: true, auth: "apikey", metered: true, unit: "credits", defaultBudget: 50 },
+  { name: "Apollo", category: "contacts", blurb: "Search 270M+ professionals by title, company, and location, plus contact-data enrichment.", provider: "apollo", live: true, auth: "apikey", metered: true, unit: "credits", defaultBudget: 50, peopleSearch: true },
   { name: "Avoma", category: "tool", blurb: "Read transcripts and AI notes from your recorded intake and screening calls.", provider: "avoma", live: true, auth: "apikey", apiKeyHint: "Create a scoped API key in Avoma under Settings → API." },
   { name: "Bouncer", category: "contacts", blurb: "Verify email deliverability before reaching out.", provider: "bouncer", live: true, auth: "apikey", apiKeyHint: "Copy your API key from Bouncer under your account → API." },
   { name: "Bright Data", category: "tool", blurb: "Enrich profiles with large-scale public web data.", provider: "brightdata", live: true, auth: "apikey", metered: true, unit: "records", defaultBudget: 50 },
   { name: "Cal.com", category: "tool", blurb: "Read booked meetings and their attendees from the open-source scheduler.", provider: "calcom", live: true, auth: "apikey", apiKeyHint: "Create an API key in Cal.com under Settings → Developer → API keys (it starts with cal_)." },
   { name: "Calendly", category: "tool", blurb: "Read booked interview events and who scheduled them.", provider: "calendly", live: true, auth: "apikey", apiKeyHint: "Create a personal access token in Calendly under Integrations → API & Webhooks → Personal access tokens." },
-  { name: "ContactOut", category: "contacts", blurb: "Find personal emails and phones behind LinkedIn profiles.", provider: "contactout", live: true, auth: "apikey", metered: true, unit: "credits", defaultBudget: 50 },
-  { name: "Coresignal", category: "tool", blurb: "Enrich candidates with fresh public employment data.", provider: "coresignal", live: true, auth: "apikey", metered: true, unit: "credits", defaultBudget: 40 },
+  { name: "ContactOut", category: "contacts", blurb: "Search LinkedIn profiles by title, company, skills, and location, plus email/phone enrichment.", provider: "contactout", live: true, auth: "apikey", metered: true, unit: "credits", defaultBudget: 50, peopleSearch: true },
+  { name: "Coresignal", category: "tool", blurb: "Search fresh public employment data to find candidates by title, skills, and company.", provider: "coresignal", live: true, auth: "apikey", metered: true, unit: "credits", defaultBudget: 40, peopleSearch: true },
   { name: "Dropcontact", category: "contacts", blurb: "Find and verify GDPR-compliant emails for European candidates and clients.", provider: "dropcontact", live: true, auth: "apikey", apiKeyHint: "Copy your API key from Dropcontact under Settings → Your API key (API access requires a paid plan).", metered: true, unit: "credits", defaultBudget: 50 },
   { name: "DuckDuckGo", category: "tool", blurb: "Free web search for the agents — no key needed. Used automatically when Firecrawl isn't connected.", provider: "duckduckgo", live: true, builtin: true },
   { name: "Emailable", category: "contacts", blurb: "Verify email deliverability, with typo suggestions, before outreach.", provider: "emailable", live: true, auth: "apikey", apiKeyHint: "Copy your API key from the Emailable dashboard → API." },
@@ -156,9 +161,9 @@ export const CONNECTORS: Connector[] = [
   { name: "People Data Labs", category: "contacts", blurb: "Enrich and search billions of person profiles at scale.", provider: "peopledatalabs", live: true, auth: "apikey", metered: true, unit: "credits", defaultBudget: 50 },
   { name: "Prospeo", category: "contacts", blurb: "Find verified emails and mobile numbers for candidates and clients.", provider: "prospeo", live: true, auth: "apikey", apiKeyHint: "Copy your API key from Prospeo under Settings → API.", metered: true, unit: "credits", defaultBudget: 50 },
   { name: "Reply.io", category: "tool", blurb: "Read multichannel outreach sequences and contacts to coordinate candidate and client follow-up.", provider: "replyio", live: true, auth: "apikey", apiKeyHint: "Copy your API key from Reply.io under Settings → API key." },
-  { name: "RocketReach", category: "contacts", blurb: "Find emails and phones across 700M+ professional profiles.", provider: "rocketreach", live: true, auth: "apikey", metered: true, unit: "credits", defaultBudget: 50 },
+  { name: "RocketReach", category: "contacts", blurb: "Search 700M+ professional profiles by title, employer, and location, plus email/phone lookup.", provider: "rocketreach", live: true, auth: "apikey", metered: true, unit: "credits", defaultBudget: 50, peopleSearch: true },
   { name: "SerpApi", category: "tool", blurb: "Run Google searches for candidate X-ray sourcing.", provider: "serpapi", live: true, auth: "apikey", apiKeyHint: "Copy your private API key from SerpApi under Your Account → API Key." },
-  { name: "SignalHire", category: "contacts", blurb: "Reveal candidate emails and phones with the recruiter-built contact finder.", provider: "signalhire", live: true, auth: "apikey", apiKeyHint: "Create the key in SignalHire under Integrations & API; the same credit pool is shared with the web app and extension." },
+  { name: "SignalHire", category: "contacts", blurb: "Search candidate profiles by title, company, and location, plus recruiter-built email/phone reveal.", provider: "signalhire", live: true, auth: "apikey", peopleSearch: true, apiKeyHint: "Create the key in SignalHire under Integrations & API; the same credit pool is shared with the web app and extension." },
   { name: "Skrapp", category: "contacts", blurb: "Find a verified work email from a name and company domain.", provider: "skrapp", live: true, auth: "apikey", apiKeyHint: "Copy your access key from Skrapp under Settings → API (requires a premium plan)." },
   { name: "Smartlead", category: "tool", blurb: "Track cold-email campaigns, leads, and reply analytics.", provider: "smartlead", live: true, auth: "apikey" },
   { name: "Snov.io", category: "contacts", blurb: "Find and verify work emails for outreach-ready lists.", provider: "snov", live: true, auth: "apikey", apiKeyPlaceholder: "client-id:client-secret", apiKeyHint: "Both are shown in Snov.io under your account settings → API." },

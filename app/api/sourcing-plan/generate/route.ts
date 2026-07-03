@@ -103,6 +103,21 @@ function connectorCatalogBlock(): string {
   const modules = MODULES.map((m) => `- **${m.label}** — ${m.description}`).join(
     "\n",
   );
+  // People-search databases (find prospects) vs the enrich-only Contacts tools.
+  // Sourcing is search-only, so the plan must recommend the searchers as channels
+  // and treat the rest as a separate, post-selection contact step — spell that out
+  // so the model doesn't drop searchers (SignalHire, RocketReach) as "enrichers".
+  const peopleSearch = CONNECTORS.filter(
+    (c) => c.live && !c.builtin && c.peopleSearch,
+  ).map((c) => c.name);
+  const searchNote = peopleSearch.length
+    ? "\n\n**People-search databases** (search to FIND prospects — recommend these " +
+      "as first-class sourcing channels in §2, search-only): " +
+      peopleSearch.join(", ") +
+      ". Every OTHER Contacts connector is contact-enrichment only (revealing " +
+      "emails/phones) — that is a separate step AFTER candidates are picked, never " +
+      "a sourcing/discovery channel, so do not build the plan's search around it."
+    : "";
   return (
     "# Connectors & modules Calyflow offers (your toolbox to recommend from)\n" +
     "Do NOT tailor the plan to which of these are currently connected — connectors " +
@@ -113,6 +128,7 @@ function connectorCatalogBlock(): string {
     "(outreach is a separate step).\n\n" +
     "Connectors (by category):\n" +
     lines.join("\n") +
+    searchNote +
     "\n\nInternal candidate modules:\n" +
     modules
   );
