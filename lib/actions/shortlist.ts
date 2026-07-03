@@ -39,6 +39,9 @@ export async function setSourcingTargetsAction(
   revalidatePath(
     `/clients/${project.client_id}/projects/${projectId}/shortlist`,
   );
+  revalidatePath(
+    `/clients/${project.client_id}/projects/${projectId}/sourcing`,
+  );
 }
 
 /** Set (or clear, with null) the project's per-project spend cap for ONE metered
@@ -71,6 +74,9 @@ export async function setConnectorBudgetAction(
 
   revalidatePath(
     `/clients/${project.client_id}/projects/${projectId}/shortlist`,
+  );
+  revalidatePath(
+    `/clients/${project.client_id}/projects/${projectId}/sourcing`,
   );
 }
 

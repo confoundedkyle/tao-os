@@ -15,14 +15,25 @@ export default async function ProjectDocumentsPage({
 
   const docs = await listDocuments(session.workspaceId, "project", projectId, "file");
 
+  // Doc types the agents produce as results (shown on the right, not as inputs).
+  // Besides generic `output` docs, the pipeline saves its Sourcing Plan and
+  // Qualification criteria as their own canonical doc types.
+  const AGENT_OUTPUT_TYPES = new Set(["output", "sourcing_plan", "qualification"]);
+
   // "Your documents": the inputs you set up (JD, intake notes, scorecard, …) —
   // excluding CVs (a per-run input) and agent outputs (shown on the right).
   const inputDocs = docs.filter(
-    (d) => d.doc_type !== "cv" && d.doc_type !== "output",
+    (d) => d.doc_type !== "cv" && !AGENT_OUTPUT_TYPES.has(d.doc_type ?? ""),
   );
-  // "Agent-created documents": what agent runs saved back, newest first.
+  // "Agent-created documents": what agent runs saved back, newest first. Generic
+  // outputs always show; the canonical Sourcing Plan / Qualification show their
+  // current (active) version, not the superseded ones.
   const outputDocs = docs
-    .filter((d) => d.doc_type === "output")
+    .filter(
+      (d) =>
+        d.doc_type === "output" ||
+        (AGENT_OUTPUT_TYPES.has(d.doc_type ?? "") && d.is_active),
+    )
     .sort((a, b) => b.created_at.localeCompare(a.created_at));
 
   return (

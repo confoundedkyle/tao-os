@@ -33,6 +33,7 @@ const PIPELINE_STEP_META: Record<
   PipelineStepKind,
   { label: string; tone: "mint" | "lavender" | "amber" | "sky"; subpage: string }
 > = {
+  sourcing: { label: "Sourcing", tone: "mint", subpage: "sourcing" },
   "sourcing-plan": { label: "Sourcing Plan", tone: "lavender", subpage: "sourcing-plan" },
   qualification: { label: "Qualification", tone: "amber", subpage: "qualification" },
   shortlist: { label: "Shortlist", tone: "mint", subpage: "shortlist" },
@@ -89,9 +90,12 @@ export default async function UsagePage() {
     ...pipelineRuns.map((r) => {
       const meta = PIPELINE_STEP_META[r.kind];
       const name = r.project ? `${meta.label} · ${r.project.name}` : meta.label;
+      // Sessions (sourcing / plan / qualification) reopen the exact conversation
+      // via ?c=; step pages without a session just link to the subpage.
+      const sessionQuery = r.conversation_id ? `?c=${r.conversation_id}` : "";
       const href =
         r.project?.clientId && r.project
-          ? `/clients/${r.project.clientId}/projects/${r.project.id}/${meta.subpage}`
+          ? `/clients/${r.project.clientId}/projects/${r.project.id}/${meta.subpage}${sessionQuery}`
           : null;
       return {
         id: r.id,

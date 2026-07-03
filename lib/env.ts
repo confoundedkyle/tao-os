@@ -209,6 +209,19 @@ export const env = {
   get qualificationHarness() {
     return process.env.QUALIFICATION_HARNESS ?? "";
   },
+  /** Optional override for the Sourcing strategist harness (proposes the next
+   *  wave). Unlike the others this one ships a generic committed fallback, so
+   *  this env/bucket is only needed to swap in the proprietary version. See
+   *  lib/sourcing/strategist.ts. */
+  get strategistHarness() {
+    return process.env.STRATEGIST_HARNESS ?? "";
+  },
+  /** Optional override for the SignalHire search-ladder spec. Ships a generic
+   *  committed default (search is free — no credit-strategy IP), so this only
+   *  swaps in a proprietary tier spec. See lib/sourcing/signalhire-ladder.ts. */
+  get signalhireLadder() {
+    return process.env.SIGNALHIRE_LADDER ?? "";
+  },
   /** Optional self-host fallback for the Outreach (email drafting) harness.
    *  See lib/outreach/harness.ts. */
   get outreachHarness() {

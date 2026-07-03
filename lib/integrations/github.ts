@@ -58,6 +58,18 @@ export interface GitHubAdapter extends ConnectorAdapter {
     token: string,
     args: { owner: string; repo: string; author?: string; limit?: number },
   ): Promise<{ text: string; count: number; truncated: boolean }>;
+  /** A user's PUBLIC profile email (the one shown on their profile, if they made
+   *  it public), plus a few profile fields. Null email when not public. */
+  userEmail(
+    token: string,
+    username: string,
+  ): Promise<{
+    email: string | null;
+    name: string | null;
+    company: string | null;
+    location: string | null;
+    blog: string | null;
+  }>;
 }
 
 async function gh<T>(token: string, path: string): Promise<T> {
@@ -209,5 +221,23 @@ export const githubAdapter: GitHubAdapter = {
       };
     const { text, truncated } = clamp(rows);
     return { text, count: rows.length, truncated };
+  },
+
+  async userEmail(token, username) {
+    const clean = username.trim().replace(/^@/, "");
+    const u = await gh<{
+      email?: string | null;
+      name?: string | null;
+      company?: string | null;
+      location?: string | null;
+      blog?: string | null;
+    }>(token, `/users/${encodeURIComponent(clean)}`);
+    return {
+      email: u?.email?.trim() || null,
+      name: u?.name ?? null,
+      company: u?.company ?? null,
+      location: u?.location ?? null,
+      blog: u?.blog?.trim() || null,
+    };
   },
 };

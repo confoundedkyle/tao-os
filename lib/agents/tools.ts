@@ -2,7 +2,11 @@ import "server-only";
 import { tool, type ToolSet } from "ai";
 import { z } from "zod";
 import { db } from "../db";
-import { listDocuments, getDocument } from "../queries";
+import {
+  listDocuments,
+  getDocument,
+  searchTalentProspects,
+} from "../queries";
 import { appendProgressEntry } from "../sourcing-plan/progress";
 import { saveCandidate } from "../candidates/save";
 import { listCandidatesCompact } from "../candidates/queries";
@@ -29,6 +33,7 @@ import { contactoutAdapter } from "../integrations/contactout";
 import { copperAdapter } from "../integrations/copper";
 import { coresignalAdapter } from "../integrations/coresignal";
 import { loadCoresignalLadder } from "../sourcing/coresignal-ladder";
+import { loadSignalHireLadder } from "../sourcing/signalhire-ladder";
 import { crelateAdapter } from "../integrations/crelate";
 import { discordAdapter } from "../integrations/discord";
 import { dropcontactAdapter } from "../integrations/dropcontact";
@@ -3222,6 +3227,54 @@ function buildAll(ctx: ToolContext): ToolSet {
       },
     }),
 
+    signalhire_source_people: tool({
+      description:
+        "Run a deterministic, cost/speed-optimised multi-tier SignalHire search ladder for ONE search intent and return a deduped, ranked shortlist of profiles. Call this ONCE per intent — it runs the tightest, highest-signal queries first (exact title + all skills + location), widens automatically only as needed (target companies → title+location → adjacent titles → skills-only → geo-wide), runs each tier's searches concurrently, dedupes identical queries and profiles across tiers, and STOPS the moment it has enough. SignalHire search is FREE (daily quota, no credits). Pass the title tiers and skills from your Sourcing Plan. Always prefer this over looping signalhire_search_people by hand. Search only — reveal contacts later with signalhire_enrich_person.",
+      inputSchema: z.object({
+        currentTitles: z
+          .array(z.string())
+          .min(1)
+          .describe("Exact current job titles people hold for this role."),
+        adjacentTitles: z
+          .array(z.string())
+          .optional()
+          .describe("Adjacent / synonymous titles, incl. recent past roles."),
+        skills: z
+          .array(z.string())
+          .optional()
+          .describe("Must-have skills / tools, folded into the keyword filter."),
+        keywords: z
+          .string()
+          .optional()
+          .describe("Extra free-text keywords."),
+        companies: z
+          .array(z.string())
+          .optional()
+          .describe("Target current employers to search one at a time."),
+        location: z
+          .string()
+          .optional()
+          .describe("Target location (city, state, or country)."),
+        targetCount: z
+          .number()
+          .int()
+          .positive()
+          .optional()
+          .describe("Unique candidates to gather before stopping (default 25)."),
+        maxSearches: z
+          .number()
+          .int()
+          .positive()
+          .optional()
+          .describe("Cap on searchByQuery calls this ladder makes (default 12, max 24)."),
+      }),
+      execute: async (args) => {
+        if (!ctx.signalhireToken) return { error: notConnected("SignalHire") };
+        const spec = await loadSignalHireLadder();
+        return signalhireAdapter.sourcePeople(ctx.signalhireToken, args, spec);
+      },
+    }),
+
     signalhire_enrich_person: tool({
       description:
         "Reveal a person's emails and phones via SignalHire from a LinkedIn profile URL, an email, a phone number, or a profile UID (from signalhire_search_people). Costs a credit per successful match — enrich selectively, never in bulk.",
@@ -3915,6 +3968,60 @@ function buildAll(ctx: ToolContext): ToolSet {
         };
       },
     }),
+    calyflow_search_talent_pool: tool({
+      description:
+        "Search the workspace's INTERNAL Talent Pool — candidates the recruiter " +
+        "already imported/saved (a Calyflow module, NOT an external ATS like " +
+        "Teamtailor/Greenhouse). Search FIRST here when the recruiter says " +
+        "\"talent pool\" or wants internal sourcing: it's free and instant. Match " +
+        "by keywords (title, skill, company, or name). Returns name, title, " +
+        "company, location and LinkedIn — save the good matches with " +
+        "calyflow_save_candidate (scored against the qualification criteria).",
+      inputSchema: z.object({
+        query: z
+          .string()
+          .describe(
+            "Keywords to match on title / skill / company / name, e.g. 'backend engineer' or 'fintech'.",
+          ),
+        limit: z
+          .number()
+          .int()
+          .positive()
+          .optional()
+          .describe("Max prospects to return (default 25, max 50)."),
+      }),
+      execute: async ({ query, limit }) => {
+        const rows = await searchTalentProspects(
+          ctx.workspaceId,
+          query,
+          limit ?? 25,
+        );
+        if (rows.length === 0) {
+          return {
+            text: "_No matching prospects in the internal Talent Pool._",
+            count: 0,
+          };
+        }
+        const lines = [
+          "| Name | Title | Company | Location | LinkedIn |",
+          "| --- | --- | --- | --- | --- |",
+        ];
+        for (const p of rows) {
+          const loc = [p.city, p.country].filter(Boolean).join(", ");
+          const cell = (s: string | null) =>
+            (s ?? "").replace(/\|/g, "\\|").replace(/\n/g, " ");
+          lines.push(
+            `| ${cell(p.name)} | ${cell(p.job_title)} | ${cell(p.company)} | ${cell(loc)} | ${cell(p.linkedin_url)} |`,
+          );
+        }
+        return {
+          count: rows.length,
+          text:
+            `${lines.join("\n")}\n\n_${rows.length} from the internal Talent Pool. ` +
+            "Save the good matches with calyflow_save_candidate._",
+        };
+      },
+    }),
     calyflow_save_outreach_draft: tool({
       description:
         "Save a personalized outreach EMAIL draft for one candidate (the recruiter " +
@@ -4135,6 +4242,7 @@ export const ALL_TOOL_NAMES = [
   "salesflare_list_opportunities",
   "serpapi_google_search",
   "signalhire_search_people",
+  "signalhire_source_people",
   "signalhire_enrich_person",
   "skrapp_find_email",
   "replyio_list_sequences",
@@ -4189,6 +4297,7 @@ export const ALL_TOOL_NAMES = [
   "calyflow_log_sourcing_progress",
   "calyflow_save_candidate",
   "calyflow_list_candidates",
+  "calyflow_search_talent_pool",
   "calyflow_save_outreach_draft",
 ] as const;
 

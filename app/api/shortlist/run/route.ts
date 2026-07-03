@@ -4,13 +4,18 @@ import { db } from "@/lib/db";
 import { env } from "@/lib/env";
 import { checkBudgets } from "@/lib/budgets";
 import { resolveRunProviders } from "@/lib/providers";
-import { getProject } from "@/lib/queries";
+import { getProject, getSessionTargets } from "@/lib/queries";
 import {
   loadShortlistHarness,
   HarnessNotProvisionedError,
 } from "@/lib/shortlist/harness";
 import { runShortlistSourcing } from "@/lib/shortlist/run";
-import { budgetReached } from "@/lib/shortlist/budget";
+import {
+  budgetReached,
+  effectiveProjectBudgetUsd,
+  effectiveSessionGoal,
+  effectiveSessionBudgetUsd,
+} from "@/lib/shortlist/budget";
 
 export const maxDuration = 600; // sourcing loops run long; work happens in after()
 
@@ -33,6 +38,20 @@ export async function POST(request: NextRequest) {
   }
   const body = await request.json().catch(() => null);
   const projectId = String(body?.projectId ?? "");
+  // Optional recruiter-approved strategy (from the Sourcing tab's propose→approve
+  // flow). Recorded on the run and threaded into the harness as the wave's guide.
+  const strategy =
+    typeof body?.strategy === "string" && body.strategy.trim()
+      ? body.strategy.trim().slice(0, 8000)
+      : null;
+  // The session (strategist conversation) this run belongs to — drives the
+  // session's own goal + budget.
+  const UUID_RE =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const conversationId =
+    typeof body?.conversationId === "string" && UUID_RE.test(body.conversationId)
+      ? body.conversationId
+      : null;
 
   const project = await getProject(session.workspaceId, projectId);
   if (!project) {
@@ -70,22 +89,33 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: platformGate.message }, { status: 402 });
   }
 
-  // Shortlist budget gate (EUR → USD). Best-effort across runs: refuse to start a
-  // new run once the project's cumulative sourcing spend has reached the budget.
-  const budgetUsd = project.sourcing_budget_usd;
-  if (budgetUsd != null && budgetUsd > 0) {
-    const spent = await priorSpendUsd(projectId);
-    if (budgetReached(spent, budgetUsd)) {
-      return NextResponse.json(
-        {
-          error:
-            `This project has reached its sourcing budget ($${budgetUsd.toFixed(2)}). ` +
-            "Raise the budget to source more.",
-        },
-        { status: 402 },
-      );
-    }
+  // Project-level cap (Project Settings, defaults to $10): refuse to start once
+  // the project's cumulative sourcing spend across ALL sessions has reached it.
+  const projectCap = effectiveProjectBudgetUsd(project.sourcing_budget_usd);
+  const projectSpent = await priorSpendUsd(projectId);
+  if (budgetReached(projectSpent, projectCap)) {
+    return NextResponse.json(
+      {
+        error:
+          `This project has reached its sourcing budget ($${projectCap.toFixed(2)}). ` +
+          "Raise it in Project Settings to source more.",
+      },
+      { status: 402 },
+    );
   }
+
+  // Per-session goal + budget (from the strategist conversation). The run pursues
+  // the session's goal within the smaller of the session budget and the remaining
+  // project cap.
+  const sessionTargets = await getSessionTargets(projectId, conversationId);
+  const remainingProjectCap = Math.max(projectCap - projectSpent, 0);
+  // Unset session goal/budget fall back to sensible defaults (5 qualified, $3),
+  // and the budget is still clamped to what's left of the project cap.
+  const sessionGoal = effectiveSessionGoal(sessionTargets.goalQualified);
+  const budgetUsd = Math.min(
+    effectiveSessionBudgetUsd(sessionTargets.budgetUsd),
+    remainingProjectCap,
+  );
 
   // The harness (IP) must be provisioned, else a clear error.
   try {
@@ -122,6 +152,8 @@ export async function POST(request: NextRequest) {
       status: "running",
       provider,
       model,
+      strategy,
+      conversation_id: conversationId,
       created_by: session.userId,
     })
     .select("id")
@@ -142,8 +174,10 @@ export async function POST(request: NextRequest) {
       provider,
       model,
       apiKey: env.mockAi ? null : primary!.apiKey,
-      goalQualified: project.sourcing_goal_qualified,
+      conversationId,
+      goalQualified: sessionGoal,
       budgetUsd,
+      guideline: strategy,
     }).catch((err) => {
       console.error("Shortlist: background run threw", err);
     }),
@@ -166,7 +200,7 @@ export async function GET(request: NextRequest) {
   const { data } = await db()
     .from("shortlist_runs")
     .select(
-      "id, status, steps, output_text, error_message, candidates_added, qualified_after, created_at",
+      "id, status, steps, output_text, error_message, candidates_added, qualified_after, outcome, learnings, created_at",
     )
     .eq("project_id", projectId)
     .order("created_at", { ascending: false })

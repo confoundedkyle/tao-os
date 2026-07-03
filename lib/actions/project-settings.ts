@@ -99,6 +99,32 @@ export async function updateProjectSlackSettingsAction(
   );
 }
 
+/** Save the project-level sourcing budget (USD) — the overall cap across all
+ *  sourcing sessions for this project. Individual sessions set their own smaller
+ *  budgets in the Sourcing tab; this is the ceiling that gates every run. */
+export async function updateProjectBudgetAction(
+  projectId: string,
+  formData: FormData,
+): Promise<void> {
+  const session = await requireSession();
+  const project = await getProject(session.workspaceId, projectId);
+  if (!project) throw new Error("Project not found");
+
+  const raw = String(formData.get("budgetUsd") ?? "").trim();
+  const n = raw ? Number(raw) : null;
+  const budget =
+    n != null && Number.isFinite(n) && n > 0 ? Math.round(n * 100) / 100 : null;
+
+  const { error } = await db()
+    .from("projects")
+    .update({ sourcing_budget_usd: budget })
+    .eq("id", projectId);
+  if (error) throw error;
+
+  revalidatePath(`/clients/${project.client_id}/projects/${projectId}/settings`);
+  revalidatePath(`/clients/${project.client_id}/projects/${projectId}/sourcing`);
+}
+
 /** Create a dedicated public Slack channel for this project and map it. Gives
  *  the "one channel per project" flow a one-click path. */
 export async function createProjectChannelAction(

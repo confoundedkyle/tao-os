@@ -7,6 +7,7 @@ import { requireSession } from "../auth";
 import { db } from "../db";
 import { getConnection, getProject, listConnections } from "../queries";
 import { getValidAccessToken } from "../integrations";
+import { githubAdapter } from "../integrations/github";
 import { getLanguageModel, resolveRunProviders } from "../providers";
 import {
   LIVE_EMAIL_ENRICHMENT_PROVIDERS,
@@ -57,6 +58,53 @@ export interface FindEmailActionResult {
   provider: string;
 }
 
+/** The GitHub username from a github.com profile URL, or null (also skips
+ *  non-user paths like /orgs, /features). */
+function githubUsernameFromUrl(url: string): string | null {
+  const m = url.match(/github\.com\/([A-Za-z0-9-]+)/i);
+  const login = m?.[1];
+  if (!login) return null;
+  const reserved = new Set([
+    "orgs",
+    "about",
+    "features",
+    "marketplace",
+    "sponsors",
+    "topics",
+    "collections",
+    "trending",
+    "settings",
+    "explore",
+  ]);
+  return reserved.has(login.toLowerCase()) ? null : login;
+}
+
+/** Save a found email onto a candidate + revalidate its Shortlist. */
+async function persistCandidateEmail(
+  workspaceId: string,
+  candidate: Candidate,
+  email: string,
+  source: string,
+): Promise<void> {
+  const { error } = await db()
+    .from("candidates")
+    .update({
+      email,
+      raw: mergeRaw(candidate.raw, {
+        email_source: source,
+        email_enriched_at: new Date().toISOString(),
+      }),
+    })
+    .eq("id", candidate.id);
+  if (error) throw error;
+  const project = await getProject(workspaceId, candidate.project_id);
+  if (project) {
+    revalidatePath(
+      `/clients/${project.client_id}/projects/${candidate.project_id}/shortlist`,
+    );
+  }
+}
+
 /**
  * One-click email lookup for a single candidate (the Shortlist "Find email"
  * button). Picks the workspace's first connected live-enrichment connector,
@@ -73,30 +121,68 @@ export async function findCandidateEmailAction(
   if (candidate.email) {
     return { email: candidate.email, provider: "" };
   }
-  if (!candidate.linkedin?.trim()) {
+  const profileUrl = candidate.linkedin?.trim();
+  if (!profileUrl) {
     throw new Error(
-      "This candidate has no LinkedIn URL, so there's nothing to look up.",
+      "This candidate has no profile URL, so there's nothing to look up.",
     );
   }
 
   const connected = connectedProvidersFrom(
     await listConnections(session.workspaceId),
   );
+
+  // GitHub-sourced candidate: pull the PUBLIC profile email straight from GitHub
+  // (if the person made it public) using the workspace's GitHub connection —
+  // people-enrichment providers can't resolve a GitHub URL.
+  const ghUsername = githubUsernameFromUrl(profileUrl);
+  if (ghUsername && connected.has("github")) {
+    const conn = await getConnection(session.workspaceId, "github");
+    if (!conn) throw new Error("NO_ENRICHMENT_TOOL");
+    const token = await getValidAccessToken(conn);
+    const info = await githubAdapter.userEmail(token, ghUsername);
+    if (info.email) {
+      await persistCandidateEmail(
+        session.workspaceId,
+        candidate,
+        info.email,
+        "github",
+      );
+      return { email: info.email, provider: "GitHub" };
+    }
+    await db()
+      .from("candidates")
+      .update({
+        raw: mergeRaw(candidate.raw, {
+          email_lookup_miss: "github",
+          email_lookup_detail: "No public email on the GitHub profile",
+        }),
+      })
+      .eq("id", candidate.id);
+    throw new Error(
+      "This GitHub profile has no public email — try their LinkedIn or another source.",
+    );
+  }
+
+  // Otherwise the enrichment providers need a LinkedIn URL.
+  const lookupUrl = canonicalLinkedinUrl(profileUrl);
+  if (!lookupUrl) {
+    throw new Error(
+      "This candidate's saved profile isn't a LinkedIn URL, so there's no email " +
+        "to look up. Add their LinkedIn URL to enable lookup.",
+    );
+  }
+
   const provider = LIVE_EMAIL_ENRICHMENT_PROVIDERS.find((p) =>
     connected.has(p),
   );
   if (!provider) {
     throw new Error("NO_ENRICHMENT_TOOL");
   }
-
   const connection = await getConnection(session.workspaceId, provider);
   if (!connection) throw new Error("NO_ENRICHMENT_TOOL");
   const token = await getValidAccessToken(connection);
 
-  // Use the canonical, slash-terminated URL so the provider pairs the profile
-  // even for candidates stored before we started canonicalizing on save.
-  const lookupUrl =
-    canonicalLinkedinUrl(candidate.linkedin) ?? candidate.linkedin.trim();
   const { email, detail } = await findEmailViaProvider(
     provider,
     token,
@@ -104,24 +190,7 @@ export async function findCandidateEmailAction(
   );
 
   if (email) {
-    const { error } = await db()
-      .from("candidates")
-      .update({
-        email,
-        raw: mergeRaw(candidate.raw, {
-          email_source: provider,
-          email_enriched_at: new Date().toISOString(),
-        }),
-      })
-      .eq("id", candidate.id);
-    if (error) throw error;
-
-    const project = await getProject(session.workspaceId, candidate.project_id);
-    if (project) {
-      revalidatePath(
-        `/clients/${project.client_id}/projects/${candidate.project_id}/shortlist`,
-      );
-    }
+    await persistCandidateEmail(session.workspaceId, candidate, email, provider);
   } else {
     // Record the miss so a later run knows we already tried this provider.
     await db()

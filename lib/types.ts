@@ -496,6 +496,10 @@ export interface ShortlistRun {
   cost_usd: number | null;
   candidates_added: number | null;
   qualified_after: number | null;
+  strategy: string | null;
+  outcome: string | null; // successful | weak | dry
+  learnings: string | null;
+  conversation_id: string | null;
   created_by: string | null;
   created_at: string;
 }

@@ -1,9 +1,11 @@
 import { notFound, redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { getProject } from "@/lib/queries";
+import { DEFAULT_PROJECT_BUDGET_USD } from "@/lib/shortlist/budget";
 import { isSlackConnected, listSlackChannels } from "@/lib/slack";
 import {
   createProjectChannelAction,
+  updateProjectBudgetAction,
   updateProjectSlackSettingsAction,
 } from "@/lib/actions/project-settings";
 import { Button, ButtonLink, Card, EmptyState, Field, inputClass } from "@/components/ui";
@@ -141,6 +143,45 @@ export default async function ProjectSettingsPage({
             </div>
           </div>
         )}
+      </Card>
+
+      <Card>
+        <h2 className="mb-1 text-xl font-semibold">Sourcing budget</h2>
+        <p className="mb-4 text-sm text-navy-800/55">
+          The overall cap on AI spend for sourcing this project, across every
+          sourcing session. Each session in the{" "}
+          <span className="font-medium">Sourcing</span> tab sets its own goal and
+          (smaller) budget; no session can run once this project cap is reached.
+        </p>
+        <ToastForm
+          action={updateProjectBudgetAction.bind(null, projectId)}
+          message="Project budget saved"
+          className="grid gap-4"
+        >
+          <Field
+            label="Project budget (USD)"
+            hint={`Defaults to $${DEFAULT_PROJECT_BUDGET_USD.toFixed(2)} if left blank.`}
+          >
+            <input
+              type="number"
+              name="budgetUsd"
+              min={0}
+              step="0.01"
+              defaultValue={
+                project.sourcing_budget_usd != null
+                  ? String(project.sourcing_budget_usd)
+                  : String(DEFAULT_PROJECT_BUDGET_USD)
+              }
+              placeholder={`e.g. ${DEFAULT_PROJECT_BUDGET_USD.toFixed(2)}`}
+              className={inputClass}
+            />
+          </Field>
+          <div>
+            <Button variant="small" type="submit">
+              Save
+            </Button>
+          </div>
+        </ToastForm>
       </Card>
     </div>
   );

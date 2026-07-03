@@ -167,7 +167,7 @@ export function OutreachPanel({
       </div>
 
       {!senderConfigured && (
-        <div className="mb-4 rounded-card border border-amber-400/30 bg-amber-400/8 px-4 py-3 text-sm text-navy-800/80">
+        <div className="mb-4 rounded-card border border-coral-400/40 bg-coral-400/8 px-4 py-3 text-sm text-coral-400">
           Your sender details aren’t set, so drafts won’t be signed (and may use
           placeholders). Add your name and email signature in{" "}
           <Link href={personalHref} className="font-semibold text-mint-700 hover:underline">

@@ -13,7 +13,16 @@ import {
   getLanguageModel,
   reasoningSettings,
 } from "../providers";
-import { connectorLabel, effectiveConnectorCaps } from "../connectors";
+import {
+  effectiveConnectorCaps,
+  toolsForConnectedProviders,
+} from "../connectors";
+import { sourcingChannelsBlock } from "../sourcing/channels";
+import {
+  getChannelSignals,
+  formatChannelSignalsBlock,
+  sessionProgress,
+} from "../sourcing/signals";
 import {
   getActiveSourcingPlan,
   getUserPreferences,
@@ -142,6 +151,40 @@ function diagnosisPromptFor(
   );
 }
 
+/** Grade of a finished search: did it find STRONG (qualified) profiles? */
+export type SearchOutcome = "successful" | "weak" | "dry";
+
+/** A tool-free evaluation prompt: given what this wave tried and yielded, write
+ *  1–3 concise, project-specific learnings that steer the NEXT wave. */
+function evaluationPromptFor(args: {
+  outcome: SearchOutcome;
+  newlyQualified: number;
+  candidatesAdded: number;
+  guideline: string | null;
+  summary: string;
+}): string {
+  const goalLine =
+    args.outcome === "successful"
+      ? `This wave was SUCCESSFUL — it added ${args.newlyQualified} qualified (strong) candidate(s).`
+      : args.outcome === "weak"
+        ? `This wave was WEAK — it added ${args.candidatesAdded} candidate(s) but NONE qualified.`
+        : "This wave was DRY — it added no new candidates.";
+  return (
+    "You just finished a sourcing wave for this project. Reflect on it so the " +
+    "NEXT wave is better.\n\n" +
+    `${goalLine}\n\n` +
+    (args.guideline
+      ? `The approved strategy for this wave was:\n${args.guideline}\n\n`
+      : "") +
+    `Your own closing summary of the wave:\n${args.summary || "(none)"}\n\n` +
+    "Write 1–3 SHORT bullet learnings, specific to THIS project, that will make " +
+    "the next wave more effective — which channels/queries/titles worked and " +
+    "should be repeated, and which came back weak and should be dropped or " +
+    "changed. Be concrete (name the channel/connector and the angle). No preamble, " +
+    "just the bullets. Do NOT call any tools."
+  );
+}
+
 export interface ShortlistRunParams {
   workspace: Workspace;
   project: Project & { client: Client };
@@ -150,8 +193,27 @@ export interface ShortlistRunParams {
   provider: string;
   model: string;
   apiKey: string | null;
+  /** The session (strategist conversation) this run belongs to, so its goal +
+   *  budget are counted per session, not project-wide. */
+  conversationId?: string | null;
   goalQualified: number | null;
   budgetUsd: number | null;
+  /** The recruiter-approved strategy for THIS wave (from the Sourcing tab). When
+   *  set, it's injected as a guideline so the run leads with the approved
+   *  channels. Null for a plain Start/Continue with no proposal. */
+  guideline?: string | null;
+}
+
+/** The approved-strategy block: the recruiter signed off on this plan for the
+ *  wave, so lead with it (still obeying the cheapest-first channel ladder). */
+function guidelineBlock(guideline: string): string {
+  return (
+    "# This wave's approved strategy\n" +
+    "The recruiter approved this plan for THIS wave — follow it as your primary " +
+    "guide, starting with the channels it names (while still honouring the " +
+    "cheapest-first channel ladder and the search-only rule):\n\n" +
+    guideline.trim()
+  );
 }
 
 function summarize(value: unknown): string {
@@ -162,53 +224,6 @@ function summarize(value: unknown): string {
     s = String(value);
   }
   return s.length > 300 ? `${s.slice(0, 300)}…` : s;
-}
-
-// Connected people-search databases whose SEARCH APIs find prospects by
-// title/skills/company/location. Their emails/phones stay hidden during sourcing
-// (search-only) — enrichment is a separate step, so only the *_search tools here
-// are available to the Sourcing Agent.
-const PEOPLE_SEARCH_HINTS: Record<string, string> = {
-  coresignal:
-    "coresignal_source_employees — deterministic search ladder; your primary people database",
-  apollo: "apollo_search_people — filter by title, seniority, company, location",
-  contactout:
-    "contactout_people_search — filter by title, company, location, skills",
-  rocketreach:
-    "rocketreach_search_people — filter by title, employer, location",
-  signalhire:
-    "signalhire_search_people — filter by title, company, location, keywords",
-};
-
-function connectorsBlock(providers: string[]): string {
-  if (providers.length === 0) {
-    return (
-      "# Active connectors\nThis workspace has no data-source connectors " +
-      "connected. Use the no-connector tools you have (web search/scrape, GitHub, " +
-      "and any platform-keyed sources) and call out where connecting a sourcing " +
-      "tool would unlock more reach."
-    );
-  }
-  const lines = providers.map((p) => `- ${connectorLabel(p)}`).join("\n");
-  let block =
-    "# Active connectors\nPrioritise these connected data sources you can " +
-    "actually query:\n" +
-    lines;
-
-  const searchable = providers.filter((p) => PEOPLE_SEARCH_HINTS[p]);
-  if (searchable.length > 0) {
-    block +=
-      "\n\n## People-search databases (search only)\n" +
-      "Use these connected databases as first-class sourcing channels alongside " +
-      "web and GitHub — search them to FIND prospects that match the role, and " +
-      "save the matches (name, title, company, LinkedIn URL, evidence):\n" +
-      searchable.map((p) => `- ${PEOPLE_SEARCH_HINTS[p]}`).join("\n") +
-      "\n\nHARD RULE: search only. Do NOT reveal, enrich, or look up emails or " +
-      "phone numbers during sourcing — that spends contact credits per profile. " +
-      "Revealing contacts is a separate, deliberate step once the recruiter picks " +
-      "who to reach.";
-  }
-  return block;
 }
 
 /** A status block so a resumed run continues toward the goal instead of starting
@@ -248,18 +263,6 @@ function statusBlock(
   );
 }
 
-/** Sum of cost_usd across this project's prior shortlist runs (budget tracking). */
-async function priorSpendUsd(projectId: string): Promise<number> {
-  const { data } = await db()
-    .from("shortlist_runs")
-    .select("cost_usd")
-    .eq("project_id", projectId);
-  return (data ?? []).reduce(
-    (sum, r) => sum + Number((r as { cost_usd: number | null }).cost_usd ?? 0),
-    0,
-  );
-}
-
 /**
  * Run the main Sourcing Agent headlessly toward the project's goal/budget. Built
  * to run inside `after()`: it owns the full lifecycle of an already-created
@@ -278,6 +281,9 @@ export async function runShortlistSourcing(
   const steps: AgentRunStep[] = [];
   let outputText = "";
   let failure: string | null = null;
+  // Qualified count before this wave — captured so the post-run evaluation can
+  // measure how many STRONG profiles this specific search added.
+  let qualifiedBeforeRun = 0;
   let usage = {
     inputTokens: undefined as number | undefined,
     outputTokens: undefined as number | undefined,
@@ -292,12 +298,22 @@ export async function runShortlistSourcing(
     priorConnectorSpend,
   );
 
+  // Only hand the agent tools for CONNECTED providers (plus non-connector tools
+  // like web search, GitHub-via-web, the KB and the internal Talent Pool) so it
+  // never wastes steps calling a connector the workspace isn't connected to.
+  const connections = await listConnections(workspaceId).catch(() => []);
+  const connectedProviders = [...connectedProvidersFrom(connections)];
+  const sourcingTools = toolsForConnectedProviders(
+    SOURCING_AGENT_TOOLS,
+    connectedProviders,
+  );
+
   const ctx: ToolContext = {
     workspaceId,
     projectId,
     clientId: project.client.id,
     userId,
-    ...(await resolveConnectorTokens(workspaceId, SOURCING_AGENT_TOOLS)),
+    ...(await resolveConnectorTokens(workspaceId, sourcingTools)),
     firecrawlKey: await resolveFirecrawlKey(workspaceId),
     createdDocIds: [],
     savedCandidateIds: [],
@@ -323,9 +339,7 @@ export async function runShortlistSourcing(
     let systemPrompt = await loadShortlistHarness();
 
     try {
-      const connections = await listConnections(workspaceId);
-      const providers = [...connectedProvidersFrom(connections)];
-      systemPrompt = `${systemPrompt}\n\n${connectorsBlock(providers)}`;
+      systemPrompt = `${systemPrompt}\n\n${sourcingChannelsBlock(connectedProviders)}`;
     } catch (err) {
       console.warn("Shortlist: connectors block failed:", err);
     }
@@ -346,14 +360,20 @@ export async function runShortlistSourcing(
       console.warn("Shortlist: personal preferences load failed:", err);
     }
 
-    const [qualifiedBefore, compact, spent] = await Promise.all([
+    const [qualifiedBefore, compact, sig] = await Promise.all([
       countQualified(projectId),
       listCandidatesCompact(projectId, 1),
-      priorSpendUsd(projectId),
+      getChannelSignals(projectId),
     ]);
+    qualifiedBeforeRun = qualifiedBefore;
+    // Goal + budget are per SESSION: count only what this session's prior runs
+    // added / spent (this run is still `running`, so it's excluded).
+    const sessionPrior = sessionProgress(sig, params.conversationId ?? null);
+    const priorSessionQualified = sessionPrior.qualified;
+    const spent = sessionPrior.spent;
     systemPrompt = `${systemPrompt}\n\n${statusBlock(
       compact.length,
-      qualifiedBefore,
+      priorSessionQualified,
       goalQualified,
       spent,
       params.budgetUsd,
@@ -366,6 +386,21 @@ export async function runShortlistSourcing(
       if (block) systemPrompt = `${systemPrompt}\n\n${block}`;
     } catch (err) {
       console.warn("Shortlist: feedback block failed:", err);
+    }
+
+    // What earlier waves cost/yielded + the learnings they saved — so this run
+    // repeats what worked and drops what didn't (project-scoped).
+    try {
+      const signals = await getChannelSignals(projectId);
+      const block = formatChannelSignalsBlock(signals);
+      if (block) systemPrompt = `${systemPrompt}\n\n${block}`;
+    } catch (err) {
+      console.warn("Shortlist: channel signals block failed:", err);
+    }
+
+    // The recruiter-approved strategy for this wave (from the Sourcing tab).
+    if (params.guideline?.trim()) {
+      systemPrompt = `${systemPrompt}\n\n${guidelineBlock(params.guideline)}`;
     }
 
     const userPrompt =
@@ -382,7 +417,7 @@ export async function runShortlistSourcing(
       usage = { inputTokens: 500, outputTokens: 60, cachedInputTokens: 0 };
     } else {
       const lm = await getLanguageModel(provider, params.apiKey ?? "", model);
-      const tools = buildTools(ctx, SOURCING_AGENT_TOOLS);
+      const tools = buildTools(ctx, sourcingTools);
 
       // Surface the model's reasoning so the trace reads Thought → Action →
       // Observation. Provider-agnostic: this picks the right knob for whatever
@@ -398,7 +433,13 @@ export async function runShortlistSourcing(
       // as a per-step StopCondition for generateText.
       const isGoalMet = async (): Promise<boolean> => {
         if (!goalQualified || goalQualified <= 0) return false;
-        return (await countQualified(projectId)) >= goalQualified;
+        // Session-relative: qualified this session = prior session runs + what
+        // this run has added since it started.
+        const addedThisRun = Math.max(
+          (await countQualified(projectId)) - qualifiedBeforeRun,
+          0,
+        );
+        return priorSessionQualified + addedThisRun >= goalQualified;
       };
       const goalReached: StopCondition<ToolSet> = () => isGoalMet();
 
@@ -668,10 +709,75 @@ export async function runShortlistSourcing(
       error instanceof Error ? error.message : "Shortlist sourcing run failed";
   }
 
+  // A timeout/abort is how a long run gracefully hits its deadline — candidates
+  // are saved incrementally, so it's a partial success, not a failure. Don't
+  // surface a red "aborted due to timeout" error over real results.
+  if (failure && /abort|timed?\s*out|timeout/i.test(failure)) {
+    failure = null;
+  }
+
   const succeeded = failure === null;
-  const costUsd = await computeCostUsd(provider, model, usage).catch(() => null);
   const qualifiedAfter = await countQualified(projectId).catch(() => null);
   const candidatesAdded = ctx.savedCandidateIds?.length ?? 0;
+
+  // ---- Self-evaluation: grade THIS search and save learnings for next time ----
+  // Outcome is deterministic (did it find STRONG/qualified profiles?); learnings
+  // are a short, tool-free reflection fed into future waves. Project-scoped.
+  let outcome: SearchOutcome | null = null;
+  let learnings: string | null = null;
+  if (succeeded) {
+    const newlyQualified = Math.max(
+      (qualifiedAfter ?? qualifiedBeforeRun) - qualifiedBeforeRun,
+      0,
+    );
+    outcome =
+      newlyQualified > 0
+        ? "successful"
+        : candidatesAdded > 0
+          ? "weak"
+          : "dry";
+    if (env.mockAi) {
+      learnings = `(mock) ${outcome} wave — ${candidatesAdded} added, ${newlyQualified} qualified.`;
+    } else {
+      try {
+        const lm = await getLanguageModel(provider, params.apiKey ?? "", model);
+        const evalResult = await generateText({
+          model: lm,
+          system:
+            "You are the sourcing agent reflecting on a finished search to improve " +
+            "the next one for this specific project.",
+          messages: [
+            {
+              role: "user",
+              content: evaluationPromptFor({
+                outcome,
+                newlyQualified,
+                candidatesAdded,
+                guideline: params.guideline ?? null,
+                summary: outputText.slice(0, 2000),
+              }),
+            },
+          ],
+          abortSignal: AbortSignal.timeout(60_000),
+        });
+        learnings = evalResult.text?.trim().slice(0, 2000) || null;
+        usage = {
+          inputTokens:
+            (usage.inputTokens ?? 0) + (evalResult.totalUsage.inputTokens ?? 0),
+          outputTokens:
+            (usage.outputTokens ?? 0) + (evalResult.totalUsage.outputTokens ?? 0),
+          cachedInputTokens:
+            (usage.cachedInputTokens ?? 0) +
+            ((evalResult.totalUsage as { cachedInputTokens?: number })
+              .cachedInputTokens ?? 0),
+        };
+      } catch (err) {
+        console.warn("Shortlist: self-evaluation failed:", err);
+      }
+    }
+  }
+
+  const costUsd = await computeCostUsd(provider, model, usage).catch(() => null);
 
   await db()
     .from("shortlist_runs")
@@ -686,6 +792,8 @@ export async function runShortlistSourcing(
       cost_usd: costUsd,
       candidates_added: candidatesAdded,
       qualified_after: qualifiedAfter,
+      outcome,
+      learnings,
     })
     .eq("id", runId);
 

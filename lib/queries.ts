@@ -843,6 +843,82 @@ export async function getActiveSourcingPlanConversation(
   return { conversationId: convId, turns };
 }
 
+/** A session's own goal + budget (from sourcing_sessions), or nulls if unset. */
+export async function getSessionTargets(
+  projectId: string,
+  conversationId: string | null,
+): Promise<{ goalQualified: number | null; budgetUsd: number | null }> {
+  if (!conversationId || !UUID_RE.test(conversationId)) {
+    return { goalQualified: null, budgetUsd: null };
+  }
+  const { data } = await db()
+    .from("sourcing_sessions")
+    .select("goal_qualified, budget_usd")
+    .eq("project_id", projectId)
+    .eq("conversation_id", conversationId)
+    .maybeSingle();
+  return {
+    goalQualified: (data?.goal_qualified as number | null) ?? null,
+    budgetUsd: (data?.budget_usd as number | null) ?? null,
+  };
+}
+
+/** Past Sourcing sessions for a project: one entry per strategist conversation,
+ *  newest-first, labelled by its first message, with an `archived` flag (from
+ *  sourcing_sessions). Powers the cockpit's session rail. */
+export async function listSourcingStrategySessions(
+  projectId: string,
+): Promise<
+  { conversationId: string; title: string; createdAt: string; archived: boolean }[]
+> {
+  const [{ data }, { data: sessionRows }] = await Promise.all([
+    db()
+      .from("sourcing_strategy_runs")
+      .select("conversation_id, task, created_at")
+      .eq("project_id", projectId)
+      .not("conversation_id", "is", null)
+      .order("created_at", { ascending: true }),
+    db()
+      .from("sourcing_sessions")
+      .select("conversation_id, archived_at")
+      .eq("project_id", projectId),
+  ]);
+  const archivedConvs = new Set(
+    (sessionRows ?? [])
+      .filter((s) => (s as { archived_at: string | null }).archived_at)
+      .map((s) => (s as { conversation_id: string }).conversation_id),
+  );
+  // Collapse to one row per conversation: keep the FIRST turn's task as the
+  // label and the LATEST timestamp for ordering.
+  const byConv = new Map<
+    string,
+    { title: string; createdAt: string }
+  >();
+  for (const r of (data ?? []) as {
+    conversation_id: string;
+    task: string | null;
+    created_at: string;
+  }[]) {
+    const existing = byConv.get(r.conversation_id);
+    if (!existing) {
+      byConv.set(r.conversation_id, {
+        title: r.task?.trim() || "Sourcing session",
+        createdAt: r.created_at,
+      });
+    } else {
+      existing.createdAt = r.created_at; // advance to the latest turn
+    }
+  }
+  return [...byConv.entries()]
+    .map(([conversationId, v]) => ({
+      conversationId,
+      title: v.title.length > 60 ? `${v.title.slice(0, 60)}…` : v.title,
+      createdAt: v.createdAt,
+      archived: archivedConvs.has(conversationId),
+    }))
+    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+}
+
 /** The project's single active qualification-criteria document, or null. One
  *  active per project; regenerating archives the previous one. */
 export async function getActiveQualification(
@@ -890,6 +966,47 @@ export async function getActiveQualificationConversation(
 
   const { data, error } = await db()
     .from("qualification_runs")
+    .select(
+      "id, task, output_text, steps, output_doc_id, status, error_message, created_at",
+    )
+    .eq("project_id", projectId)
+    .eq("conversation_id", convId)
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  const turns = (data ?? []) as AgentChatTurn[];
+  if (turns.length === 0 && !conversationId) return null;
+  return { conversationId: convId, turns };
+}
+
+/** The Sourcing-tab strategist chat for a project, turns oldest-first. Mirrors
+ *  getActiveSourcingPlanConversation but reads sourcing_strategy_runs (which
+ *  carry no workspace_agent_id — the strategist is a private-harness agent).
+ *  Pass conversationId to load that chat; omit for the most recent. */
+export async function getActiveSourcingStrategyConversation(
+  workspaceId: string,
+  projectId: string,
+  conversationId?: string | null,
+): Promise<{ conversationId: string; turns: AgentChatTurn[] } | null> {
+  const project = await getProject(workspaceId, projectId);
+  if (!project) return null;
+
+  let convId =
+    conversationId && UUID_RE.test(conversationId) ? conversationId : null;
+  if (!convId) {
+    const { data: latest } = await db()
+      .from("sourcing_strategy_runs")
+      .select("conversation_id")
+      .eq("project_id", projectId)
+      .not("conversation_id", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    convId = (latest?.conversation_id as string | null) ?? null;
+  }
+  if (!convId) return null;
+
+  const { data, error } = await db()
+    .from("sourcing_strategy_runs")
     .select(
       "id, task, output_text, steps, output_doc_id, status, error_message, created_at",
     )
@@ -980,6 +1097,7 @@ export async function listRecentAgentRuns(
  *  page has to read them too — otherwise their spend shows in the credit total
  *  but never in the per-run breakdown. */
 export type PipelineStepKind =
+  | "sourcing"
   | "sourcing-plan"
   | "qualification"
   | "shortlist"
@@ -994,11 +1112,15 @@ export interface RecentPipelineRun {
   output_tokens: number | null;
   cost_usd: number | null;
   output_doc_id: string | null;
+  /** The chat/session this run belongs to (strategist + plan + qualification
+   *  carry one; shortlist/outreach don't). Lets Usage reopen the exact session. */
+  conversation_id: string | null;
   created_at: string;
   project: { id: string; name: string; clientId: string | null } | null;
 }
 
 const PIPELINE_STEP_TABLES: { kind: PipelineStepKind; table: string }[] = [
+  { kind: "sourcing", table: "sourcing_strategy_runs" },
   { kind: "sourcing-plan", table: "sourcing_plan_runs" },
   { kind: "qualification", table: "qualification_runs" },
   { kind: "shortlist", table: "shortlist_runs" },
@@ -1036,6 +1158,7 @@ export async function listRecentPipelineRuns(
           output_tokens: (r.output_tokens as number | null) ?? null,
           cost_usd: (r.cost_usd as number | null) ?? null,
           output_doc_id: (r.output_doc_id as string | null) ?? null,
+          conversation_id: (r.conversation_id as string | null) ?? null,
           created_at: r.created_at as string,
           project: project
             ? {
@@ -1177,6 +1300,36 @@ export async function listProspects(
     .order("created_at", { ascending: false });
   if (error) throw error;
   return data as TalentProspect[];
+}
+
+/** Keyword search over the workspace's internal Talent Pool (talent_prospects),
+ *  matching name / job title / company / notes. Powers the sourcing agent's
+ *  calyflow_search_talent_pool tool — the internal module, NOT an ATS. */
+export async function searchTalentProspects(
+  workspaceId: string,
+  keywords: string,
+  limit = 25,
+): Promise<TalentProspect[]> {
+  let q = db()
+    .from("talent_prospects")
+    .select("*")
+    .eq("workspace_id", workspaceId)
+    .order("created_at", { ascending: false })
+    .limit(Math.min(Math.max(limit, 1), 50));
+  const terms = keywords.trim().replace(/[%_,]/g, " ").trim();
+  if (terms) {
+    const pattern = `%${terms}%`;
+    q = q.or(
+      [
+        `name.ilike.${pattern}`,
+        `job_title.ilike.${pattern}`,
+        `company.ilike.${pattern}`,
+        `notes.ilike.${pattern}`,
+      ].join(","),
+    );
+  }
+  const { data } = await q;
+  return (data ?? []) as TalentProspect[];
 }
 
 export async function getProspect(

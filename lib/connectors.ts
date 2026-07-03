@@ -380,6 +380,23 @@ export function providerToolPrefix(provider: string): string {
   return exceptions[provider] ?? `${provider}_`;
 }
 
+/** Filter a tool list to what the workspace can actually use: keep every
+ *  non-connector tool (calyflow_*, web_*, …) plus connector tools ONLY for
+ *  CONNECTED providers. Stops an agent from being handed tools for connectors it
+ *  isn't connected to (which it would otherwise waste steps discovering). */
+export function toolsForConnectedProviders(
+  toolNames: readonly string[],
+  connectedProviders: Iterable<string>,
+): string[] {
+  const connected = new Set(connectedProviders);
+  return toolNames.filter((t) => {
+    const provider = CONNECTORS.find(
+      (c) => c.provider && t.startsWith(providerToolPrefix(c.provider)),
+    )?.provider;
+    return !provider || connected.has(provider);
+  });
+}
+
 /** Pick the Firecrawl key for the web_search / web_scrape tools: a workspace's
  *  own connected key wins (BYO); otherwise fall back to the shared platform key
  *  (env). Returns null when neither is available, so the tools can report it.
