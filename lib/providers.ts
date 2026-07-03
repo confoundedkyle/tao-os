@@ -112,7 +112,15 @@ export function reasoningSettings(
       // Reasoning models (o-series, gpt-5*); reasoningSummary surfaces thoughts.
       const isReasoning = /^o\d/.test(id) || id.includes("gpt-5");
       if (!isReasoning) return {};
-      return { providerOptions: { openai: { reasoningSummary: "auto" } } };
+      // gpt-5.1+ default to NO reasoning ("none"), so a summary request alone
+      // yields zero reasoning tokens and an empty summary — the model never
+      // thinks. Set an explicit effort floor so it actually reasons AND emits
+      // the thought summary the Sourcing trace surfaces.
+      return {
+        providerOptions: {
+          openai: { reasoningEffort: "medium", reasoningSummary: "auto" },
+        },
+      };
     }
     default:
       return {};

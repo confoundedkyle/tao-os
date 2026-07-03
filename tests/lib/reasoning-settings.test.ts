@@ -32,12 +32,14 @@ describe("reasoningSettings", () => {
   });
 
   it("enables reasoning summaries on OpenAI reasoning models only", () => {
+    // An effort floor is required: gpt-5.1+ default to no reasoning, so a summary
+    // request alone produces an empty summary. Pair it with a concrete effort.
     expect(
       reasoningSettings("openai", "gpt-5").providerOptions?.openai,
-    ).toEqual({ reasoningSummary: "auto" });
+    ).toEqual({ reasoningEffort: "medium", reasoningSummary: "auto" });
     expect(
       reasoningSettings("openai", "o3-mini").providerOptions?.openai,
-    ).toEqual({ reasoningSummary: "auto" });
+    ).toEqual({ reasoningEffort: "medium", reasoningSummary: "auto" });
     expect(reasoningSettings("openai", "gpt-4o")).toEqual({});
   });
 
