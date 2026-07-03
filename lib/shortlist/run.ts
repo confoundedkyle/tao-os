@@ -536,7 +536,10 @@ export async function runShortlistSourcing(
                 steps.push({
                   type: "reasoning",
                   tool: "",
-                  summary: summarize(reasoningText),
+                  // Full thought, rendered as markdown in the panel. Do NOT run it
+                  // through summarize() — that truncates to 300 chars for noisy
+                  // tool I/O, which would cut the reasoning mid-sentence.
+                  summary: reasoningText.trim(),
                 });
               }
               for (const call of toolCalls ?? []) {

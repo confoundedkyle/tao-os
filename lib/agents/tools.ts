@@ -627,10 +627,19 @@ function buildAll(ctx: ToolContext): ToolSet {
         // Prefer Firecrawl (richer); fall back to keyless DuckDuckGo so web
         // search always works even without a Firecrawl connection. If Firecrawl
         // errors or returns nothing, try DuckDuckGo before giving up.
+        // Firecrawl is METERED: record each search against its budget and, once
+        // the project cap is reached, drop to the free DuckDuckGo backend instead
+        // of burning more searches/credits (this is what caps runaway web search).
         let results: { url: string; title?: string; description?: string }[] = [];
-        if (ctx.firecrawlKey) {
+        const fcCap = ctx.creditCaps?.firecrawl;
+        if (ctx.firecrawlKey && (!fcCap || fcCap.remaining > 0)) {
           try {
             results = (await firecrawlSearch(ctx.firecrawlKey, args)).results;
+            if (fcCap) fcCap.remaining -= 1;
+            await ctx.recordCreditUsage?.("firecrawl", 1, {
+              tool: "web_search",
+              query: args.query,
+            });
           } catch {
             results = [];
           }
@@ -661,7 +670,14 @@ function buildAll(ctx: ToolContext): ToolSet {
       execute: async ({ url }) => {
         if (!ctx.firecrawlKey)
           return { error: "Web scrape is unavailable — connect Firecrawl in Settings → Connectors (or set FIRECRAWL_API_KEY)." };
+        // Firecrawl is metered — once the project cap is reached, stop scraping
+        // rather than burning more budget.
+        const fcCap = ctx.creditCaps?.firecrawl;
+        if (fcCap && fcCap.remaining <= 0)
+          return { error: "Firecrawl budget for this run is used up — rely on search snippets and connected data sources instead of scraping more pages." };
         const r = await firecrawlScrape(ctx.firecrawlKey, { url });
+        if (fcCap) fcCap.remaining -= 1;
+        await ctx.recordCreditUsage?.("firecrawl", 1, { tool: "web_scrape", url });
         return { text: r.markdown || "_Empty page._", title: r.title, truncated: r.truncated };
       },
     }),

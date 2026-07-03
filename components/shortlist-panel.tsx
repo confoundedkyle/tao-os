@@ -422,7 +422,7 @@ export function ShortlistPanel({
                       ? "▸"
                       : "✓"}
                 </span>
-                <span className="min-w-0 flex-1">
+                <div className="min-w-0 flex-1">
                   <span
                     className={
                       step.type === "reasoning"
@@ -434,13 +434,21 @@ export function ShortlistPanel({
                       ? "Thinking"
                       : toolLabel(step.tool)}
                   </span>
-                  <span
-                    className="block truncate text-xs text-navy-800/45"
-                    title={step.summary}
-                  >
-                    {step.summary}
-                  </span>
-                </span>
+                  {step.type === "reasoning" ? (
+                    <div className="mt-0.5 text-xs leading-relaxed text-navy-800/55 [&_code]:rounded [&_code]:bg-navy-800/8 [&_code]:px-1 [&_li]:my-0.5 [&_ol]:my-1 [&_ol]:list-decimal [&_ol]:pl-4 [&_p]:my-1 [&_p:first-child]:mt-0 [&_strong]:font-semibold [&_strong]:text-navy-800/70 [&_ul]:my-1 [&_ul]:list-disc [&_ul]:pl-4">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {step.summary}
+                      </ReactMarkdown>
+                    </div>
+                  ) : (
+                    <span
+                      className="block truncate text-xs text-navy-800/45"
+                      title={step.summary}
+                    >
+                      {step.summary}
+                    </span>
+                  )}
+                </div>
               </li>
             ))}
             <li className="flex items-center gap-2 text-sm text-navy-800/45">

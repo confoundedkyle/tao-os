@@ -441,6 +441,7 @@ export const coresignalAdapter: CoresignalAdapter = {
     >();
     let estSpent = 0;
     const tierLog: string[] = [];
+    let firstError: string | null = null;
 
     for (const tier of spec.tiers) {
       if (seen.size >= target) break;
@@ -454,6 +455,7 @@ export const coresignalAdapter: CoresignalAdapter = {
         ids = extractIds(r.json);
       } catch (error) {
         const msg = error instanceof Error ? error.message : "";
+        if (firstError === null) firstError = msg;
         if (/\(403\)/.test(msg)) {
           return {
             text:
@@ -475,6 +477,22 @@ export const coresignalAdapter: CoresignalAdapter = {
         }
       });
       tierLog.push(`${tier.name} ${ids.length}↦+${added}`);
+    }
+
+    // Every tier failed (e.g. the Clean Employee dataset isn't on this plan) —
+    // don't return a silent empty result that pushes the agent onto web search.
+    // Surface the real error and point it at the multi-source tool this key works
+    // with, so it keeps sourcing from the connector.
+    if (seen.size === 0 && firstError) {
+      return {
+        text:
+          `_Coresignal ladder couldn't run (${firstError}). It needs the Clean Employee dataset; ` +
+          `if that isn't on this workspace's plan, use coresignal_search_employees (multi-source) ` +
+          `for Coresignal searches — the same key works there._`,
+        count: 0,
+        truncated: false,
+        creditsSpent: estSpent,
+      };
     }
 
     // Rank by tier weight, then in-tier position. Hydrate the top N in budget.
