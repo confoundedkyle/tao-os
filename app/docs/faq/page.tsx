@@ -3,11 +3,11 @@ import { DocHeader, Markdown } from "@/components/docs/doc-blocks";
 
 export const metadata: Metadata = {
   title: "FAQ",
-  description: "Common questions about Calyflow — connectors, agents, data, and setup.",
+  description: "Common questions about TAO OS — connectors, agents, data, and setup.",
 };
 
 const BODY = `
-## Do I need to be technical to use Calyflow?
+## Do I need to be technical to use TAO OS?
 
 No. You set up your context (clients, projects, documents, knowledge base), connect
 the tools you already use, and press **Run**. You never write prompts or code.
@@ -20,8 +20,8 @@ work with your live data.
 
 ## What's the difference between a connector and a module?
 
-A **connector** links Calyflow to an outside tool (your ATS, CRM, a sourcing tool).
-A **module** (ATS, CRM, Talent Pool) is a place *inside* Calyflow where that synced
+A **connector** links TAO OS to an outside tool (your ATS, CRM, a sourcing tool).
+A **module** (ATS, CRM, Talent Pool) is a place *inside* TAO OS where that synced
 data becomes a working list you manage. See [Connectors](/docs/connectors) and
 [Modules](/docs/modules).
 
@@ -40,7 +40,7 @@ Project files (job description, intake notes, scorecard) are included on a run.
 
 ## Which AI does it use? Do I need my own API key?
 
-On the hosted version you can start on Calyflow's built-in model with included
+On the hosted version you can start on TAO OS's built-in model with included
 credit, or bring your own provider key. Either way, runs use *your* models and
 your connected tools.
 
@@ -52,7 +52,7 @@ to find it.
 
 ## Can I run my own instance?
 
-Yes — Calyflow is open source. See
+Yes — TAO OS is open source. See
 [Self-hosting & OAuth apps](/docs/self-hosting) for what changes (mainly: you
 register your own OAuth app per OAuth connector).
 

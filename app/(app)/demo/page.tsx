@@ -11,7 +11,7 @@ import {
 import { deriveAgentGraph } from "@/lib/workflow-graph";
 import { DemoExperience } from "@/components/demo/demo-experience";
 
-export const metadata = { title: "Demo · Calyflow" };
+export const metadata = { title: "Demo · TAO OS" };
 
 export default async function DemoPage() {
   const session = await getSession();

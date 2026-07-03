@@ -22,7 +22,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Calyflow — Recruiting OS",
+  title: "TAO OS — Talent Acquisition Open OS",
   description:
     "Open-source recruiting OS: run Claude-powered recruiting workflows without touching prompts.",
 };

@@ -146,7 +146,7 @@ export default async function ConnectorPage({
         {doc.selfHost ? (
           <div className="space-y-3 text-navy-800/75">
             <p>
-              Running your own Calyflow instance? Register your own OAuth app and
+              Running your own TAO OS instance? Register your own OAuth app and
               point it back at your deployment:
             </p>
             <ol className="ml-5 list-decimal space-y-2">

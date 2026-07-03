@@ -20,7 +20,7 @@ export default async function ProvidersPage() {
     listProviders(session.workspaceId),
     listCatalogModels(),
   ]);
-  // The Calyflow default runs on the LIVE platform model from env, not the value
+  // The TAO OS default runs on the LIVE platform model from env, not the value
   // stored on its row at workspace creation (which can drift) — show the real one.
   const platformModel = agenticPlatformModel(
     env.platformProvider,
@@ -33,7 +33,7 @@ export default async function ProvidersPage() {
         <h2 className="mb-1 text-xl font-semibold">Your providers</h2>
         <p className="mb-5 text-sm text-navy-800/55">
           The primary provider serves every run; the others are fallbacks in
-          order. If the primary hits a rate limit or outage mid-run, Calyflow
+          order. If the primary hits a rate limit or outage mid-run, TAO OS
           retries on the next one — and the run log says so.
         </p>
         {providers.length === 0 ? (
@@ -101,7 +101,7 @@ export default async function ProvidersPage() {
         <Card>
           <h2 className="mb-1 text-xl font-semibold">Add / update a provider</h2>
           <p className="mb-5 text-sm text-navy-800/55">
-            Calyflow&apos;s prompts are written and tested for Claude — other
+            TAO OS&apos;s prompts are written and tested for Claude — other
             providers work, with possible differences in output style.
           </p>
           <ProviderForm

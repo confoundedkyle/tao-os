@@ -135,7 +135,7 @@ export default async function UsagePage() {
             </Mono>
           </div>
           <p className="mb-4 text-sm text-navy-800/55">
-            One-time credit for runs on the Calyflow default model. Your own
+            One-time credit for runs on the TAO OS default model. Your own
             API keys are never capped — that&apos;s your spend, not ours.
           </p>
           <Meter fraction={creditFraction} />

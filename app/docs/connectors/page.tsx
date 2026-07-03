@@ -11,7 +11,7 @@ import { DocHeader } from "@/components/docs/doc-blocks";
 export const metadata: Metadata = {
   title: "Connectors",
   description:
-    "Every tool Calyflow connects to — your ATS, CRM, spreadsheets, email, Slack, and sourcing & enrichment tools.",
+    "Every tool TAO OS connects to — your ATS, CRM, spreadsheets, email, Slack, and sourcing & enrichment tools.",
 };
 
 const GROUPS: { category: ConnectorCategory; label: string; blurb: string }[] = [
@@ -36,7 +36,7 @@ export default function ConnectorsOverviewPage() {
       <DocHeader
         eyebrow="Connectors"
         title="Connect your stack"
-        lead="Bring your ATS, CRM, spreadsheets, mailbox, and sourcing tools into Calyflow so your agents can read from — and write to — the systems you already use. Pick one to see exactly what it does and how to set it up."
+        lead="Bring your ATS, CRM, spreadsheets, mailbox, and sourcing tools into TAO OS  so your agents can read from — and write to — the systems you already use. Pick one to see exactly what it does and how to set it up."
       />
 
       {GROUPS.map(({ category, label, blurb }) => {

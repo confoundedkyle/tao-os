@@ -25,7 +25,7 @@ export default async function ConnectorsPage({
   return (
     <>
       <p className="mb-6 max-w-2xl text-sm text-navy-800/55">
-        Bring your ATS, CRM, and sourcing tools into Calyflow — connect a source
+        Bring your ATS, CRM, and sourcing tools into TAO OS — connect a source
         so your data agents can read from it.
       </p>
 

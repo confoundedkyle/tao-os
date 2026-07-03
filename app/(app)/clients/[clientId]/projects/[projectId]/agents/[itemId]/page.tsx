@@ -179,7 +179,7 @@ export default async function RunItemPage({
           label: "Provider",
           value:
             latestRun.provider === "calyflow"
-              ? "Calyflow default"
+              ? "TAO OS default"
               : (latestRun.provider ?? "—"),
         },
         { label: "Model", value: latestRun.model ?? "—" },

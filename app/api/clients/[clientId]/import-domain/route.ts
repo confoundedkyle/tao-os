@@ -28,7 +28,7 @@ function summarize(value: unknown): string {
   return s.length > 300 ? `${s.slice(0, 300)}…` : s;
 }
 
-const IMPORT_AGENT_PROMPT = `You are a company-research agent inside Calyflow. A
+const IMPORT_AGENT_PROMPT = `You are a company-research agent inside TAO OS. A
 recruiter wants a concise, accurate profile of the company at a given domain,
 saved to their client knowledge base.
 

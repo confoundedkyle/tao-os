@@ -13,7 +13,7 @@ message — and get automated project reports in the channel.
 
 ## One-time setup
 
-1. **Connect Slack.** In Calyflow go to **Settings → Connectors → Slack** and
+1. **Connect Slack.** In TAO OS go to **Settings → Connectors → Slack** and
    click **Connect**, then approve the app in Slack.
 2. **Point a channel at a project.** Open a project's **Settings → Slack** and
    either pick an existing channel or click **Create a dedicated channel**. We
@@ -30,7 +30,7 @@ Every agent has a short **handle** (e.g. \`github-sourcer\`, \`cv-screener\`,
 /calyflow github-sourcer find 5 senior video-encoding engineers in the EU
 \`\`\`
 
-Calyflow acks instantly, runs in the background, and posts the result to the
+TAO OS acks instantly, runs in the background, and posts the result to the
 channel when it's done.
 
 **@mention** — works the same, and replies in a thread:
@@ -56,13 +56,13 @@ reports on Mondays.)
 
 - Runs use **your own AI and your own connected tools**, exactly like in the app.
 - Results are posted into the channel, with a link to open the full result in
-  Calyflow.
+  TAO OS.
 - If an agent needs a connector that isn't connected (e.g. GitHub Sourcer needs
-  GitHub), Calyflow tells you which one to connect.
+  GitHub), TAO OS tells you which one to connect.
 
 ## Troubleshooting
 
-- **"This channel isn't linked to a Calyflow project yet."** Open the project's
+- **"This channel isn't linked to a TAO OS project yet."** Open the project's
   **Settings** tab and pick or create a channel.
 - **"Connect GitHub" (or another tool).** The agent needs a connector that isn't
   set up — connect it under [Connectors](/docs/connectors) and re-run.

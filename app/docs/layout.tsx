@@ -5,9 +5,9 @@ import { ButtonLink } from "@/components/ui";
 import { DocsSidebar } from "@/components/docs/docs-sidebar";
 
 export const metadata: Metadata = {
-  title: { default: "Docs", template: "%s · Calyflow docs" },
+  title: { default: "Docs", template: "%s · TAO OS docs" },
   description:
-    "How Calyflow works: connectors, agents, knowledge base, modules, and setup — explained for recruiters.",
+    "How TAO OS works: connectors, agents, knowledge base, modules, and setup — explained for recruiters.",
 };
 
 // Public documentation shell — its own simplified menu, no app sidebar, no
@@ -23,7 +23,7 @@ export default function DocsLayout({
         <Link href="/docs" className="flex items-center gap-2 text-mint-700">
           <IconAiSpark size={20} />
           <span className="font-display text-base font-bold text-navy-900">
-            Calyflow
+            TAO OS
           </span>
           <span className="rounded-chip bg-navy-800/8 px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-navy-800/55">
             Docs
@@ -56,7 +56,7 @@ export default function DocsLayout({
           <div className="flex items-center gap-2">
             <IconAiSpark size={16} className="text-mint-700" />
             <span>
-              © {new Date().getFullYear()} Calyflow · Open source{" "}
+              © {new Date().getFullYear()} TAO OS · Fork of Calyflow · Open source{" "}
               <span className="font-mono">(AGPL-3.0)</span>
             </span>
           </div>
@@ -74,7 +74,7 @@ export default function DocsLayout({
               Docs
             </Link>
             <a
-              href="https://github.com/Calyflow/calyflow-app"
+              href="https://github.com/confoundedkyle/tao-os"
               target="_blank"
               rel="noopener noreferrer"
               className="transition hover:text-mint-700"

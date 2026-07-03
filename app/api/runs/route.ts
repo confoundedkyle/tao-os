@@ -124,7 +124,7 @@ export async function POST(request: NextRequest) {
     if (chain.some((p) => p.row.provider === "calyflow")) {
       chain = chain.filter((p) => p.row.provider !== "calyflow");
       contextNotes.push(
-        "Calyflow default skipped: included platform credit is used up.",
+        "TAO OS default skipped: included platform credit is used up.",
       );
     }
   }

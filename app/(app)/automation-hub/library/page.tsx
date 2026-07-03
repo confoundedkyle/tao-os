@@ -5,7 +5,7 @@ import { importAutomationAction } from "@/lib/actions/automations";
 import { scheduleLabel } from "@/lib/automations";
 import { Button, Card, Chip, PageHeader } from "@/components/ui";
 
-export const metadata = { title: "Automation library · Calyflow" };
+export const metadata = { title: "Automation library · TAO OS" };
 
 export default async function AutomationLibraryPage() {
   const session = await getSession();

@@ -5,12 +5,12 @@ import { DocHeader, Markdown } from "@/components/docs/doc-blocks";
 export const metadata: Metadata = {
   title: "Modules",
   description:
-    "Optional Calyflow modules — ATS, CRM, and Talent Pool — that turn synced data into working lists you manage in the app.",
+    "Optional TAO OS modules — ATS, CRM, and Talent Pool — that turn synced data into working lists you manage in the app.",
 };
 
 const BODY = `
 **Modules** are optional product areas that turn the data your connectors sync
-into working lists inside Calyflow. There are three:
+into working lists inside TAO OS. There are three:
 
 - **[ATS](/docs/modules/ats)** — candidates, organized by the role they're up for.
 - **[CRM](/docs/modules/crm)** — the companies you work with and the people at them.
@@ -39,7 +39,7 @@ export default function ModulesOverviewPage() {
   return (
     <article>
       <DocHeader
-        eyebrow="How Calyflow is organized"
+        eyebrow="How TAO OS is organized"
         title="Modules"
         lead="Optional areas — ATS, CRM, Talent Pool — that turn synced data into lists you manage."
       />

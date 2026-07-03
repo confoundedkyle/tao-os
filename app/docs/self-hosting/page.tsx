@@ -7,20 +7,20 @@ import { DocHeader, Markdown } from "@/components/docs/doc-blocks";
 export const metadata: Metadata = {
   title: "Self-hosting & OAuth apps",
   description:
-    "Running your own Calyflow instance: which connectors need their own OAuth app, the redirect URLs, and the environment variables to set.",
+    "Running your own TAO OS instance: which connectors need their own OAuth app, the redirect URLs, and the environment variables to set.",
 };
 
 const INTRO = `
-Calyflow is open source, so you can run your own instance. Most of the difference
-between the **hosted** version (app.calyflow.ai) and **self-hosting** is connector
-setup:
+TAO OS is open source and built to be self-hosted — every instance is your
+own. Getting connectors working is most of the setup:
 
-- **API-key connectors** work identically — your users just paste a key in
+- **API-key connectors** work out of the box — users paste a key in
   **Settings → Connectors**. Nothing to configure on the server.
 - **OAuth connectors** (one-click "Connect" buttons) need **your own OAuth app**
-  registered with each provider, because the hosted Calyflow OAuth apps belong to
-  us. For each one you register an app, set its **redirect URL** to your
-  deployment, and set a couple of **environment variables**.
+  registered with each provider — there is no shared TAO OS OAuth app, so each
+  instance registers its own. For each one, create the app with the provider,
+  set its **redirect URL** to your deployment, and set a couple of
+  **environment variables**.
 
 Set the redirect URL to \`{APP_BASE_URL}/api/connectors/<provider>/callback\`,
 where \`APP_BASE_URL\` is your instance's public URL.
@@ -37,7 +37,7 @@ export default function SelfHostingPage() {
       <DocHeader
         eyebrow="Self-hosting"
         title="Self-hosting & OAuth apps"
-        lead="What changes when you run your own Calyflow instance — and exactly what each OAuth connector needs."
+        lead="Every TAO OS instance is self-hosted — here's exactly what each OAuth connector needs."
       />
       <Markdown>{INTRO}</Markdown>
 

@@ -29,7 +29,7 @@ export function AppTopbar({
       >
         <IconAiSpark size={20} />
         <span className="font-display text-base font-bold text-navy-900">
-          Calyflow
+          TAO OS
         </span>
       </Link>
 

@@ -10,7 +10,7 @@ import {
   runAndPost,
 } from "@/lib/agents/slack-bot";
 
-// The Slack Events API endpoint — delivers @Calyflow mentions. Like the slash
+// The Slack Events API endpoint — delivers @TAO OS mentions. Like the slash
 // command, we ack fast (Slack retries on >3s) and run the agent in `after()`,
 // replying in a thread under the mention.
 export const maxDuration = 600;

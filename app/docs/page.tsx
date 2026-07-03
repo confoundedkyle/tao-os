@@ -3,9 +3,9 @@ import type { Metadata } from "next";
 import { DocHeader } from "@/components/docs/doc-blocks";
 
 export const metadata: Metadata = {
-  title: "Calyflow documentation",
+  title: "TAO OS documentation",
   description:
-    "Learn how Calyflow works: agents, connectors, knowledge base, modules, and how to set everything up — written for recruiters, no technical background needed.",
+    "Learn how TAO OS works: agents, connectors, knowledge base, modules, and how to set everything up — written for recruiters, no technical background needed.",
 };
 
 const CARDS = [
@@ -27,7 +27,7 @@ const CARDS = [
   {
     href: "/docs/knowledge-base",
     title: "Knowledge base",
-    body: "Teach Calyflow your agency's voice and each client's preferences.",
+    body: "Teach TAO OS your agency's voice and each client's preferences.",
   },
   {
     href: "/docs/automation/slack",
@@ -42,7 +42,7 @@ const CARDS = [
   {
     href: "/docs/self-hosting",
     title: "Self-hosting & OAuth apps",
-    body: "Run your own Calyflow instance and wire up connector OAuth apps.",
+    body: "Run your own TAO OS instance and wire up connector OAuth apps.",
   },
 ];
 
@@ -51,8 +51,8 @@ export default function DocsHome() {
     <article>
       <DocHeader
         eyebrow="Documentation"
-        title="Calyflow, explained"
-        lead="Calyflow is an open-source recruiting OS: you run AI agents on your projects to source, screen, and reach out to candidates — using your own data and tools. These docs explain how everything fits together, written for recruiters. No technical background needed."
+        title="TAO OS, explained"
+        lead="TAO OS is an open-source recruiting OS: you run AI agents on your projects to source, screen, and reach out to candidates — using your own data and tools. These docs explain how everything fits together, written for recruiters. No technical background needed."
       />
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2">

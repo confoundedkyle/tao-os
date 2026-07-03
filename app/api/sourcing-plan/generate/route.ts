@@ -82,7 +82,7 @@ const SOURCING_CONNECTOR_CATEGORIES: ConnectorCategory[] = [
   "tool",
 ];
 
-/** A status-FREE catalog of the connectors and modules Calyflow offers, grouped
+/** A status-FREE catalog of the connectors and modules TAO OS offers, grouped
  *  by category. The Sourcing Plan is the strategy — a high-quality plan that may
  *  or may not be executed — so it must NOT be tailored to which connectors happen
  *  to be toggled on right now (they get enabled/disabled ad-hoc). This block is
@@ -119,7 +119,7 @@ function connectorCatalogBlock(): string {
       "a sourcing/discovery channel, so do not build the plan's search around it."
     : "";
   return (
-    "# Connectors & modules Calyflow offers (your toolbox to recommend from)\n" +
+    "# Connectors & modules TAO OS offers (your toolbox to recommend from)\n" +
     "Do NOT tailor the plan to which of these are currently connected — connectors " +
     "get enabled/disabled ad-hoc, and this plan is the STRATEGY, executed later by " +
     "the Sourcing Agent against whatever is connected then. Recommend the tools " +
@@ -317,7 +317,7 @@ export async function POST(request: NextRequest) {
           outputText =
             `# Sourcing Plan: ${project.name} (mock)\n\n` +
             "**Mock run** (MOCK_AI=true): no provider or tools were called.\n\n" +
-            "## 3. What Calyflow agents CAN'T do\n- Mock entry.";
+            "## 3. What TAO OS agents CAN'T do\n- Mock entry.";
           controller.enqueue(ndjson({ type: "text", value: outputText }));
           usage = { inputTokens: 500, outputTokens: 80, cachedInputTokens: 0 };
         } else {

@@ -34,7 +34,7 @@ export default async function SignInPage({
         <div className="mb-6 flex items-center gap-2 text-mint-700">
           <IconAiSpark />
           <span className="font-display text-xl font-bold text-navy-900">
-            Calyflow
+            TAO OS
           </span>
         </div>
         <h1 className="text-2xl font-bold">Sign in</h1>

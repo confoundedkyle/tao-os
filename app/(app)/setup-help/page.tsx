@@ -3,7 +3,7 @@ import { ButtonLink, Card, Chip, PageHeader } from "@/components/ui";
 import { IconAiSpark } from "@/components/icons";
 
 export const metadata = {
-  title: "Setup Help — Calyflow",
+  title: "Setup Help — TAO OS",
 };
 
 const { bookingUrl, setupPriceEur } = config.setupHelp;
@@ -14,7 +14,7 @@ const STEPS = [
     body: "Roles you fill, your clients, your sourcing channels, and the tools you already use.",
   },
   {
-    title: "We configure Calyflow with you",
+    title: "We configure TAO OS with you",
     body: "Knowledge base, client setup, agents, connectors, and email details — wired to how you actually work.",
   },
   {
@@ -35,7 +35,7 @@ export default function SetupHelpPage() {
         <Card featured>
           <Chip tone="amber">For agency owners &amp; busy recruiters</Chip>
           <h2 className="mt-3 text-2xl font-bold leading-snug">
-            Calyflow is powerful, but the first setup takes know-how.
+            TAO OS is powerful, but the first setup takes know-how.
           </h2>
           <p className="mt-3 text-navy-800/70">
             Most of the value comes from configuring it right — the knowledge

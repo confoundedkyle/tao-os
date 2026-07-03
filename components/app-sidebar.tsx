@@ -19,7 +19,7 @@ export function AppSidebar({
         <Link href="/" className="flex items-center gap-2 text-mint-700">
           <IconAiSpark size={20} />
           <span className="font-display text-base font-bold text-navy-900">
-            Calyflow
+            TAO OS
           </span>
         </Link>
       </div>

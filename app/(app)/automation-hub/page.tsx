@@ -16,7 +16,7 @@ import { archiveAutomationAction } from "@/lib/actions/automations";
 import { ButtonLink, Card, Chip, EmptyState, PageHeader } from "@/components/ui";
 import type { AutomationWithRuns } from "@/lib/types";
 
-export const metadata = { title: "Automation Hub · Calyflow" };
+export const metadata = { title: "Automation Hub · TAO OS" };
 
 function relativeTime(iso: string): string {
   const diffMs = Date.now() - new Date(iso).getTime();

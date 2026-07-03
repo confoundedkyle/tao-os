@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 const BODY = `
 ## The big idea
 
-In Calyflow you run **agents** — small AI specialists for recruiting tasks like
+In TAO OS you run **agents** — small AI specialists for recruiting tasks like
 sourcing, CV screening, building scorecards, and writing outreach. Each agent
 runs against a **project** (a role you're filling for a **client**), reads the
 context you've given it, and writes its result back into that project.

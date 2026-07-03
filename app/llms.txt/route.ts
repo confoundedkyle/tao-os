@@ -19,12 +19,12 @@ const DOC_PAGES: { path: string; title: string; desc: string }[] = [
   { path: "/docs/connectors", title: "Connectors", desc: "Connect your ATS, CRM, spreadsheets, mailbox, Slack, and sourcing tools." },
   { path: "/docs/automation/slack", title: "Running agents from Slack", desc: "Trigger agents and receive project reports in Slack." },
   { path: "/docs/security", title: "Security & privacy", desc: "How data and credentials are protected." },
-  { path: "/docs/self-hosting", title: "Self-hosting & OAuth apps", desc: "Run your own Calyflow instance and wire up connector OAuth apps." },
+  { path: "/docs/self-hosting", title: "Self-hosting & OAuth apps", desc: "Run your own TAO OS instance and wire up connector OAuth apps." },
   { path: "/docs/faq", title: "FAQ", desc: "Common questions about connectors, agents, data, and setup." },
 ];
 
 export function GET() {
-  const base = (env.appBaseUrl || "https://app.calyflow.ai").replace(/\/$/, "");
+  const base = (env.appBaseUrl || "http://localhost:3000").replace(/\/$/, "");
   const link = (path: string, title: string, desc: string) =>
     `- [${title}](${base}${path}): ${desc}`;
 
@@ -34,9 +34,9 @@ export function GET() {
     .map((c) => link(`/docs/connectors/${c.provider}`, c.name, c.blurb));
 
   const body = [
-    "# Calyflow",
+    "# TAO OS",
     "",
-    "> Calyflow is an open-source recruiting OS: recruiters run AI agents on their projects to source, screen, and reach out to candidates — using their own data, connected tools, and AI.",
+    "> TAO OS is an open-source recruiting OS: recruiters run AI agents on their projects to source, screen, and reach out to candidates — using their own data, connected tools, and AI.",
     "",
     "Agents read your knowledge base and a project's documents, query your connected tools (ATS, CRM, spreadsheets, mailbox, Slack, and sourcing & enrichment), and save results back into the project. This file links to the public documentation.",
     "",
@@ -51,9 +51,9 @@ export function GET() {
     "## Optional",
     "",
     link("/docs", "Documentation home", "Index of all docs."),
-    `- [Calyflow app](${base}/): the product (free account, no card).`,
-    "- [Website](https://calyflow.ai): marketing site and overview.",
-    "- [Source code](https://github.com/Calyflow/calyflow-app): open source, AGPL-3.0.",
+    `- [TAO OS app](${base}/): self-hosted, open source.`,
+    "- [Source code](https://github.com/confoundedkyle/tao-os): open source, AGPL-3.0.",
+    "- [Upstream project](https://github.com/Calyflow/calyflow-app): Calyflow, the original platform TAO OS derives from.",
     "",
   ].join("\n");
 

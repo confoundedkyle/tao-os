@@ -169,7 +169,7 @@ export default async function AgentsPage({
                 )}
                 <div className="mt-3 flex items-center justify-between gap-2 border-t border-navy-800/8 pt-3">
                   <span className="text-xs text-navy-800/45">
-                    {agent.library ? "Calyflow" : "Custom"} ·{" "}
+                    {agent.library ? "TAO OS" : "Custom"} ·{" "}
                     <span className="font-mono">
                       v{agent.imported_version ?? "—"}
                     </span>

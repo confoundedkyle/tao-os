@@ -27,7 +27,7 @@ export default async function PersonalSettingsPage() {
       <Card>
         <h2 className="mb-1 text-xl font-semibold">Your name</h2>
         <p className="mb-4 text-sm text-navy-800/55">
-          Used across Calyflow and kept in sync with your account.
+          Used across TAO OS and kept in sync with your account.
         </p>
         <ToastForm
           action={updatePersonalNameAction}

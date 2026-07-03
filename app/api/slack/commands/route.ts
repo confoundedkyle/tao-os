@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
   const project = await getProjectBySlackChannel(channelId);
   if (!project) {
     return ephemeral(
-      "This channel isn't linked to a Calyflow project yet. Link it in the " +
+      "This channel isn't linked to a TAO OS project yet. Link it in the " +
         "project's *Settings* tab, then run `/calyflow` here.",
     );
   }

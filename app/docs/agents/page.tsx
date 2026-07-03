@@ -4,7 +4,7 @@ import { DocHeader, Markdown } from "@/components/docs/doc-blocks";
 export const metadata: Metadata = {
   title: "Agents",
   description:
-    "What Calyflow agents are, how they run, and the ready-made agents you can use for sourcing, screening, scorecards, and outreach.",
+    "What TAO OS agents are, how they run, and the ready-made agents you can use for sourcing, screening, scorecards, and outreach.",
 };
 
 const BODY = `
@@ -103,7 +103,7 @@ export default function AgentsDocPage() {
   return (
     <article>
       <DocHeader
-        eyebrow="How Calyflow is organized"
+        eyebrow="How TAO OS is organized"
         title="Agents"
         lead="AI specialists for recruiting tasks — pick one, press Run, get a saved result."
       />

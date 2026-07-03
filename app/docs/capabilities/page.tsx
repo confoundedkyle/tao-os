@@ -11,7 +11,7 @@ import { DocHeader } from "@/components/docs/doc-blocks";
 export const metadata: Metadata = {
   title: "What agents can do",
   description:
-    "The actions Calyflow agents can take, in plain language, grouped by the tool they use.",
+    "The actions TAO OS agents can take, in plain language, grouped by the tool they use.",
 };
 
 const GROUP_ORDER: { category: ConnectorCategory; label: string }[] = [

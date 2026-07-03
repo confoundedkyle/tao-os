@@ -4,11 +4,11 @@ import { DocHeader, Markdown } from "@/components/docs/doc-blocks";
 export const metadata: Metadata = {
   title: "Clients & projects",
   description:
-    "How Calyflow organizes your work: clients are the companies you recruit for, projects are the roles you're filling.",
+    "How TAO OS organizes your work: clients are the companies you recruit for, projects are the roles you're filling.",
 };
 
 const BODY = `
-Calyflow organizes everything around two simple ideas.
+TAO OS organizes everything around two simple ideas.
 
 ## Clients
 
@@ -47,7 +47,7 @@ export default function ProjectsDocPage() {
   return (
     <article>
       <DocHeader
-        eyebrow="How Calyflow is organized"
+        eyebrow="How TAO OS is organized"
         title="Clients & projects"
         lead="Clients are who you recruit for; projects are the roles you're filling."
       />

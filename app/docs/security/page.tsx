@@ -4,11 +4,11 @@ import { DocHeader, Markdown } from "@/components/docs/doc-blocks";
 export const metadata: Metadata = {
   title: "Security & privacy",
   description:
-    "How Calyflow keeps your data and credentials safe: encryption, workspace isolation, your own keys, and an open, self-hostable codebase.",
+    "How TAO OS keeps your data and credentials safe: encryption, workspace isolation, your own keys, and an open, self-hostable codebase.",
 };
 
 const BODY = `
-Calyflow is built to handle the sensitive things recruiting touches —
+TAO OS is built to handle the sensitive things recruiting touches —
 candidate data, client details, and the API keys to your tools — with care. Here's
 how your data and credentials are protected.
 
@@ -25,7 +25,7 @@ credentials.
 
 ## Your credentials never reach the AI
 
-When an agent uses a connector, the API call is made by **Calyflow's servers** on
+When an agent uses a connector, the API call is made by **TAO OS's servers** on
 your behalf. Your keys and tokens are **never placed into prompts and never shown
 to the AI model** — the agent only ever sees the results it asked for, not the
 credentials behind them.
@@ -43,7 +43,7 @@ credentials behind them.
 
 ## Least access by default
 
-- Most connectors are used **read-only** — Calyflow pulls the records a task needs
+- Most connectors are used **read-only** — TAO OS pulls the records a task needs
   and **doesn't write back** to your ATS, CRM, or spreadsheets.
 - You grant only the access a connector needs (a scoped API key, or an OAuth
   approval limited to what the integration uses).
@@ -65,11 +65,11 @@ Slack) are **cryptographically verified** before they're accepted.
 
 ## Open source — and yours to run
 
-Calyflow is **open source (AGPL-3.0)**. That means:
+TAO OS is **open source (AGPL-3.0)**. That means:
 
 - **You can audit it.** The code is public — security teams can review exactly how
   data and credentials are handled.
-- **You can self-host it.** Run your own Calyflow instance in your own
+- **You can self-host it.** Run your own TAO OS instance in your own
   infrastructure, so candidate data and credentials never leave your environment.
   See [Self-hosting & OAuth apps](/docs/self-hosting).
 

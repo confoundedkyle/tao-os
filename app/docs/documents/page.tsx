@@ -4,7 +4,7 @@ import { DocHeader, Markdown } from "@/components/docs/doc-blocks";
 export const metadata: Metadata = {
   title: "Documents & project files",
   description:
-    "How documents work in Calyflow: project files feed your agents, client files are for context, and agents save their results back as documents.",
+    "How documents work in TAO OS: project files feed your agents, client files are for context, and agents save their results back as documents.",
 };
 
 const BODY = `
@@ -55,7 +55,7 @@ export default function DocumentsDocPage() {
   return (
     <article>
       <DocHeader
-        eyebrow="How Calyflow is organized"
+        eyebrow="How TAO OS is organized"
         title="Documents & project files"
         lead="Project files feed your agents; client files are for context; results are saved back as documents."
       />

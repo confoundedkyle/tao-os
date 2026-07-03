@@ -15,7 +15,7 @@ const MODULE_DOCS: Record<string, ModuleDoc> = {
     title: "ATS module",
     lead: "Your candidate pipeline, organized by the role each person is up for.",
     body: `
-The **ATS** module is your candidate pipeline inside Calyflow. Candidates are
+The **ATS** module is your candidate pipeline inside TAO OS. Candidates are
 shown by stage — sourced, screening, interview, offer, hired, rejected — and tied
 to the **project (role)** they're being considered for.
 

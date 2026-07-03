@@ -149,7 +149,7 @@ export function ShortlistEnrichDialog({
           {/* How it works */}
           <section>
             <p className="text-sm leading-relaxed text-navy-800/70">
-              Calyflow doesn’t store personal emails — you bring your own
+              TAO OS doesn’t store personal emails — you bring your own
               enrichment tool (
               <span className="font-medium text-navy-800/80">
                 ContactOut, Hunter, Findymail, Prospeo

@@ -71,7 +71,7 @@ export default async function AppLayout({
         <main className="relative flex flex-1 flex-col overflow-y-auto px-4 pt-6 sm:px-6 lg:px-10 lg:pt-2">
           <div className="flex-1">{children}</div>
           <footer className="mt-16 border-t border-navy-800/8 py-4 text-center text-xs text-navy-800/35">
-            Calyflow — open-source recruiting OS ·{" "}
+            TAO OS — open-source talent acquisition platform ·{" "}
             <span className="font-mono">AGPL-3.0</span> ·{" "}
             <Link href="/docs" className="hover:text-mint-700">
               Docs

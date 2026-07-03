@@ -11,7 +11,7 @@ import {
 } from "@/lib/connectors";
 import { Button, Card, Field, PageHeader, inputClass } from "@/components/ui";
 
-export const metadata = { title: "Configure automation · Calyflow" };
+export const metadata = { title: "Configure automation · TAO OS" };
 
 export default async function ConfigureAutomationPage({
   params,
