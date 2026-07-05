@@ -1,13 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ModuleKey } from "@/lib/types";
 import { SidebarNav, type ClientWithProjects } from "./sidebar-nav";
 
 /** Hamburger button + slide-over drawer with the app nav; the account
- *  controls (Clerk profile) are passed in as server-rendered children. */
+ *  controls are passed in as server-rendered children. */
 export function MobileNav({
   clients,
   demo = null,
@@ -62,34 +61,4 @@ export function MobileNav({
             className="absolute inset-0 bg-navy-900/40"
           />
           <div className="absolute inset-y-0 right-0 flex w-72 max-w-[85vw] flex-col bg-cream-50 shadow-lift">
-            <div className="flex flex-shrink-0 items-center justify-between border-b border-navy-800/10 py-2 pl-5 pr-2">
-              <span className="text-xs font-semibold uppercase tracking-widest text-navy-800/35">
-                Menu
-              </span>
-              <button
-                type="button"
-                aria-label="Close menu"
-                onClick={() => setOpen(false)}
-                className="flex h-10 w-10 items-center justify-center rounded-lg text-navy-800/55 transition hover:bg-cream-100"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="min-h-0 flex-1 overflow-y-auto">
-              <SidebarNav clients={clients} demo={demo} modules={modules} />
-            </div>
-            <div className="flex-shrink-0 space-y-3 border-t border-navy-800/10 px-4 py-3">
-              <Link
-                href="/setup-help"
-                className="block rounded-chip border border-mint-400/50 px-3 py-2 text-center text-sm font-semibold text-mint-700 transition hover:bg-mint-400/10"
-              >
-                Setup Help
-              </Link>
-              {children}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
+            <div className="flex flex-shrink-0

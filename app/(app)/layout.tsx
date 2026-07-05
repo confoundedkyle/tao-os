@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { config } from "@/lib/config";
 import { getSession, isPlatformAdmin } from "@/lib/auth";
 import {
   getDemoClientWithProject,
@@ -78,10 +77,12 @@ export default async function AppLayout({
             </Link>{" "}
             ·{" "}
             <a
-              href={`mailto:${config.contactEmail}`}
+              href="https://github.com/confoundedkyle/tao-os/issues"
+              target="_blank"
+              rel="noopener noreferrer"
               className="hover:text-mint-700"
             >
-              Contact: {config.contactEmail}
+              Report an issue
             </a>
           </footer>
         </main>
