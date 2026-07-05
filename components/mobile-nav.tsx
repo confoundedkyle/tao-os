@@ -61,4 +61,4 @@ export function MobileNav({
             className="absolute inset-0 bg-navy-900/40"
           />
           <div className="absolute inset-y-0 right-0 flex w-72 max-w-[85vw] flex-col bg-cream-50 shadow-lift">
-            <div className="flex flex-shrink-0
+          <div className="flex flex-shrink-0 items-center justify-between border-b border-navy-800/10 py-2 pl-5 pr-2">
