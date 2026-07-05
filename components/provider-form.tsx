@@ -40,6 +40,8 @@ export function ProviderForm({
             onChange={(e) => setProvider(e.target.value)}
             className={inputClass}
           >
+            <option value="litellm">LiteLLM</option>
+            <option value="openrouter">OpenRouter</option>
             <option value="anthropic">Anthropic</option>
             <option value="openai">OpenAI</option>
             <option value="google">Google</option>

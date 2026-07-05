@@ -47,9 +47,25 @@ export async function getLanguageModel(
       const { createGroq } = await import("@ai-sdk/groq");
       return createGroq({ apiKey })(modelId);
     }
-    case "cohere": {
+   case "cohere": {
       const { createCohere } = await import("@ai-sdk/cohere");
       return createCohere({ apiKey })(modelId);
+    }
+    case "litellm": {
+      const { createOpenAICompatible } = await import("@ai-sdk/openai-compatible");
+      return createOpenAICompatible({
+        name: "litellm",
+        baseURL: process.env.LITELLM_BASE_URL ?? "http://localhost:4000",
+        apiKey,
+      })(modelId);
+    }
+    case "openrouter": {
+      const { createOpenAICompatible } = await import("@ai-sdk/openai-compatible");
+      return createOpenAICompatible({
+        name: "openrouter",
+        baseURL: "https://openrouter.ai/api/v1",
+        apiKey,
+      })(modelId);
     }
     default:
       throw new Error(`Unsupported provider: ${effective}`);

@@ -3,6 +3,8 @@
 
 export const SUPPORTED_PROVIDERS = [
   "calyflow",
+  "litellm",
+  "openrouter",
   "anthropic",
   "openai",
   "google",
@@ -42,7 +44,11 @@ export function agenticPlatformModel(provider: string, modelId: string): string 
 export function providerLabel(provider: string): string {
   switch (provider) {
     case "calyflow":
-      return "Calyflow default";
+      return "TAO OS default";
+    case "litellm":
+      return "LiteLLM";
+    case "openrouter":
+      return "OpenRouter";
     case "anthropic":
       return "Anthropic";
     case "openai":

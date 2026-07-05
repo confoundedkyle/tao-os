@@ -72,6 +72,16 @@
       "context_window": 1000000,
       "pricing": { "input": 0.3, "output": 2.5, "cache_read": 0.03 },
       "curated": true
+    },
+    {
+      "provider": "litellm",
+      "model_id": "claude-sonnet",
+      "display_name": "Claude Sonnet (via LiteLLM)"
+    },
+    {
+      "provider": "openrouter",
+      "model_id": "deepseek/deepseek-chat",
+      "display_name": "DeepSeek Chat (OpenRouter)"
     }
   ]
 }
