@@ -58,9 +58,9 @@ across the app.
 
 ## Sign-in you can trust
 
-Authentication is handled by **Clerk**, a specialist authentication provider, so
-established protections such as **single sign-on (SSO)** and **multi-factor
-authentication (MFA)** are available. Inbound integration requests (such as
+TAO OS runs in single-workspace mode with cookie-based email sign-in — no
+third-party identity provider required. Admin access is controlled by an
+explicit allowlist (\`ADMIN_EMAILS\`). Inbound integration requests (such as
 Slack) are **cryptographically verified** before they're accepted.
 
 ## Open source — and yours to run
@@ -78,8 +78,9 @@ TAO OS is **open source (AGPL-3.0)**. That means:
 You decide what to connect, what to upload, and what agents can see. You can
 disconnect a tool, deactivate or delete documents, and remove data at any time.
 
-> Have a security question, or want to report something? Email
-> **hello@calyflow.ai** — we take it seriously.
+> Have a security question, or want to report something? Open an issue at
+> [github.com/confoundedkyle/tao-os/issues](https://github.com/confoundedkyle/tao-os/issues)
+> — reports are taken seriously.
 `;
 
 export default function SecurityPage() {

@@ -61,12 +61,6 @@ export default function DocsLayout({
             </span>
           </div>
           <nav className="flex flex-wrap items-center gap-x-5 gap-y-2">
-            <a
-              href="https://calyflow.ai"
-              className="transition hover:text-mint-700"
-            >
-              Website
-            </a>
             <Link href="/" className="transition hover:text-mint-700">
               Open app
             </Link>
@@ -82,12 +76,15 @@ export default function DocsLayout({
               GitHub
             </a>
             <a
-              href="mailto:hello@calyflow.ai"
+              href="https://github.com/confoundedkyle/tao-os/issues"
+              target="_blank"
+              rel="noopener noreferrer"
               className="transition hover:text-mint-700"
             >
-              hello@calyflow.ai
+              Report an issue
             </a>
           </nav>
+          
         </div>
       </footer>
     </div>
