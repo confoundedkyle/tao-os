@@ -62,3 +62,27 @@ export function MobileNav({
           />
           <div className="absolute inset-y-0 right-0 flex w-72 max-w-[85vw] flex-col bg-cream-50 shadow-lift">
           <div className="flex flex-shrink-0 items-center justify-between border-b border-navy-800/10 py-2 pl-5 pr-2">
+          <span className="text-xs font-semibold uppercase tracking-widest text-navy-800/35">
+                Menu
+              </span>
+              <button
+                type="button"
+                aria-label="Close menu"
+                onClick={() => setOpen(false)}
+                className="flex h-10 w-10 items-center justify-center rounded-lg text-navy-800/55 transition hover:bg-cream-100"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <SidebarNav clients={clients} demo={demo} modules={modules} />
+            </div>
+            <div className="flex-shrink-0 space-y-3 border-t border-navy-800/10 px-4 py-3">
+              {children}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
