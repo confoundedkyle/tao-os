@@ -65,7 +65,10 @@ const CATEGORIES = [
   "submission",
 ] as const;
 
-const AUTHOR = "Michal Juhas";
+const UPSTREAM_AUTHOR = "Michal Juhas";
+const FORK_AUTHOR = "Kyle Byrd";
+/** Agents original to TAO OS; everything else is upstream Calyflow work. */
+const FORK_AGENT_SLUGS = new Set(["leadership-sourcer"]);
 
 export default async function LibraryPage({
   searchParams,
@@ -206,7 +209,7 @@ export default async function LibraryPage({
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-[13px] text-navy-800/45">
-                      <span className="font-mono">v{wf.version}</span> · by {AUTHOR}
+                      <span className="font-mono">v{wf.version}</span> · by {FORK_AGENT_SLUGS.has(wf.slug) ? FORK_AUTHOR : UPSTREAM_AUTHOR}
                     </span>
                     {isImported ? (
                       <Chip tone="mint">✓ Imported</Chip>
