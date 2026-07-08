@@ -68,7 +68,11 @@ const CATEGORIES = [
 const UPSTREAM_AUTHOR = "Michal Juhas";
 const FORK_AUTHOR = "Kyle Byrd";
 /** Agents original to TAO OS; everything else is upstream Calyflow work. */
-const FORK_AGENT_SLUGS = new Set(["leadership-sourcer"]);
+const FORK_AGENT_SLUGS = new Set([
+  "leadership-sourcer",
+  "role-intelligence-brief",
+  "panel-calibration-diagnostician",
+]);
 
 export default async function LibraryPage({
   searchParams,

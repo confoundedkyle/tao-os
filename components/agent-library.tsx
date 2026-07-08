@@ -21,7 +21,11 @@ import type { Connection, LibraryAgent } from "@/lib/types";
 const UPSTREAM_AUTHOR = "Michal Juhas";
 const FORK_AUTHOR = "Kyle Byrd";
 /** Agents original to TAO OS; everything else is upstream Calyflow work. */
-const FORK_AGENT_SLUGS = new Set(["leadership-sourcer"]);
+const FORK_AGENT_SLUGS = new Set([
+  "leadership-sourcer",
+  "role-intelligence-brief",
+  "panel-calibration-diagnostician",
+]);
 
 const CATEGORY_BY_PROVIDER = new Map(
   CONNECTORS.filter((c) => c.provider).map((c) => [c.provider!, c.category]),
