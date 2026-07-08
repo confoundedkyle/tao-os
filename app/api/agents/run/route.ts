@@ -37,7 +37,7 @@ import {
   resolveFirecrawlKey,
   type ConnectorTokens,
 } from "@/lib/agents/connector-tokens";
-import { contextBlock, personalBlock } from "@/lib/agents/prompt";
+import { contextBlock, dateBlock, personalBlock } from "@/lib/agents/prompt";
 import type { AgentRunStep } from "@/lib/types";
 
 export const maxDuration = 600; // multi-step tool loops can run long
@@ -310,6 +310,7 @@ export async function POST(request: NextRequest) {
     );
     const block = contextBlock(assembled);
     if (block) systemPrompt = `${systemPrompt}\n\n${block}`;
+    systemPrompt = `${systemPrompt}\n\n${dateBlock()}`;  
   } catch (err) {
     console.warn("Agent context assembly failed:", err);
   }

@@ -20,7 +20,7 @@ import {
   connectorSpendByProvider,
   recordConnectorCreditUsage,
 } from "../shortlist/spend";
-import { contextBlock, personalBlock } from "./prompt";
+import { contextBlock, dateBlock, personalBlock } from "./prompt";
 
 export interface HeadlessRunResult {
   runId: string | null;
@@ -148,6 +148,7 @@ export async function runAgentHeadless(params: {
   // Assemble the same project/KB + personal context the interactive route uses.
   // Skipped for workspace-level automation runs that have no project.
   let systemPrompt = agent.instructions;
+  systemPrompt = `${systemPrompt}\n\n${dateBlock()}`;
   if (project) {
     try {
       // assembleContext only reads project.id + project.client.id; a partial

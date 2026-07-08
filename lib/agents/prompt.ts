@@ -41,7 +41,7 @@ export function personalBlock(p: UserPreferences | null): string {
   if (lines.length === 0 && !sig) return "";
   let out =
     "# Recruiter & sender details\n" +
-    "These are the recruiter's own details from their Calyflow settings. They " +
+    "These are the recruiter's own details from their TAO OS settings. They " +
     "take precedence over anything in the knowledge base or project context " +
     "above — if a detail here conflicts with the KB, use THIS one.\n";
   if (lines.length > 0) out += `\n${lines.join("\n")}\n`;
@@ -52,4 +52,22 @@ export function personalBlock(p: UserPreferences | null): string {
       sig +
       "\n";
   return out.trim();
+}
+
+/** Today's date, injected into every agent run so recency reasoning ("recent
+ *  hires", "2026 conference speakers", document date stamps) uses the actual
+ *  current date instead of the model's training-era clock. */
+export function dateBlock(): string {
+  const today = new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+  return (
+    "# Current date\n" +
+    `Today's date is ${today}. Use this for all recency reasoning, search ` +
+    "queries involving years, and any date you write into documents — never " +
+    "a date recalled from memory."
+  );
 }
