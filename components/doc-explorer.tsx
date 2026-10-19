@@ -351,7 +351,7 @@ export function DocExplorer({
           </button>
         </div>
       )}
-      <div className="grid overflow-hidden rounded-card border border-navy-800/12 bg-white shadow-[0_1px_3px_rgba(19,31,56,0.04)] lg:min-h-[34rem] lg:grid-cols-[clamp(220px,26%,300px)_1fr]">
+      <div className="grid overflow-hidden rounded-card border border-navy-800/12 bg-surface-100 shadow-[0_1px_3px_rgba(19,31,56,0.04)] lg:min-h-[34rem] lg:grid-cols-[clamp(220px,26%,300px)_1fr]">
         {/* Left: IDE-style file sidebar (also a drag & drop upload target) */}
         <aside
           onDragEnter={onDragEnter}
@@ -508,7 +508,7 @@ export function DocExplorer({
         </aside>
 
         {/* Right: preview / editor */}
-        <div className="min-w-0 bg-white">
+        <div className="min-w-0 bg-surface-100">
         {!selected ? (
           <p className="px-6 py-16 text-center text-sm text-navy-800/45">
             {mode === "kb"

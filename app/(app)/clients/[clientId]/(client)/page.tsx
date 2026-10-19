@@ -41,7 +41,7 @@ export default async function ClientProjectsPage({
             {active.map((project) => (
               <li
                 key={project.id}
-                className="group flex items-center gap-3 rounded-card border border-navy-800/10 bg-white px-4 py-3 transition hover:border-mint-700/40 hover:shadow-[0_2px_12px_rgba(19,31,56,0.06)]"
+                className="group flex items-center gap-3 rounded-card border border-navy-800/10 bg-surface-100 px-4 py-3 transition hover:border-mint-700/40 hover:shadow-[0_2px_12px_rgba(19,31,56,0.06)]"
               >
                 <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-mint-400/12 text-mint-700">
                   <IconFolder size={18} />

@@ -39,7 +39,7 @@ export function RunHistoryMenu({
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        className="inline-flex items-center gap-1.5 rounded-chip border border-navy-800/15 bg-white px-3 py-1.5 text-sm font-semibold text-navy-800/70 transition hover:border-mint-700 hover:text-mint-700"
+        className="inline-flex items-center gap-1.5 rounded-chip border border-navy-800/15 bg-surface-100 px-3 py-1.5 text-sm font-semibold text-navy-800/70 transition hover:border-mint-700 hover:text-mint-700"
       >
         <span aria-hidden>🕘</span>
         Recent runs
@@ -60,7 +60,7 @@ export function RunHistoryMenu({
             onClick={() => setOpen(false)}
             className="fixed inset-0 z-20 cursor-default"
           />
-          <div className="absolute right-0 z-30 mt-2 w-96 max-w-[90vw] overflow-hidden rounded-card border border-navy-800/12 bg-white shadow-[0_12px_40px_rgba(19,31,56,0.16)]">
+          <div className="absolute right-0 z-30 mt-2 w-96 max-w-[90vw] overflow-hidden rounded-card border border-navy-800/12 bg-surface-100 shadow-[0_12px_40px_rgba(19,31,56,0.16)]">
             {runs.length === 0 ? (
               <p className="px-4 py-6 text-center text-sm text-navy-800/45">
                 No runs yet.

@@ -40,7 +40,7 @@ export default async function AdminPage() {
       />
 
       {/* Users */}
-      <div className="mb-6 overflow-x-auto rounded-card border border-navy-800/12 bg-white">
+      <div className="mb-6 overflow-x-auto rounded-card border border-navy-800/12 bg-surface-100">
         <div className="flex items-center justify-between px-5 py-4">
           <h2 className="text-lg font-semibold">Users</h2>
           <span className="text-sm text-navy-800/45">{users.length} total</span>
@@ -92,7 +92,7 @@ export default async function AdminPage() {
       </div>
 
       {/* Runs */}
-      <div className="overflow-x-auto rounded-card border border-navy-800/12 bg-white">
+      <div className="overflow-x-auto rounded-card border border-navy-800/12 bg-surface-100">
         <div className="flex items-center justify-between px-5 py-4">
           <h2 className="text-lg font-semibold">Runs</h2>
           <span className="text-sm text-navy-800/45">

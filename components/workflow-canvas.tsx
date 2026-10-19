@@ -56,14 +56,14 @@ const NODE_ICONS: Record<
 
 // Gradient icon tiles — one color identity per icon, brand palette only.
 const TILE_GRADIENTS: Record<WorkflowNodeIcon, string> = {
-  workspace: "from-lavender-300 to-[#8b6fd8]",
-  client: "from-sky-300 to-[#5688d4]",
+  workspace: "from-lavender-300 to-[#737373]",
+  client: "from-sky-300 to-[#737373]",
   doc: "from-mint-400 to-mint-700",
   notes: "from-amber-400 to-[#b97c1f]",
-  files: "from-[#62749c] to-navy-800",
+  files: "from-[#525252] to-navy-800",
   connector: "from-sky-300 to-navy-800",
   email: "from-amber-400 to-coral-400",
-  skill: "from-coral-400 to-[#c4523a]",
+  skill: "from-coral-400 to-[#a82222]",
   spark: "from-navy-800 to-mint-700",
   robot: "from-mint-400 to-sky-300",
   output: "from-mint-700 to-navy-800",
@@ -178,7 +178,7 @@ function BrandLogo({ provider, size = 18 }: { provider: string; size?: number })
       width={size}
       height={size}
       onError={() => setFailed(true)}
-      className="rounded-full bg-white object-contain ring-2 ring-white"
+      className="rounded-full bg-surface-100 object-contain ring-2 ring-white"
     />
   );
 }
@@ -187,7 +187,7 @@ function BrandLogo({ provider, size = 18 }: { provider: string; size?: number })
  *  the generic gradient tile so the brand isn't shown twice on one node. */
 function BrandTile({ provider }: { provider: string }) {
   return (
-    <span className="grid size-9 shrink-0 place-items-center rounded-[10px] border border-navy-800/10 bg-white shadow-[0_2px_8px_rgba(19,31,56,0.1)]">
+    <span className="grid size-9 shrink-0 place-items-center rounded-[10px] border border-navy-800/10 bg-surface-100 shadow-[0_2px_8px_rgba(19,31,56,0.1)]">
       <BrandLogo provider={provider} size={22} />
     </span>
   );
@@ -222,7 +222,7 @@ function GroupNode({ data }: NodeProps<CanvasNode>) {
   return (
     <div
       style={node.size}
-      className="rounded-2xl border-[1.5px] border-dashed border-navy-800/20 bg-white/45"
+      className="rounded-2xl border-[1.5px] border-dashed border-navy-800/20 bg-surface-100/45"
     >
       <Handle
         type="source"
@@ -251,7 +251,7 @@ function ItemNode({ data }: NodeProps<CanvasNode>) {
   return (
     <div
       style={node.size}
-      className="flex cursor-pointer items-center gap-2.5 rounded-card border border-navy-800/10 bg-white px-3 shadow-[0_2px_10px_rgba(19,31,56,0.06)] transition hover:border-navy-800/20 hover:bg-cream-50 hover:shadow-[0_4px_16px_rgba(19,31,56,0.1)]"
+      className="flex cursor-pointer items-center gap-2.5 rounded-card border border-navy-800/10 bg-surface-100 px-3 shadow-[0_2px_10px_rgba(19,31,56,0.06)] transition hover:border-navy-800/20 hover:bg-cream-50 hover:shadow-[0_4px_16px_rgba(19,31,56,0.1)]"
     >
       {soloBrand ? (
         <BrandTile provider={soloBrand} />
@@ -299,7 +299,7 @@ function SkillNode({ data }: NodeProps<CanvasNode>) {
         />
       )}
       <div
-        className={`relative flex h-[76px] w-[264px] cursor-pointer items-center gap-3 rounded-card bg-white px-3.5 transition hover:bg-coral-400/5 hover:shadow-[0_6px_22px_rgba(19,31,56,0.1)] ${
+        className={`relative flex h-[76px] w-[264px] cursor-pointer items-center gap-3 rounded-card bg-surface-100 px-3.5 transition hover:bg-coral-400/5 hover:shadow-[0_6px_22px_rgba(19,31,56,0.1)] ${
           highlight
             ? "border-2 border-coral-400 shadow-[0_6px_24px_rgba(232,131,107,0.35)]"
             : "border-[1.5px] border-coral-400/50 shadow-[0_4px_18px_rgba(19,31,56,0.07)]"
@@ -311,7 +311,7 @@ function SkillNode({ data }: NodeProps<CanvasNode>) {
           isConnectable={false}
           className={handleClass}
         />
-        <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-linear-to-br from-coral-400 to-[#c4523a] text-white shadow-[0_3px_10px_rgba(19,31,56,0.18)]">
+        <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-linear-to-br from-coral-400 to-[#a82222] text-white shadow-[0_3px_10px_rgba(19,31,56,0.18)]">
           <IconWorkflowNodes size={20} />
         </span>
         <span className="min-w-0">
@@ -346,7 +346,7 @@ function StepNode({ data }: NodeProps<CanvasNode>) {
       className={`flex h-[96px] w-[264px] cursor-pointer items-center gap-3.5 rounded-card border-[1.5px] px-4 shadow-lift transition ${
         isAgent
           ? "border-mint-400/80 bg-linear-to-br from-navy-900 to-navy-800 hover:border-mint-400 hover:brightness-110"
-          : "border-mint-400/70 bg-white hover:bg-mint-400/5 hover:shadow-[0_8px_26px_rgba(19,31,56,0.12)]"
+          : "border-mint-400/70 bg-surface-100 hover:bg-mint-400/5 hover:shadow-[0_8px_26px_rgba(19,31,56,0.12)]"
       }`}
     >
       <Handle
@@ -403,7 +403,7 @@ function StepNode({ data }: NodeProps<CanvasNode>) {
             title={node.modelLine}
             className={`mt-1 inline-block max-w-full truncate rounded-full px-2 py-0.5 font-mono text-[10px] ${
               isAgent
-                ? "bg-white/12 text-white/75"
+                ? "bg-surface-100/12 text-white/75"
                 : "bg-navy-800/6 text-navy-800/65"
             }`}
           >
@@ -421,7 +421,7 @@ function OutputNode({ data }: NodeProps<CanvasNode>) {
   const soloBrand =
     node.brandLogos?.length === 1 ? node.brandLogos[0] : undefined;
   return (
-    <div className="flex w-60 cursor-pointer items-center gap-3 rounded-card border-[1.5px] border-mint-700/35 bg-white px-3.5 py-3 shadow-[0_4px_18px_rgba(19,31,56,0.07)] transition hover:bg-mint-700/5 hover:shadow-[0_6px_22px_rgba(19,31,56,0.1)]">
+    <div className="flex w-60 cursor-pointer items-center gap-3 rounded-card border-[1.5px] border-mint-700/35 bg-surface-100 px-3.5 py-3 shadow-[0_4px_18px_rgba(19,31,56,0.07)] transition hover:bg-mint-700/5 hover:shadow-[0_6px_22px_rgba(19,31,56,0.1)]">
       <Handle
         type="target"
         position={Position.Left}
@@ -472,20 +472,20 @@ const NODE_TYPES: NodeTypes = {
 
 const EDGE_STYLES: Record<string, React.CSSProperties> = {
   knowledge: {
-    stroke: "rgba(27, 42, 74, 0.35)",
+    stroke: "rgba(229, 229, 229, 0.35)",
     strokeWidth: 1.75,
     strokeDasharray: "6 4",
   },
-  project: { stroke: "#5bc8a8", strokeWidth: 2.25 },
-  skill: { stroke: "#e8836b", strokeWidth: 2.25 },
-  output: { stroke: "#1b7a5f", strokeWidth: 2.5 },
+  project: { stroke: "#ff2828", strokeWidth: 2.25 },
+  skill: { stroke: "#ff8585", strokeWidth: 2.25 },
+  output: { stroke: "#ff6666", strokeWidth: 2.5 },
 };
 
 const EDGE_ARROWS: Record<string, string> = {
-  knowledge: "rgba(27, 42, 74, 0.45)",
-  project: "#5bc8a8",
-  skill: "#e8836b",
-  output: "#1b7a5f",
+  knowledge: "rgba(229, 229, 229, 0.45)",
+  project: "#ff2828",
+  skill: "#ff8585",
+  output: "#ff6666",
 };
 
 const CANVAS_PAD = 28;
@@ -601,7 +601,7 @@ export function WorkflowCanvas({
             narrow screens scroll to the rest instead of cropping it. */}
         <div
           ref={wrapperRef}
-          className="h-80 w-full overflow-auto rounded-panel border border-navy-800/12 bg-linear-to-br from-cream-50 to-white sm:h-[26rem]"
+          className="h-80 w-full overflow-auto rounded-panel border border-navy-800/12 bg-linear-to-br from-cream-50 to-surface-100 sm:h-[26rem]"
         >
           <div style={{ width: surfaceWidth, height: surfaceHeight }}>
             {containerSize.width > 0 && (
@@ -631,13 +631,13 @@ export function WorkflowCanvas({
                   variant={BackgroundVariant.Dots}
                   gap={22}
                   size={1.5}
-                  color="rgba(27, 42, 74, 0.14)"
+                  color="rgba(229, 229, 229, 0.14)"
                 />
               </ReactFlow>
             )}
           </div>
         </div>
-        <div className="absolute right-3 top-3 flex overflow-hidden rounded-chip border border-navy-800/15 bg-white shadow-[0_2px_10px_rgba(19,31,56,0.08)]">
+        <div className="absolute right-3 top-3 flex overflow-hidden rounded-chip border border-navy-800/15 bg-surface-100 shadow-[0_2px_10px_rgba(19,31,56,0.08)]">
           <button
             type="button"
             aria-label="Zoom out"
@@ -715,7 +715,7 @@ function NodeExplanationModal({
         aria-modal="true"
         aria-label={node.title}
         onClick={(e) => e.stopPropagation()}
-        className={`flex max-h-[85vh] w-full flex-col overflow-hidden rounded-panel border border-navy-800/12 bg-white shadow-lift ${
+        className={`flex max-h-[85vh] w-full flex-col overflow-hidden rounded-panel border border-navy-800/12 bg-surface-100 shadow-lift ${
           showPrompt ? "max-w-3xl" : "max-w-md"
         }`}
       >

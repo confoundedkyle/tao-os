@@ -50,7 +50,7 @@ export default async function ConnectorPage({
             alt=""
             width={36}
             height={36}
-            className="rounded-lg bg-white ring-1 ring-navy-800/10"
+            className="rounded-lg bg-surface-100 ring-1 ring-navy-800/10"
           />
         )}
         <div className="flex flex-wrap items-center gap-2">

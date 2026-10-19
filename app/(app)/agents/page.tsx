@@ -210,7 +210,7 @@ export default async function AgentsPage({
             {archivedAgents.map((agent) => (
               <li
                 key={agent.id}
-                className="flex items-center justify-between gap-3 rounded-card border border-navy-800/10 bg-white/60 px-4 py-2.5"
+                className="flex items-center justify-between gap-3 rounded-card border border-navy-800/10 bg-surface-100/60 px-4 py-2.5"
               >
                 <span className="min-w-0 truncate text-sm text-navy-800/60">
                   {agent.name}

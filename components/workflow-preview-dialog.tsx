@@ -46,7 +46,7 @@ export function WorkflowPreviewDialog({
             aria-modal="true"
             aria-label={`How ${name} works`}
             onClick={(e) => e.stopPropagation()}
-            className="flex max-h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-panel border border-navy-800/12 bg-white shadow-lift"
+            className="flex max-h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-panel border border-navy-800/12 bg-surface-100 shadow-lift"
           >
             <div className="flex items-start justify-between gap-3 border-b border-navy-800/8 px-6 py-4">
               <div className="min-w-0">

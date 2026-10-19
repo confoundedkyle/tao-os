@@ -28,7 +28,7 @@ export function WorkflowStarterPack({
         type="button"
         onClick={onDismiss}
         aria-label="Hide the starter pack"
-        className="absolute right-2.5 top-2.5 grid size-6 place-items-center rounded-full text-navy-800/40 transition hover:bg-white/70 hover:text-navy-900"
+        className="absolute right-2.5 top-2.5 grid size-6 place-items-center rounded-full text-navy-800/40 transition hover:bg-surface-100/70 hover:text-navy-900"
       >
         ✕
       </button>
@@ -55,8 +55,8 @@ export function WorkflowStarterPack({
                   aria-pressed={selected}
                   className={`group flex h-full w-full flex-col gap-1.5 rounded-card border px-3 py-2.5 text-left transition ${
                     selected
-                      ? "border-mint-700 bg-white shadow-sm ring-1 ring-mint-400"
-                      : "border-navy-800/12 bg-white/70 hover:border-mint-700/50 hover:bg-white"
+                      ? "border-mint-700 bg-surface-100 shadow-sm ring-1 ring-mint-400"
+                      : "border-navy-800/12 bg-surface-100/70 hover:border-mint-700/50 hover:bg-surface-100"
                   }`}
                 >
                   <span className="flex items-center gap-1.5">

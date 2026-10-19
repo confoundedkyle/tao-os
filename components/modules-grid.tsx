@@ -19,7 +19,7 @@ export function ModulesGrid({
       {MODULES.map((module) => (
         <div
           key={module.key}
-          className="flex flex-col rounded-card border border-navy-800/12 bg-white p-5"
+          className="flex flex-col rounded-card border border-navy-800/12 bg-surface-100 p-5"
         >
           <h3 className="mb-2 text-lg font-semibold">{module.label}</h3>
           <p className="flex-1 text-sm text-navy-800/55">

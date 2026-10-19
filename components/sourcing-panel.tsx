@@ -629,7 +629,7 @@ export function SourcingPanel({
           </div>
 
           {/* Targets: goal + budget — collapsed to a one-line summary, expand to edit */}
-          <div className="rounded-panel border border-navy-800/12 bg-white">
+          <div className="rounded-panel border border-navy-800/12 bg-surface-100">
             <button
               type="button"
               onClick={() => setTargetsOpen((o) => !o)}
@@ -780,7 +780,7 @@ export function SourcingPanel({
 
       {/* Before you source: the two prerequisite documents. Sourcing can't run
           without both — generate each here (opens a popup). */}
-      <div className="mt-4 rounded-panel border border-navy-800/12 bg-white p-4">
+      <div className="mt-4 rounded-panel border border-navy-800/12 bg-surface-100 p-4">
         <h3 className="text-sm font-bold uppercase tracking-wider text-navy-800/45">
           Before you source
         </h3>
@@ -825,7 +825,7 @@ export function SourcingPanel({
 
       {/* Per-connector spend caps */}
       {connectorBudgets.length > 0 && (
-        <div className="mt-4 rounded-panel border border-navy-800/12 bg-white">
+        <div className="mt-4 rounded-panel border border-navy-800/12 bg-surface-100">
           <button
             type="button"
             onClick={() => setBudgetsOpen((o) => !o)}
@@ -872,7 +872,7 @@ export function SourcingPanel({
 
       {/* Channel performance — what worked / didn't (collapsed by default) */}
       {signals.runs.length > 0 && (
-        <div className="mt-4 rounded-panel border border-navy-800/12 bg-white">
+        <div className="mt-4 rounded-panel border border-navy-800/12 bg-surface-100">
           <button
             type="button"
             onClick={() => setPerfOpen((o) => !o)}
@@ -975,7 +975,7 @@ export function SourcingPanel({
             </div>
           )}
           {visibleTurns.map((t, i) => (
-            <div key={t.id} className="rounded-card border border-navy-800/12 bg-white p-4">
+            <div key={t.id} className="rounded-card border border-navy-800/12 bg-surface-100 p-4">
               {t.task && (
                 <div className="mb-2 rounded-chip bg-mint-400/12 px-3 py-1.5 text-sm text-navy-800/80">
                   {t.task}
@@ -1060,7 +1060,7 @@ export function SourcingPanel({
               has run (a session is one plan → one search; keep sourcing = a new
               session). */}
           {!running && !alreadyRan && (
-            <form onSubmit={onSubmit} className="rounded-card border border-navy-800/12 bg-white p-3">
+            <form onSubmit={onSubmit} className="rounded-card border border-navy-800/12 bg-surface-100 p-3">
               <textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
@@ -1089,7 +1089,7 @@ export function SourcingPanel({
 
           {/* This session's search has run — steer a new one, not this. */}
           {!running && alreadyRan && (
-            <div className="flex flex-wrap items-center gap-3 rounded-card border border-navy-800/12 bg-white px-4 py-3.5">
+            <div className="flex flex-wrap items-center gap-3 rounded-card border border-navy-800/12 bg-surface-100 px-4 py-3.5">
               <span className="text-sm text-navy-800/60">
                 This search is done. Start a new session to source more — adjust
                 the goal, budget, or strategy.
@@ -1152,7 +1152,7 @@ export function SourcingPanel({
 
       {/* Last run result + self-evaluation */}
       {!running && run && run.status !== "running" && (
-        <div className="mt-4 rounded-card border border-navy-800/12 bg-white p-4">
+        <div className="mt-4 rounded-card border border-navy-800/12 bg-surface-100 p-4">
           <div className="flex flex-wrap items-center gap-3">
             <p className="text-sm font-semibold text-navy-800/75">Last run</p>
             {lastRunChip && (

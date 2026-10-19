@@ -112,7 +112,7 @@ export function GenerateDocDialog({
         aria-modal="true"
         aria-label={title}
         onClick={(e) => e.stopPropagation()}
-        className="flex max-h-[88vh] w-full max-w-xl flex-col overflow-hidden rounded-panel border border-navy-800/12 bg-white shadow-lift"
+        className="flex max-h-[88vh] w-full max-w-xl flex-col overflow-hidden rounded-panel border border-navy-800/12 bg-surface-100 shadow-lift"
       >
         <div className="flex items-center justify-between gap-3 border-b border-navy-800/8 px-6 py-4">
           <h3 className="font-semibold">{title}</h3>

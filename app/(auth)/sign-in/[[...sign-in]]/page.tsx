@@ -1,7 +1,7 @@
 import { env } from "@/lib/env";
 import { signInSingleWorkspace } from "@/lib/actions/auth";
 import { Button, Field, inputClass } from "@/components/ui";
-import { IconAiSpark } from "@/components/icons";
+import { TaoBrand } from "@/components/tao-brand";
 
 export default async function SignInPage({
   searchParams,
@@ -30,12 +30,9 @@ export default async function SignInPage({
 
   return (
     <main className="flex flex-1 items-center justify-center px-4 py-16">
-      <div className="w-full max-w-md rounded-panel border border-navy-800/12 bg-white p-8">
+      <div className="w-full max-w-md rounded-panel border border-navy-800/12 bg-surface-100 p-8">
         <div className="mb-6 flex items-center gap-2 text-mint-700">
-          <IconAiSpark />
-          <span className="font-display text-xl font-bold text-navy-900">
-            TAO OS
-          </span>
+          <TaoBrand />
         </div>
         <h1 className="text-2xl font-bold">Sign in</h1>
         <p className="mb-6 mt-1 text-navy-800/55">

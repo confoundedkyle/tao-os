@@ -1,18 +1,21 @@
 @import "tailwindcss";
 
 @theme {
-  /* Core palette — DESIGN.md §2 */
-  --color-cream-50: #fbf7f0;
-  --color-cream-100: #f3ede2;
-  --color-navy-900: #131f38;
-  --color-navy-800: #1b2a4a;
-  --color-mint-400: #5bc8a8;
-  --color-mint-700: #1b7a5f;
-  --color-sky-300: #9cc3f0;
-  --color-lavender-300: #c5b6ee;
-  --color-lavender-700: #5b41a8;
-  --color-amber-400: #e2a33c;
-  --color-coral-400: #e8836b;
+  /* TAO OS red / black. Legacy token names keep existing components compatible. */
+  --color-surface-100: #111111;
+  --color-surface-200: #292929;
+  --color-surface-300: #383838;
+  --color-cream-50: #050505;
+  --color-cream-100: #1c1c1c;
+  --color-navy-900: #fafafa;
+  --color-navy-800: #e5e5e5;
+  --color-mint-400: #ff2828;
+  --color-mint-700: #ff6666;
+  --color-sky-300: #bdbdbd;
+  --color-lavender-300: #a3a3a3;
+  --color-lavender-700: #d4d4d4;
+  --color-amber-400: #f5b84b;
+  --color-coral-400: #ff8585;
 
   /* Typography */
   --font-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
@@ -24,7 +27,7 @@
   --radius-card: 14px;
   --radius-panel: 20px;
 
-  --shadow-lift: 0 8px 30px rgba(19, 31, 56, 0.08);
+  --shadow-lift: 0 8px 30px rgba(0, 0, 0, 0.4);
 }
 
 button,
@@ -38,6 +41,10 @@ input[type="file"],
 input[type="submit"],
 input[type="reset"] {
   cursor: pointer;
+}
+
+html {
+  color-scheme: dark;
 }
 
 body {
@@ -101,7 +108,7 @@ h2 {
 }
 .prose-calyflow th,
 .prose-calyflow td {
-  border: 1px solid rgba(27, 42, 74, 0.15);
+  border: 1px solid rgba(229, 229, 229, 0.15);
   padding: 6px 10px;
   text-align: left;
   vertical-align: top;
@@ -130,13 +137,13 @@ h2 {
 }
 .prose-calyflow hr {
   border: none;
-  border-top: 1px solid rgba(27, 42, 74, 0.12);
+  border-top: 1px solid rgba(229, 229, 229, 0.12);
   margin: 1.4em 0;
 }
 .prose-calyflow blockquote {
   border-left: 3px solid var(--color-mint-400);
   padding-left: 1em;
-  color: rgba(27, 42, 74, 0.7);
+  color: rgba(229, 229, 229, 0.7);
   margin: 0.8em 0;
 }
 
@@ -148,3 +155,11 @@ h2 {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Shared orbital identity: only the mark moves, never the loading copy. */
+.tao-orbit { animation: tao-orbit-turn 18s linear infinite; transform-origin: center; }
+@keyframes tao-orbit-turn { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .tao-orbit { animation: none; }
+}
+::selection { background: #ff2828; color: #fff; }

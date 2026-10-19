@@ -195,7 +195,7 @@ export function KbOnboardingPanel({
   // Hero / entry state — no conversation started yet.
   if (!active) {
     return (
-      <div className="rounded-card border border-mint-400/40 bg-gradient-to-br from-mint-400/10 via-white to-sky-300/10 px-6 py-10 text-center shadow-[0_1px_3px_rgba(19,31,56,0.04)]">
+      <div className="rounded-card border border-mint-400/40 bg-gradient-to-br from-mint-400/10 via-surface-100 to-sky-300/10 px-6 py-10 text-center shadow-[0_1px_3px_rgba(19,31,56,0.04)]">
         <span aria-hidden className="text-3xl">
           ✨
         </span>
@@ -222,7 +222,7 @@ export function KbOnboardingPanel({
   }
 
   return (
-    <div className="overflow-hidden rounded-card border border-navy-800/12 bg-white shadow-[0_1px_3px_rgba(19,31,56,0.04)]">
+    <div className="overflow-hidden rounded-card border border-navy-800/12 bg-surface-100 shadow-[0_1px_3px_rgba(19,31,56,0.04)]">
       {/* Progress checklist */}
       <div className="border-b border-navy-800/8 bg-navy-800/[0.02] px-5 py-3">
         <div className="flex items-center justify-between gap-3">
@@ -334,7 +334,7 @@ export function KbOnboardingPanel({
           rows={2}
           disabled={running}
           placeholder="Type your answer… (Enter to send, Shift+Enter for a new line)"
-          className="block w-full resize-y rounded-card border border-navy-800/15 bg-white px-4 py-3 text-sm leading-relaxed outline-none focus:border-mint-700 placeholder:text-navy-800/35"
+          className="block w-full resize-y rounded-card border border-navy-800/15 bg-surface-100 px-4 py-3 text-sm leading-relaxed outline-none focus:border-mint-700 placeholder:text-navy-800/35"
         />
         <div className="mt-2 flex items-center justify-between gap-3">
           <span className="font-mono text-[11px] text-navy-800/40">

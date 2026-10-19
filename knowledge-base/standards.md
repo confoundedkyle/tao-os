@@ -20,8 +20,12 @@
   `AgentContextBadge`, `WorkflowCanvas`, `PromptDialog`.
 
 ## Design system
-Colors: `cream`, `navy`, `mint`, `sky`, `lavender`, `amber` (warning/missing),
-`coral` (danger). Radii: `rounded-chip|card|panel`. Fonts: Space Grotesk (display),
+TAO OS uses black surfaces, white/gray text, and red brand accents. Legacy
+`cream` tokens map to dark backgrounds; `navy` to light foregrounds; `mint` to
+red accents. Use `surface-100` for cards (keep literal white for light text).
+`amber` remains warning/missing and `coral` remains danger. The shared
+`TaoBrand` / `TaoMark` renders the orbital identity; `app/loading.tsx` is the
+route loading fallback and respects reduced motion. Radii: `rounded-chip|card|panel`. Fonts: Space Grotesk (display),
 Inter (sans), JetBrains Mono. UI should be modern/colorful/screenshot-worthy.
 Tailwind gotcha: to override a same-property utility, **swap the class
 conditionally** (e.g. `max-w-none` vs `max-w-[68ch]`) — appending won't win.

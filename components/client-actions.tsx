@@ -74,7 +74,7 @@ export function ClientCardActions({
             />
             <div
               role="menu"
-              className="absolute right-0 z-20 mt-1 w-40 overflow-hidden rounded-card border border-navy-800/12 bg-white py-1 shadow-lift"
+              className="absolute right-0 z-20 mt-1 w-40 overflow-hidden rounded-card border border-navy-800/12 bg-surface-100 py-1 shadow-lift"
             >
               <button
                 type="button"

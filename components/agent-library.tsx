@@ -76,7 +76,7 @@ export function AgentLibrary({
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Search agents by name or description…"
-        className="w-full rounded-card border border-navy-800/15 bg-white px-4 py-2.5 text-sm outline-none transition focus:border-mint-700"
+        className="w-full rounded-card border border-navy-800/15 bg-surface-100 px-4 py-2.5 text-sm outline-none transition focus:border-mint-700"
       />
       {filtered.length === 0 && (
         <p className="py-6 text-center text-sm text-navy-800/45">

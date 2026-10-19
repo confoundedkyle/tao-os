@@ -51,7 +51,7 @@ export default async function OnboardingPage() {
         </span>
       </div>
 
-      <div className="rounded-panel border border-navy-800/12 bg-white p-8">
+      <div className="rounded-panel border border-navy-800/12 bg-surface-100 p-8">
         <h1 className="text-2xl font-bold">Set up your workspace</h1>
         <p className="mb-6 mt-1 text-navy-800/55">
           Your team, clients, and projects live here. You can change any of this

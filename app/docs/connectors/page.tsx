@@ -59,7 +59,7 @@ export default function ConnectorsOverviewPage() {
                   <Link
                     key={c.provider}
                     href={`/docs/connectors/${c.provider}`}
-                    className="group flex items-start gap-3 rounded-card border border-navy-800/12 bg-white p-4 transition hover:-translate-y-0.5 hover:shadow-lift"
+                    className="group flex items-start gap-3 rounded-card border border-navy-800/12 bg-surface-100 p-4 transition hover:-translate-y-0.5 hover:shadow-lift"
                   >
                     {favicon && (
                       // eslint-disable-next-line @next/next/no-img-element -- tiny external favicon
@@ -68,7 +68,7 @@ export default function ConnectorsOverviewPage() {
                         alt=""
                         width={28}
                         height={28}
-                        className="mt-0.5 rounded-md bg-white ring-1 ring-navy-800/10"
+                        className="mt-0.5 rounded-md bg-surface-100 ring-1 ring-navy-800/10"
                       />
                     )}
                     <div className="min-w-0">

@@ -179,7 +179,7 @@ export function LinkedInImportCard({
       )}
 
       {preview && !importing && (
-        <div className="mt-4 rounded-card border border-navy-800/12 bg-white p-4">
+        <div className="mt-4 rounded-card border border-navy-800/12 bg-surface-100 p-4">
           <p className="text-sm font-medium text-navy-800/80">
             Found {preview.prospects.length}{" "}
             {preview.prospects.length === 1 ? "person" : "people"} to import

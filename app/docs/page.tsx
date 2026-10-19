@@ -60,7 +60,7 @@ export default function DocsHome() {
           <Link
             key={c.href}
             href={c.href}
-            className="group rounded-card border border-navy-800/12 bg-white p-5 transition hover:-translate-y-0.5 hover:shadow-lift"
+            className="group rounded-card border border-navy-800/12 bg-surface-100 p-5 transition hover:-translate-y-0.5 hover:shadow-lift"
           >
             <h3 className="font-display text-lg font-semibold text-navy-900 group-hover:text-mint-700">
               {c.title}

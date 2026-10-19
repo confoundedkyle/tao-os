@@ -89,7 +89,7 @@ function HowItWorks() {
       {steps.map((s) => (
         <li
           key={s.n}
-          className="rounded-card border border-navy-800/10 bg-white p-4"
+          className="rounded-card border border-navy-800/10 bg-surface-100 p-4"
         >
           <span className="mb-2 flex h-6 w-6 items-center justify-center rounded-full bg-mint-400/25 text-xs font-bold text-mint-700">
             {s.n}

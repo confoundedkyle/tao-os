@@ -82,7 +82,7 @@ function DocCategorySection({
 
   return (
     <div
-      className={`flex flex-col rounded-card border bg-white p-4 transition ${
+      className={`flex flex-col rounded-card border bg-surface-100 p-4 transition ${
         !filled && required
           ? "border-amber-400/30"
           : "border-navy-800/12"

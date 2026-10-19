@@ -55,7 +55,7 @@ export function Card({
   return (
     <div
       className={cx(
-        "rounded-card border bg-white p-6 transition duration-150 ease-out",
+        "rounded-card border bg-surface-100 p-6 transition duration-150 ease-out",
         featured ? "border-mint-400/60 shadow-lift" : "border-navy-800/12",
         className,
       )}
@@ -167,7 +167,7 @@ export function EmptyState({
 }
 
 export const inputClass =
-  "w-full rounded-chip border border-navy-800/20 bg-white px-3.5 py-2.5 text-navy-800 outline-none transition focus:border-mint-700 placeholder:text-navy-800/35";
+  "w-full rounded-chip border border-navy-800/20 bg-surface-100 px-3.5 py-2.5 text-navy-800 outline-none transition focus:border-mint-700 placeholder:text-navy-800/35";
 
 export function Field({
   label,

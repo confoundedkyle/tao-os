@@ -87,7 +87,7 @@ export function FileDrop({
         className={`flex flex-col items-center justify-center gap-1 rounded-card border-2 border-dashed px-4 py-6 text-center transition ${
           over
             ? "border-sky-300 bg-sky-300/20"
-            : "border-navy-800/20 bg-white"
+            : "border-navy-800/20 bg-surface-100"
         }`}
       >
         {file ? (

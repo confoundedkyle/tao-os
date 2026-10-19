@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ModuleKey, Session } from "@/lib/types";
-import { IconAiSpark } from "./icons";
+import { TaoBrand } from "./tao-brand";
 import { AccountControls } from "./account-controls";
 import { PoweredBy } from "./powered-by";
 import { MobileNav } from "./mobile-nav";
@@ -27,10 +27,7 @@ export function AppTopbar({
         href="/"
         className="flex items-center gap-2 text-mint-700 lg:hidden"
       >
-        <IconAiSpark size={20} />
-        <span className="font-display text-base font-bold text-navy-900">
-          TAO OS
-        </span>
+        <TaoBrand />
       </Link>
 
       <div className="hidden w-auto items-center gap-3 lg:flex">
@@ -38,7 +35,7 @@ export function AppTopbar({
         {isAdmin && (
           <Link
             href="/admin"
-            className="flex-shrink-0 whitespace-nowrap rounded-full border border-navy-800/20 bg-navy-800 px-3 py-1 text-xs font-semibold text-white transition hover:bg-navy-900"
+            className="flex-shrink-0 whitespace-nowrap rounded-full border border-navy-800/20 bg-surface-200 px-3 py-1 text-xs font-semibold text-white transition hover:bg-surface-300"
           >
             Admin
           </Link>

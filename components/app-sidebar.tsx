@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ModuleKey } from "@/lib/types";
-import { IconAiSpark } from "./icons";
+import { TaoBrand } from "./tao-brand";
 import { SidebarNav, type ClientWithProjects } from "./sidebar-nav";
 
 /** Desktop-only navigation rail; on mobile the same nav lives in MobileNav. */
@@ -17,10 +17,7 @@ export function AppSidebar({
     <aside className="hidden h-full w-56 flex-shrink-0 flex-col border-r border-navy-800/10 bg-cream-50 lg:flex">
       <div className="flex-shrink-0 px-4 py-4">
         <Link href="/" className="flex items-center gap-2 text-mint-700">
-          <IconAiSpark size={20} />
-          <span className="font-display text-base font-bold text-navy-900">
-            TAO OS
-          </span>
+          <TaoBrand />
         </Link>
       </div>
 

@@ -356,10 +356,10 @@ export function DocAgentPanel({
               onChange={(e) => setDraft(e.target.value)}
               rows={28}
               autoFocus
-              className="mt-3 block w-full resize-y rounded-card border border-navy-800/15 bg-white px-4 py-3 font-mono text-[13px] leading-relaxed outline-none focus:border-mint-700"
+              className="mt-3 block w-full resize-y rounded-card border border-navy-800/15 bg-surface-100 px-4 py-3 font-mono text-[13px] leading-relaxed outline-none focus:border-mint-700"
             />
           ) : (
-            <div className="prose-calyflow mt-3 max-h-[40rem] overflow-y-auto rounded-card border border-navy-800/12 bg-white p-6">
+            <div className="prose-calyflow mt-3 max-h-[40rem] overflow-y-auto rounded-card border border-navy-800/12 bg-surface-100 p-6">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>{doc.text}</ReactMarkdown>
             </div>
           )}
@@ -432,7 +432,7 @@ export function DocAgentPanel({
                         </ol>
                       </div>
                       {turn.output && (
-                        <div className="prose-calyflow max-h-[24rem] overflow-y-auto rounded-card border border-navy-800/12 bg-white p-5">
+                        <div className="prose-calyflow max-h-[24rem] overflow-y-auto rounded-card border border-navy-800/12 bg-surface-100 p-5">
                           <ReactMarkdown remarkPlugins={[remarkGfm]}>
                             {turn.output}
                           </ReactMarkdown>
@@ -481,7 +481,7 @@ export function DocAgentPanel({
                     rows={3}
                     disabled={running || archived}
                     placeholder={config.askPlaceholder}
-                    className="block w-full resize-y rounded-card border border-navy-800/15 bg-white px-4 py-3 text-sm leading-relaxed outline-none focus:border-mint-700 placeholder:text-navy-800/35"
+                    className="block w-full resize-y rounded-card border border-navy-800/15 bg-surface-100 px-4 py-3 text-sm leading-relaxed outline-none focus:border-mint-700 placeholder:text-navy-800/35"
                   />
                   <div className="mt-2 flex items-center justify-between gap-3">
                     <span className="font-mono text-[11px] text-navy-800/40">

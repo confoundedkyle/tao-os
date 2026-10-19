@@ -111,7 +111,7 @@ export function ConnectorsGrid({
         {visible.map((connector) => (
           <div
             key={connector.name}
-            className="flex flex-col rounded-card border border-navy-800/12 bg-white p-5"
+            className="flex flex-col rounded-card border border-navy-800/12 bg-surface-100 p-5"
           >
             <div className="mb-2 flex items-start justify-between gap-3">
               <div className="flex min-w-0 items-center gap-2.5">
@@ -176,7 +176,7 @@ function ConnectorLogo({
       width={28}
       height={28}
       onError={() => setFailed(true)}
-      className="h-7 w-7 flex-shrink-0 rounded-md bg-white object-contain ring-1 ring-navy-800/10"
+      className="h-7 w-7 flex-shrink-0 rounded-md bg-surface-100 object-contain ring-1 ring-navy-800/10"
     />
   );
 }
@@ -387,7 +387,7 @@ function OAuthAppConnect({
           disabled={pendingSave}
           placeholder="Client ID"
           onChange={(e) => setClientId(e.target.value)}
-          className="rounded-chip border border-navy-800/20 bg-white px-3 py-1.5 text-sm outline-none focus:border-mint-700"
+          className="rounded-chip border border-navy-800/20 bg-surface-100 px-3 py-1.5 text-sm outline-none focus:border-mint-700"
         />
         <input
           type="password"
@@ -395,7 +395,7 @@ function OAuthAppConnect({
           disabled={pendingSave}
           placeholder="Client Secret (optional)"
           onChange={(e) => setClientSecret(e.target.value)}
-          className="rounded-chip border border-navy-800/20 bg-white px-3 py-1.5 text-sm outline-none focus:border-mint-700"
+          className="rounded-chip border border-navy-800/20 bg-surface-100 px-3 py-1.5 text-sm outline-none focus:border-mint-700"
         />
         <div className="flex items-center gap-2">
           <button
@@ -480,7 +480,7 @@ function ApiKeyConnect({
           disabled={pending}
           placeholder={placeholder ?? "Paste API key"}
           onChange={(e) => setKey(e.target.value)}
-          className="min-w-44 flex-1 rounded-chip border border-navy-800/20 bg-white px-3 py-1.5 text-sm outline-none focus:border-mint-700"
+          className="min-w-44 flex-1 rounded-chip border border-navy-800/20 bg-surface-100 px-3 py-1.5 text-sm outline-none focus:border-mint-700"
         />
         <button
           type="button"

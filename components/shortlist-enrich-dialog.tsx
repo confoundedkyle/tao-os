@@ -126,7 +126,7 @@ export function ShortlistEnrichDialog({
         aria-modal="true"
         aria-label="Find candidate emails"
         onClick={(e) => e.stopPropagation()}
-        className="flex max-h-[88vh] w-full max-w-2xl flex-col overflow-hidden rounded-panel border border-navy-800/12 bg-white shadow-lift"
+        className="flex max-h-[88vh] w-full max-w-2xl flex-col overflow-hidden rounded-panel border border-navy-800/12 bg-surface-100 shadow-lift"
       >
         <div className="flex items-center justify-between gap-3 border-b border-navy-800/8 px-6 py-4">
           <div className="min-w-0">
@@ -218,7 +218,7 @@ export function ShortlistEnrichDialog({
           {/* Step 1 — download */}
           <section>
             <h4 className="mb-1.5 flex items-center gap-2 text-sm font-semibold text-navy-800/80">
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-navy-800 text-xs font-bold text-white">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-surface-200 text-xs font-bold text-white">
                 1
               </span>
               Download the list
@@ -261,7 +261,7 @@ export function ShortlistEnrichDialog({
           {/* Step 2 — import */}
           <section>
             <h4 className="mb-1.5 flex items-center gap-2 text-sm font-semibold text-navy-800/80">
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-navy-800 text-xs font-bold text-white">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-surface-200 text-xs font-bold text-white">
                 2
               </span>
               Import the enriched file

@@ -422,7 +422,7 @@ export function RunPanel({
               onDragOver={onDragOver}
               onDragLeave={onDragLeave}
               onDrop={onDrop}
-              className="relative rounded-card border-[1.5px] border-navy-800/15 bg-white shadow-[0_4px_18px_rgba(19,31,56,0.07)] transition focus-within:border-mint-700"
+              className="relative rounded-card border-[1.5px] border-navy-800/15 bg-surface-100 shadow-[0_4px_18px_rgba(19,31,56,0.07)] transition focus-within:border-mint-700"
             >
               {dragOver && (
                 <div className="pointer-events-none absolute inset-1.5 z-20 flex flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-sky-300 bg-sky-300/25 text-center backdrop-blur-[1px]">
@@ -556,7 +556,7 @@ export function RunPanel({
             aria-modal="true"
             aria-label="Prompt preview"
             onClick={(e) => e.stopPropagation()}
-            className="flex max-h-[85vh] w-full max-w-3xl flex-col overflow-hidden rounded-panel border border-navy-800/12 bg-white shadow-lift"
+            className="flex max-h-[85vh] w-full max-w-3xl flex-col overflow-hidden rounded-panel border border-navy-800/12 bg-surface-100 shadow-lift"
           >
             <div className="flex items-center justify-between gap-3 border-b border-navy-800/8 px-5 py-3.5">
               <div>
@@ -676,7 +676,7 @@ function WorkflowSelector({
         value={value}
         disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-chip border border-navy-800/20 bg-white px-3.5 py-2.5 outline-none focus:border-mint-700"
+        className="w-full rounded-chip border border-navy-800/20 bg-surface-100 px-3.5 py-2.5 outline-none focus:border-mint-700"
       >
         {workflows.map((w) => (
           <option key={w.id} value={w.id}>
@@ -710,7 +710,7 @@ function RunOutput({
         <>
           <div
             ref={outputRef}
-            className="prose-calyflow mt-5 max-h-130 overflow-y-auto rounded-card border border-navy-800/12 bg-white p-6"
+            className="prose-calyflow mt-5 max-h-130 overflow-y-auto rounded-card border border-navy-800/12 bg-surface-100 p-6"
           >
             {running && (
               <div

@@ -71,7 +71,7 @@ export default async function ClientsPage() {
               <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-navy-800/40">
                 Archived
               </h2>
-              <ul className="divide-y divide-navy-800/8 rounded-card border border-navy-800/10 bg-white/50 px-4">
+              <ul className="divide-y divide-navy-800/8 rounded-card border border-navy-800/10 bg-surface-100/50 px-4">
                 {archived.map((client) => (
                   <li
                     key={client.id}

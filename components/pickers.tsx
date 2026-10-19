@@ -12,7 +12,7 @@ import { inputClass } from "@/components/ui";
 
 const labelClass = "mb-1.5 block text-sm font-semibold text-navy-800/80";
 const panelClass =
-  "absolute z-30 mt-1 max-h-72 w-full min-w-[16rem] overflow-hidden rounded-card border border-navy-800/15 bg-white shadow-lift";
+  "absolute z-30 mt-1 max-h-72 w-full min-w-[16rem] overflow-hidden rounded-card border border-navy-800/15 bg-surface-100 shadow-lift";
 const optionClass =
   "flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-mint-400/15";
 

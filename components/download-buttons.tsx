@@ -124,7 +124,7 @@ export function DownloadButtons({
   }
 
   const btnClass =
-    "rounded-chip border border-navy-800/15 bg-white px-3.5 py-1.5 text-xs font-semibold text-navy-800/75 shadow-sm transition hover:border-mint-700 hover:bg-mint-400/10 hover:text-mint-700 disabled:opacity-40";
+    "rounded-chip border border-navy-800/15 bg-surface-100 px-3.5 py-1.5 text-xs font-semibold text-navy-800/75 shadow-sm transition hover:border-mint-700 hover:bg-mint-400/10 hover:text-mint-700 disabled:opacity-40";
 
   return (
     <div className="flex items-center gap-2">

@@ -195,7 +195,7 @@ export function OutreachPanel({
       )}
 
       {/* Controls */}
-      <div className="rounded-panel border border-navy-800/12 bg-white p-5">
+      <div className="rounded-panel border border-navy-800/12 bg-surface-100 p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="text-sm text-navy-800/60">
             {eligibleCount > 0 ? (
@@ -220,7 +220,7 @@ export function OutreachPanel({
                 <select
                   value={mailbox}
                   onChange={(e) => setMailbox(e.target.value)}
-                  className="rounded-chip border border-navy-800/15 bg-white px-2 py-1 text-sm"
+                  className="rounded-chip border border-navy-800/15 bg-surface-100 px-2 py-1 text-sm"
                 >
                   {mailboxes.map((m) => (
                     <option key={m} value={m}>
@@ -430,7 +430,7 @@ function DraftCard({
 
   return (
     <div
-      className={`rounded-card border bg-white p-4 ${
+      className={`rounded-card border bg-surface-100 p-4 ${
         status === "rejected"
           ? "border-navy-800/10 opacity-70"
           : "border-navy-800/12"
@@ -478,7 +478,7 @@ function DraftCard({
           rows={7}
           placeholder="Email body"
           className={`block w-full resize-y rounded-card border border-navy-800/15 px-3 py-2 text-sm leading-relaxed outline-none focus:border-mint-700 ${
-            readOnly ? "bg-cream-100/50" : "bg-white"
+            readOnly ? "bg-cream-100/50" : "bg-surface-100"
           }`}
         />
       </div>

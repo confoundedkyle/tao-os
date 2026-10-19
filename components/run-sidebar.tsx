@@ -168,7 +168,7 @@ export function RunSidebar({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search…"
-            className="w-full rounded-chip border border-navy-800/15 bg-white px-3 py-1.5 text-sm outline-none transition focus:border-mint-700 placeholder:text-navy-800/35"
+            className="w-full rounded-chip border border-navy-800/15 bg-surface-100 px-3 py-1.5 text-sm outline-none transition focus:border-mint-700 placeholder:text-navy-800/35"
           />
         )}
       </div>
@@ -190,7 +190,7 @@ export function RunSidebar({
                 onDragStart={() => setDragId(item.id)}
                 onDragOver={(e) => onDragOver(e, item.id)}
                 onDragEnd={() => setDragId(null)}
-                className={`flex cursor-grab items-center gap-2 rounded-chip border border-navy-800/10 bg-white px-2.5 py-2 text-sm active:cursor-grabbing ${
+                className={`flex cursor-grab items-center gap-2 rounded-chip border border-navy-800/10 bg-surface-100 px-2.5 py-2 text-sm active:cursor-grabbing ${
                   dragId === item.id ? "opacity-50" : ""
                 }`}
               >

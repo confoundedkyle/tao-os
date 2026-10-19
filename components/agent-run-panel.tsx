@@ -640,7 +640,7 @@ export function AgentRunPanel({
               value={agentId}
               disabled={running}
               onChange={(e) => setAgentId(e.target.value)}
-              className="w-full rounded-chip border border-navy-800/20 bg-white px-3.5 py-2.5 outline-none focus:border-mint-700"
+              className="w-full rounded-chip border border-navy-800/20 bg-surface-100 px-3.5 py-2.5 outline-none focus:border-mint-700"
             >
               {agents.map((a) => (
                 <option key={a.id} value={a.id}>
@@ -662,7 +662,7 @@ export function AgentRunPanel({
                 value={choices[req.category] ?? ""}
                 disabled={running}
                 onChange={(e) => setChoice(req.category, e.target.value)}
-                className="w-full rounded-chip border border-navy-800/20 bg-white px-3.5 py-2.5 outline-none focus:border-mint-700"
+                className="w-full rounded-chip border border-navy-800/20 bg-surface-100 px-3.5 py-2.5 outline-none focus:border-mint-700"
               >
                 {req.options.map((o) => (
                   <option key={o.provider} value={o.provider}>
@@ -866,7 +866,7 @@ export function AgentRunPanel({
               )}
 
               {(turn.output || turn.running) && (
-                <div className="prose-calyflow rounded-card border border-navy-800/12 bg-white p-6">
+                <div className="prose-calyflow rounded-card border border-navy-800/12 bg-surface-100 p-6">
                   {turn.running && !turn.output && (
                     <div
                       role="status"
@@ -918,7 +918,7 @@ export function AgentRunPanel({
       {/* Composer — sticks to the bottom of the viewport so it's always
           reachable without scrolling through a long conversation. The white
           backing matches the card so it blends, and masks scrolled content. */}
-      <div className="sticky bottom-0 z-10 mt-4 bg-white pt-2 shadow-[0_-10px_24px_-6px_rgba(255,255,255,0.95)]">
+      <div className="sticky bottom-0 z-10 mt-4 bg-surface-100 pt-2 shadow-[0_-10px_24px_-6px_rgba(17,17,17,0.95)]">
       <div className="rounded-panel border border-mint-400/40 bg-mint-400/8 p-4">
         <div className="mb-3 flex items-center justify-between">
           <p className="text-xs font-bold uppercase tracking-wider text-mint-700">
@@ -946,7 +946,7 @@ export function AgentRunPanel({
             setDragOver(false);
             if (!running) void addAttachments(e.dataTransfer.files);
           }}
-          className={`relative rounded-card border-[1.5px] bg-white shadow-[0_4px_18px_rgba(19,31,56,0.07)] transition focus-within:border-mint-700 ${
+          className={`relative rounded-card border-[1.5px] bg-surface-100 shadow-[0_4px_18px_rgba(19,31,56,0.07)] transition focus-within:border-mint-700 ${
             dragOver
               ? "border-dashed border-mint-700 ring-2 ring-mint-400/40"
               : "border-navy-800/15"

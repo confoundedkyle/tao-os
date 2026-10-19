@@ -34,7 +34,7 @@ export default function CapabilitiesPage() {
         lead="Agents act through your connected tools. Here's what each unlocks, in plain language — no setup details, just the actions. Connect a tool to give your agents that ability."
       />
 
-      <section className="mt-8 rounded-card border border-navy-800/12 bg-white p-5">
+      <section className="mt-8 rounded-card border border-navy-800/12 bg-surface-100 p-5">
         <h2 className="font-display text-lg font-semibold text-navy-900">
           Built in — no connector needed
         </h2>
@@ -65,7 +65,7 @@ export default function CapabilitiesPage() {
                 return (
                   <div
                     key={c.provider}
-                    className="rounded-card border border-navy-800/12 bg-white p-4"
+                    className="rounded-card border border-navy-800/12 bg-surface-100 p-4"
                   >
                     <div className="mb-1.5 flex items-center gap-2">
                       {favicon && (
@@ -75,7 +75,7 @@ export default function CapabilitiesPage() {
                           alt=""
                           width={20}
                           height={20}
-                          className="rounded bg-white ring-1 ring-navy-800/10"
+                          className="rounded bg-surface-100 ring-1 ring-navy-800/10"
                         />
                       )}
                       <Link

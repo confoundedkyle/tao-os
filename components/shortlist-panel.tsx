@@ -357,7 +357,7 @@ function CandidateRow({
                   onBlur={saveReason}
                   rows={2}
                   placeholder="e.g. Too junior; no payments experience; wrong location."
-                  className="block w-full resize-y rounded-card border border-navy-800/15 bg-white px-3 py-2 text-xs leading-relaxed outline-none focus:border-coral-400/70 placeholder:text-navy-800/30"
+                  className="block w-full resize-y rounded-card border border-navy-800/15 bg-surface-100 px-3 py-2 text-xs leading-relaxed outline-none focus:border-coral-400/70 placeholder:text-navy-800/30"
                 />
               </div>
             )}

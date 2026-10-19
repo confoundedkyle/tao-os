@@ -53,7 +53,7 @@ export function AddClient({
             aria-modal="true"
             aria-label="New client"
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-md rounded-panel border border-navy-800/12 bg-white p-6 shadow-lift"
+            className="w-full max-w-md rounded-panel border border-navy-800/12 bg-surface-100 p-6 shadow-lift"
           >
             <h3 className="text-lg font-semibold">New client</h3>
             <p className="mt-1 text-sm text-navy-800/55">
